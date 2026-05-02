@@ -1,0 +1,82 @@
+{
+  "project_info": {
+    "project_number": "38391014680",
+    "project_id": "alma-diario",
+    "storage_bucket": "alma-diario.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:38391014680:android:aa555e8d89b3baafd8aa6d",
+        "android_client_info": {
+          "package_name": "com.alma.diario"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "38391014680-auiql8so3ntsdd9ul5io5d4nvn9fqtnu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSraorj5srtYCqlQfiieOySF9v9X6bcRU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "38391014680-auiql8so3ntsdd9ul5io5d4nvn9fqtnu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "38391014680-kvscnkcjg264nhndb39366p4k50f6s48.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.alma.diario"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:38391014680:android:eb1a09678882052cd8aa6d",
+        "android_client_info": {
+          "package_name": "com.example.alma_diary"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "38391014680-auiql8so3ntsdd9ul5io5d4nvn9fqtnu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSraorj5srtYCqlQfiieOySF9v9X6bcRU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "38391014680-auiql8so3ntsdd9ul5io5d4nvn9fqtnu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "38391014680-kvscnkcjg264nhndb39366p4k50f6s48.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.alma.diario"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

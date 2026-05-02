@@ -5,6 +5,7 @@ import '../../features/profile/data/profile_repository.dart';
 import 'package:share_plus/share_plus.dart';
 import "package:alma_diary/features/auth/auth_controller.dart";
 import "package:alma_diary/features/profile/controller/profile_controller.dart";
+import "package:alma_diary/features/notifications/controller/notifications_settings_controller.dart";
 
 class SettingsPage extends StatefulWidget {
 
@@ -12,18 +13,24 @@ class SettingsPage extends StatefulWidget {
 
   const SettingsPage({super.key, required this.controller});
 
+
+
   @override
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
 class _SettingsPageState extends State<SettingsPage> {
   late final ProfileController _profileController;
+  
+  late final NotificationSettingsController _notificationSettings;
+
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _profileController = ProfileController(ProfileRepository());
+    _notificationSettings =  NotificationSettingsController();
     _loadProfile();
   }
 
@@ -45,6 +52,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    //todo:  Fix with proper controller
+    final userId = SupabaseService.instance.currentUser?.id;
 
     final colorScheme = Theme.of(context).colorScheme;
     final onSurface = colorScheme.onSurface;
@@ -103,7 +112,18 @@ class _SettingsPageState extends State<SettingsPage> {
 
             const SizedBox(height: 16),
           ],
-
+          //TODO: FIX BUTTON
+          SwitchListTile(
+            title: const Text("Recordatorio diario"),
+            value: _notificationSettings.dailyReminderEnabled,
+            onChanged: (value) async {
+              await _notificationSettings.setDailyReminder(
+                //Fix this block
+                userId: userId??"",
+                enabled: value,
+              );
+            },
+          ),
           Card(
             color: Theme.of(context).cardColor,
             child: ListTile(

@@ -1,28 +1,37 @@
+import 'package:alma_diary/core/logging/log_service.dart';
 import 'package:alma_diary/features/profile/controller/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:alma_diary/services/supabase_service.dart';
 import 'package:alma_diary/features/profile/data/profile_repository.dart';
 import 'package:alma_diary/features/notifications/controller/notifications_controller.dart';
-import 'alma_theme.dart';
 import 'package:alma_diary/features/readings/alma_readings.dart';
 import 'package:alma_diary/features/reflections/alma_reflections.dart';
 import 'package:alma_diary/features/reflections/alma_trajectory.dart';
 import 'package:alma_diary/features/ai/challenges/alma_challenges.dart';
 import 'package:alma_diary/features/ai/quotes/alma_quotes.dart';
 import 'dashboard_card.dart';
+import "package:firebase_messaging/firebase_messaging.dart";
+import "package:firebase_core/firebase_core.dart";
+import "package:alma_diary/firebase_options.dart";
 
 class DashboardHome extends StatefulWidget {
   final String userId;
   final String archetype;
   final List<String> painNodes;
   final Map<String, dynamic>? profile;
-
+  final VoidCallback? onRouteConsumed;
+  final ValueChanged<int>? onNavigateToTab;
+  final routeEvent;
+  
   const DashboardHome({
     super.key,
     required this.userId,
     required this.archetype,
     required this.painNodes,
-    required this.profile
+    required this.profile,
+    this.onRouteConsumed,
+    this.routeEvent,
+    this.onNavigateToTab
   });
 
   @override
@@ -42,13 +51,44 @@ class _DashboardHomeState extends State<DashboardHome> {
     return 'Buenas noches';
   }
 
-  @override
+@override
   void initState() {
     super.initState();
 
     _profileController = ProfileController(ProfileRepository());
 
     _initializeProfile();
+  }
+
+
+@override
+void didUpdateWidget(covariant DashboardHome oldWidget) {
+  super.didUpdateWidget(oldWidget);
+
+  if (widget.routeEvent != null &&
+      widget.routeEvent != oldWidget.routeEvent) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handleDeepLink(widget.routeEvent!);
+
+      // IMPORTANTÍSIMO: limpiar en el siguiente frame
+      widget.onRouteConsumed?.call();
+    });
+  }
+}
+
+
+  void _handleDeepLink(String route) {
+    debugPrint('Deep link to: $route');
+
+    switch (route) {
+      case '/challenges':
+        widget.onNavigateToTab?.call(1);
+        break;
+
+      case '/trajectory':
+        widget.onNavigateToTab?.call(1);
+        break;
+    }
   }
 
   Future<void> _initializeProfile() async {
@@ -72,7 +112,7 @@ class _DashboardHomeState extends State<DashboardHome> {
     _generateDailyQuoteOnce();
   }
 
-/// Get user name from ProfileController (single source of truth)
+  /// Get user name from ProfileController (single source of truth)
   /// This ensures consistent name display across both Google Auth and Email/Password
   String _getUserName() {
     // ProfileController.displayName already handles fallback chain:
@@ -120,7 +160,7 @@ Future<void> _generateDailyQuoteOnce() async {
                     ),
                     child: Icon(
                       Icons.shield_moon,
-                      color: AlmaTheme.accent,
+                      color: Theme.of(context).colorScheme.primary,
                       size: 28,
                     ),
                   ),
@@ -238,6 +278,7 @@ Future<void> _generateDailyQuoteOnce() async {
                       );
                     },
                   ),
+
                 ],
               ),
             ],

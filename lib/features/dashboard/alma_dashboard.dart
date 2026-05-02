@@ -8,6 +8,8 @@ import 'package:alma_diary/features/profile/profile_page.dart';
 import 'package:alma_diary/features/dashboard/dashboard_home.dart';
 import 'package:alma_diary/services/supabase_service.dart';
 import 'package:alma_diary/features/notifications/controller/notifications_controller.dart';
+import 'package:alma_diary/core/navigation/alma_navigation_router.dart';
+import "package:alma_diary/services/fcm_listener_service.dart";
 
 class AlmaDashboard extends StatefulWidget {
   const AlmaDashboard({super.key, required this.profile});
@@ -32,7 +34,37 @@ class _AlmaDashboardState extends State<AlmaDashboard> {
   @override
   void initState() {
     super.initState();
+    
     _loadUser();
+
+    _setupRouter();
+  }
+
+  // =====================================================
+  // ROUTER CONNECTION 
+  // =====================================================
+  void _setupRouter() {
+    AlmaNavigationRouter.onRoute = (route) {
+      if (!mounted) return;
+
+      switch (route) {
+        case '/challenges':
+          setState(() => _currentIndex = 1);
+          break;
+
+        case '/trajectory':
+          setState(() => _currentIndex = 4);
+          break;
+
+        case '/create':
+          setState(() => _currentIndex = 2);
+          break;
+
+        case '/notifications':
+          setState(() => _currentIndex = 3);
+          break;
+      }
+    };
   }
 
   Future<void> _loadUser() async {
@@ -43,6 +75,8 @@ class _AlmaDashboardState extends State<AlmaDashboard> {
       return;
     }
 
+    _userId = user.id;
+
     final profile = await SupabaseService.instance.client
         .from('profiles')
         .select()
@@ -51,16 +85,27 @@ class _AlmaDashboardState extends State<AlmaDashboard> {
 
     if (!mounted) return;
 
-    _userId = user.id;
-
-    // 🔥 init notifications once at app level
-    _notificationController.setUserId(user.id);
-    await _notificationController.load();
-
     setState(() {
       _archetype = profile?['archetype'] ?? 'The Self';
       _painNodes = List<String>.from(profile?['pain_nodes'] ?? []);
-      _loading = false;
+      _loading = false; //  UI YA PUEDE RENDERIZAR
+    });
+
+    //  FASE 2 ASYNC (NO BLOQUEA UI)
+  _initBackgroundServices(user.id);
+}
+
+  void _initBackgroundServices(String userId) {
+    Future.microtask(() async {
+      try {
+        _notificationController.setUserId(userId);
+        await _notificationController.load();
+
+        await FcmService.instance.registerDevice(userId);
+
+      } catch (e) {
+        debugPrint(" background init failed: $e");
+      }
     });
   }
 
@@ -73,18 +118,31 @@ class _AlmaDashboardState extends State<AlmaDashboard> {
         archetype: _archetype,
         painNodes: _painNodes,
         profile: widget.profile,
+        onNavigateToTab: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
       ),
-      SearchPage(
-        passphrase: passphrase,
-      ),
+
+      SearchPage(passphrase: passphrase),
+
       const CreatePage(),
-      const NotificationsPage(),
+
+      NotificationsPage(),
+
       const ProfilePage(),
     ];
   }
 
   void _onTab(int index) {
     setState(() => _currentIndex = index);
+  }
+
+  @override
+  void dispose() {
+    AlmaNavigationRouter.onRoute = null;
+    super.dispose();
   }
 
   @override

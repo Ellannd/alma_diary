@@ -7,14 +7,17 @@ import 'package:alma_diary/features/journal/create_page.dart';
 import 'package:alma_diary/features/reflections/alma_trajectory.dart';
 
 class NotificationsPage extends StatefulWidget {
-  const NotificationsPage({super.key});
+  final Function(String route)? onNavigate;
 
+  const NotificationsPage({super.key, this.onNavigate});
+  
   @override
   State<NotificationsPage> createState() => _NotificationsPageState();
 }
 
 class _NotificationsPageState extends State<NotificationsPage> {
   final _controller = NotificationController.instance;
+  
 
   @override
   void initState() {
@@ -76,28 +79,21 @@ class _NotificationsPageState extends State<NotificationsPage> {
         return Icons.notifications;
     }
   }
-
   void _handleAction(AlmaNotification n) {
-    if (n.actionRoute != null) {
-      Navigator.of(context).pushNamed(n.actionRoute!);
+    final route = n.actionRoute;
+
+    if (route != null) {
+      _handleRoute(route);
       return;
     }
 
     switch (n.action) {
       case 'Escribir ahora':
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const CreatePage()),
-        );
+        _handleRoute('/create');
         break;
 
       case 'Revisar trayectoria':
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const AlmaTrajectoryScreen(
-              passphrase: 'alma_biometric_pass',
-            ),
-          ),
-        );
+        _handleRoute('/trajectory');
         break;
 
       default:
@@ -105,6 +101,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
           SnackBar(content: Text(n.action)),
         );
     }
+  }
+
+  void _handleRoute(String route) {
+    widget.onNavigate?.call(route);
   }
 
   @override

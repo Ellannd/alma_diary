@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'features/dashboard/alma_theme.dart';
 import 'features/auth/auth_gate.dart';
 import 'features/journal/alma_journal.dart';
-import 'features/dashboard/alma_dashboard.dart';
 import 'features/profile/profile_page.dart';
 import 'core/logging/log_service.dart';
 import 'services/supabase_service.dart';
@@ -36,8 +38,26 @@ Future<void> main() async {
   ErrorHandlers.runAppGuarded(const MyApp());
 }
 
+Future<void> initFirebase() async {
+  try{
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,);
+    LogService.instance.info("Inicializando Firebase...");
+  }
+  catch(e){
+    LogService.instance.error("Error al inicializar Firebase: $e");
+  }
+}
+
 Future<void> _bootstrapServices() async {
-  LogService.instance.info('Iniciando Alma Diary...');
+  LogService.instance.info('Iniciando Bootstrap services...');
+
+  try{
+    await initFirebase();
+      LogService.instance.info('Firebase inicializado');
+  } catch (e) {
+    LogService.instance.error('Error inicializando Firebase', error: e);}
+
 
   EncryptionService.instance.initialize();
   

@@ -137,6 +137,7 @@ class NotificationController extends ChangeNotifier {
       final results = await Future.wait<ValidationResult>([
         _engine.generateDailyQuote(userId),
         _engine.trackLoginEvent(userId),
+        _engine.generateDailyReminder(userId),
       ]);
 
       for (final r in results) {
@@ -323,5 +324,49 @@ class NotificationController extends ChangeNotifier {
       'NotificationController state reset complete',
       context: {'component': 'NotificationController'},
     );
+  }
+
+  Future<void> handleChallengeEventDevice(
+    String userId,
+    String title, {
+    String eventType = 'started',
+    int points = 0,
+  }) async {
+    try {
+      if (eventType == 'started') {
+        await _engine.notifyChallengeStarted(
+          userId: userId,
+          challengeTitle: title,
+        );
+
+        await _engine.sendPush(
+          userId: userId,
+          title: 'Nuevo desafío iniciado',
+          body: title,
+        );
+      }
+
+      if (eventType == 'completed') {
+        await _engine.notifyChallengeCompleted(
+          userId: userId,
+          challengeTitle: title,
+          rewardPoints: points,
+        );
+
+        await _engine.sendPush(
+          userId: userId,
+          title: 'Desafío completado 🎉',
+          body: '$title (+$points pts)',
+        );
+      }
+
+      await load();
+    } catch (e, st) {
+      LogService.instance.error(
+        'push+notification failed',
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 }

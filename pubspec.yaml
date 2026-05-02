@@ -50,6 +50,9 @@ dependencies:
   connectivity_plus: ^6.1.4
   share_plus: ^10.1.4
   google_sign_in_web: ^0.12.4+4
+  firebase_core: any
+  firebase_messaging: any
+  flutter_local_notifications: ^17.2.2
 
 
   url_launcher: any

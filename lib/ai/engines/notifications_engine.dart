@@ -24,7 +24,7 @@ class AlmaNotificationEngine {
           .eq('type', 'daily_quote')
           .gte('created_at', today.toIso8601String());
 
-      if (existing.isNotEmpty) {
+      if ((existing as List).isNotEmpty) {
         return ValidationResult.fail('Daily quote already exists');
       }
 
@@ -53,7 +53,7 @@ class AlmaNotificationEngine {
 
       return ValidationResult.ok();
     } catch (e) {
-      return ValidationResult.fail('Error generating daily quote: $e');
+      return ValidationResult.fail('generateDailyQuote error: $e');
     }
   }
 
@@ -79,7 +79,7 @@ class AlmaNotificationEngine {
 
       return ValidationResult.ok();
     } catch (e) {
-      return ValidationResult.fail('Error notifying challenge started: $e');
+      return ValidationResult.fail('notifyChallengeStarted error: $e');
     }
   }
 
@@ -106,7 +106,7 @@ class AlmaNotificationEngine {
 
       return ValidationResult.ok();
     } catch (e) {
-      return ValidationResult.fail('Error notifying challenge completed: $e');
+      return ValidationResult.fail('notifyChallengeCompleted error: $e');
     }
   }
 
@@ -133,7 +133,7 @@ class AlmaNotificationEngine {
 
       return ValidationResult.ok();
     } catch (e) {
-      return ValidationResult.fail('Error notifying insight: $e');
+      return ValidationResult.fail('notifyInsight error: $e');
     }
   }
 
@@ -149,7 +149,7 @@ class AlmaNotificationEngine {
 
       return ValidationResult.ok();
     } catch (e) {
-      return ValidationResult.fail('Error marking as read: $e');
+      return ValidationResult.fail('markAsRead error: $e');
     }
   }
 
@@ -167,9 +167,11 @@ class AlmaNotificationEngine {
   }
 
   // =====================================================
-  // 7. GET USER NOTIFICATIONS
+  // 7. FETCH NOTIFICATIONS
   // =====================================================
-  Future<List<Map<String, dynamic>>> fetchUserNotifications(String userId) async {
+  Future<List<Map<String, dynamic>>> fetchUserNotifications(
+    String userId,
+  ) async {
     final response = await _client
         .from('notifications')
         .select()
@@ -193,22 +195,84 @@ class AlmaNotificationEngine {
 
       return ValidationResult.ok();
     } catch (e) {
-      return ValidationResult.fail('Error tracking login: $e');
+      return ValidationResult.fail('trackLoginEvent error: $e');
     }
   }
 
   Future<ValidationResult> trackOnboardingEvent(String userId) async {
+      try {
+        await _client.from('events').insert({
+          'user_id': userId,
+          'type': 'onboarding',
+          'event': 'completed',
+          'created_at': DateTime.now().toIso8601String(),
+        });
+
+        return ValidationResult.ok();
+      } catch (e) {
+        return ValidationResult.fail('trackOnboardingEvent error: $e');
+      }
+    }
+
+    Future<ValidationResult> generateDailyReminder(String userId) async {
     try {
-      await _client.from('events').insert({
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+
+      final settings = await _client
+          .from('notification_settings')
+          .select()
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      final enabled = settings?['daily_reminder_enabled'] as bool? ?? false;
+
+      if (!enabled) {
+        return ValidationResult.fail('Daily reminder disabled');
+      }
+
+      final existing = await _client
+          .from('notifications')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('type', 'daily_reminder')
+          .gte('created_at', today.toIso8601String());
+
+      if (existing.isNotEmpty) {
+        return ValidationResult.fail('Already exists today');
+      }
+
+      await _client.from('notifications').insert({
         'user_id': userId,
-        'type': 'onboarding',
-        'event': 'completed',
+        'type': 'daily_reminder',
+        'title': 'Tu momento contigo',
+        'subtitle': 'Escribe tu entrada de hoy',
+        'icon': 'schedule',
+        'color': 'purple',
+        'action': 'Escribir ahora',
+        'action_route': '/create',
+        'is_read': false,
         'created_at': DateTime.now().toIso8601String(),
       });
 
       return ValidationResult.ok();
     } catch (e) {
-      return ValidationResult.fail('Error tracking onboarding: $e');
+      return ValidationResult.fail('Error generating reminder: $e');
     }
+  }
+
+  Future<void> sendPush({
+    required String userId,
+    required String title,
+    required String body,
+  }) async {
+    await _client.functions.invoke(
+      'send_push',
+      body: {
+        'userId': userId,
+        'title': title,
+        'body': body,
+      },
+    );
   }
 }
