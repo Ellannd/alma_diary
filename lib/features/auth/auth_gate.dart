@@ -72,7 +72,7 @@ class _ProfileGateState extends State<_ProfileGate> {
     
     _orchestrator = AuthOrchestrator(
     ProfileController(ProfileRepository()),
-    NotificationController(Supabase.instance.client),
+NotificationController. instance,
   );
 
     _authController = AuthController(AuthRepository());
@@ -156,7 +156,7 @@ class _ProfileGateState extends State<_ProfileGate> {
       );
     }
 
-    return const AlmaDashboard();
+    return AlmaDashboard(profile: _profile);
   }
 }
 

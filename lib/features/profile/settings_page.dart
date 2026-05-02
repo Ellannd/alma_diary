@@ -45,11 +45,14 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = SupabaseService.instance.currentUser;
 
     final colorScheme = Theme.of(context).colorScheme;
     final onSurface = colorScheme.onSurface;
     final primary = colorScheme.primary;
+
+    final name = _profileController.displayName;
+    final email = _profileController.email;
+    final avatar = _profileController.avatarUrl;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -63,22 +66,20 @@ class _SettingsPageState extends State<SettingsPage> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          if (user != null && !_isLoading) ...[
-            Card(
-              color: Theme.of(context).cardColor,
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: primary,
-                  backgroundImage: user.userMetadata?['avatar_url'] != null
-                      ? NetworkImage(
-                          user.userMetadata!['avatar_url'] as String,
-                        )
+          if (!_isLoading) ...[
+              Card(
+                color: Theme.of(context).cardColor,
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: primary,
+                      backgroundImage: avatar != null
+                      ? NetworkImage(avatar)
                       : null,
-                  child: user.userMetadata?['avatar_url'] == null
-                      ? Text(
-                          (_profileController.displayName.isNotEmpty 
-                              ? _profileController.displayName[0] 
-                              : 'U').toUpperCase(),
+                          child: avatar == null
+                  ? Text(
+                      name.isNotEmpty
+                          ? name[0].toUpperCase()
+                          : 'U',
                           style: TextStyle(
                             color: colorScheme.onPrimary,
                           ),
@@ -92,7 +93,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
 
                 subtitle: Text(
-                  user.email ?? '',
+                  email,
                   style: TextStyle(
                     color: onSurface.withValues(alpha: .6),
                   ),
@@ -149,7 +150,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
           const SizedBox(height: 24),
 
-          if (user != null)
+          if (_profileController.isAuthenticated)
             Card(
               color: Theme.of(context).cardColor,
               child: ListTile(

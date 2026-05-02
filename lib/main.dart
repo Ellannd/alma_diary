@@ -16,6 +16,7 @@ import 'core/config/app_environment.dart';
 import 'core/navigation/app_navigator_observer.dart';
 import 'core/logging/log_context.dart';
 import 'core/logging/crash/crash_reporter.dart';
+import "package:flutter_dotenv/flutter_dotenv.dart";
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +26,8 @@ Future<void> main() async {
   await LogService.instance.init();
 
   ErrorHandlers.init();
+
+  await dotenv.load(fileName: ".env");
 
   await _bootstrapServices();
 
@@ -81,7 +84,6 @@ class MyApp extends StatelessWidget {
           routes: {
             '/': (context) => const AuthGate(),
             '/journal': (context) => const AlmaJournal(),
-            '/home': (context) => const AlmaDashboard(),
             '/profile': (context) => const ProfilePage(),
           },
 

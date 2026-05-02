@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:alma_diary/ai/engines/readings_engine.dart';
 import 'reading_detail.dart';
+import 'controller/reading_controller.dart';
+import 'data/reading_repository.dart';
 import "package:alma_diary/core/logging/log_service.dart";
 
 class AlmaReadingsScreen extends StatefulWidget {
@@ -8,7 +11,7 @@ class AlmaReadingsScreen extends StatefulWidget {
   const AlmaReadingsScreen({
     super.key,
     required this.passphrase,
-    required userId,
+    required String userId,
   });
 
   @override
@@ -16,13 +19,14 @@ class AlmaReadingsScreen extends StatefulWidget {
 }
 
 class _AlmaReadingsScreenState extends State<AlmaReadingsScreen> {
+  late ReadingController _controller;
   late ReadingsEngine _engine;
   List<ReadingRecommendation> _recs = [];
   bool _loading = true;
-  final Set<String> _saved = {};
   final Set<String> _helped = {};
   Map<String, String>? _personalizedReading;
   bool _generatingPersonalized = false;
+  String? _userId;
 
   Future<void> _generatePersonalizedReading() async {
     if (_generatingPersonalized) return;
@@ -52,37 +56,81 @@ class _AlmaReadingsScreenState extends State<AlmaReadingsScreen> {
   }
 
   Future<void> _savePersonalizedReading() async {
-    // TODO: Save to Supabase saved_readings table
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Guardado en tu biblioteca!')));
-    setState(() => _personalizedReading = null);
+    if (_personalizedReading == null) return;
+    
+    // Generate a temporary ID for personalized reading
+    final readingId = 'personalized_${DateTime.now().millisecondsSinceEpoch}';
+    
+    try {
+      await _controller.toggleSave(readingId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Guardado en tu biblioteca!')));
+      setState(() => _personalizedReading = null);
+    } catch (e, st) {
+      LogService.instance.error(
+        'Error guardando lectura personalizada',
+        error: e,
+        stackTrace: st,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error guardando lectura: $e')));
+    }
   }
 
   @override
   void initState() {
     super.initState();
     _engine = ReadingsEngine(widget.passphrase);
+    _controller = ReadingController(ReadingRepository());
+    
+    // Get userId from Supabase auth
+    _userId = Supabase.instance.client.auth.currentUser?.id;
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadReadings();
+      _init();
     });
   }
 
-  Future<void> _loadReadings() async {
-    setState(() => _loading = true);
+  Future<void> _init() async {
+    if (_userId == null) {
+      LogService.instance.error('User not authenticated');
+      if (!mounted) return;
+      setState(() => _loading = false);
+      return;
+    }
+
+    _controller.setUser(_userId!);
 
     try {
-      LogService.instance.info('readings.load.start');
-
-      final recs = await _engine.getRecommendations();
-
-      LogService.instance.info('readings.load.success: Loaded ${recs.length}');
+      await _controller.load();
+      
       if (!mounted) return;
 
-      setState(() {
-        _recs = recs;
-        _loading = false;
-      });
+      // Convert to ReadingRecommendation format for UI compatibility
+      _recs = _controller.readings.map((item) {
+        final tagsRaw = item['tags'];
+        final List<String> tags = tagsRaw is List
+            ? List<String>.from(tagsRaw)
+            : (tagsRaw is String
+                ? tagsRaw.split(',').map((e) => e.trim()).toList()
+                : []);
+
+        return ReadingRecommendation(
+          idLectura: (item['id'] ?? '').toString(),
+          titulo: (item['title'] ?? 'Sin título').toString(),
+          autor: (item['author'] ?? 'Desconocido').toString(),
+          tag: tags.isNotEmpty ? tags.first : 'general',
+          porqueLeerla: 'Lectura basada en psicología aplicada y análisis emocional.',
+          nivelDeConsciencia: (item['category'] ?? 'básico').toString(),
+          fragmento: (item['content'] ?? '').toString(),
+        );
+      }).toList();
+
+      setState(() => _loading = false);
     } catch (e, st) {
       LogService.instance.error(
         'Error cargando lecturas',
@@ -122,7 +170,7 @@ class _AlmaReadingsScreenState extends State<AlmaReadingsScreen> {
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
-                : _recs.isEmpty
+: _recs.isEmpty
                 ? const Center(child: Text('No hay recomendaciones aún.'))
                 : ListView.separated(
                     padding: const EdgeInsets.all(24),
@@ -130,10 +178,12 @@ class _AlmaReadingsScreenState extends State<AlmaReadingsScreen> {
                     separatorBuilder: (_, _) => const SizedBox(height: 24),
                     itemBuilder: (context, i) => _ReadingCard(
                       rec: _recs[i],
-                      saved: _saved.contains(_recs[i].idLectura),
+                      saved: _controller.isSaved(_recs[i].idLectura),
                       helped: _helped.contains(_recs[i].idLectura),
-                      onSave: () =>
-                          setState(() => _saved.add(_recs[i].idLectura)),
+                      onSave: () async {
+                        await _controller.toggleSave(_recs[i].idLectura);
+                        setState(() {});
+                      },
                       onHelped: () =>
                           setState(() => _helped.add(_recs[i].idLectura)),
                     ),
@@ -429,7 +479,7 @@ class _ReadingCard extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          '"${rec.fragmento}"',
+                          '"${ReadingController(ReadingRepository()).getFormattedText(rec.fragmento)}"',
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.onPrimary,
                             fontStyle: FontStyle.italic,

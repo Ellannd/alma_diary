@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
-import 'package:shared_preferences/shared_preferences.dart';
+import "package:flutter_dotenv/flutter_dotenv.dart";
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:crypto/crypto.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
@@ -88,10 +88,7 @@ class GeminiAnalysisService {
 
   Future<GenerativeModel> _getModel() async {
     if (_model != null) return _model!;
-    final prefs = await SharedPreferences.getInstance();
-    final apiKey =
-        prefs.getString('gemini_api_key') ??
-        'AIzaSyBUNG-9VwOV8S5kZ6CdTDhUfatVmyVu4Ug';
+    final apiKey = dotenv.env['GEMINI_API_KEY']?? '';
 
     for (final modelName in _modelList) {
       try {

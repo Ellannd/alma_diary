@@ -18,17 +18,17 @@ class SupabaseService {
   // =========================
   // INIT
   // =========================
-  static Future<void> init() async {
-    await Supabase.initialize(
-      url: AppConfig.supabaseUrl,
-      anonKey: AppConfig.supabaseAnonKey,
-    );
+   static Future<void> init() async {
+     await Supabase.initialize(
+       url: EnvConfig.supabaseUrl,
+       anonKey: EnvConfig.supabaseAnonKey,
+     );
 
-    _instance = SupabaseService._();
-    _instance!._client = Supabase.instance.client;
+     _instance = SupabaseService._();
+     _instance!._client = Supabase.instance.client;
 
-    LogService.instance.info('supabase.initialized');
-  }
+     LogService.instance.info('supabase.initialized');
+   }
 
   // =========================
   // AUTH STATE STREAM

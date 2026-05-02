@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import "package:alma_diary/services/supabase_service.dart";
-import "package:alma_diary/data/aes_encryption.dart";
 import 'package:alma_diary/features/reflections/alma_reflection_card.dart';
-import "package:alma_diary/core/logging/log_service.dart";
+import 'package:alma_diary/features/reflections/controller/reflection_controller.dart';
 
 class AlmaReflectionsScreen extends StatefulWidget {
   final String passphrase;
@@ -14,66 +12,32 @@ class AlmaReflectionsScreen extends StatefulWidget {
 }
 
 class _AlmaReflectionsScreenState extends State<AlmaReflectionsScreen> {
-  List<Map<String, dynamic>> _entries = [];
-  bool _loading = true;
-
+  late ReflectionController _controller;
+  
   @override
   void initState() {
     super.initState();
+    _controller = ReflectionController();
     _loadEntries();
   }
 
   Future<void> _loadEntries() async {
-    setState(() => _loading = true);
-
     try {
-      final userId = SupabaseService.instance.client.auth.currentUser?.id;
-
-      if (userId == null) {
-        setState(() {
-          _entries = [];
-          _loading = false;
-        });
-        return;
-      }
-
-      final response = await SupabaseService.instance.client
-          .from('journal_entries')
-          .select()
-          .eq('user_id', userId)
-          .order('created_at', ascending: false);
-
-      setState(() {
-        _entries = List<Map<String, dynamic>>.from(response);
-        _loading = false;
-      });
-    } catch (e, st) {
-      LogService.instance.error(
-        'Error cargando entradas',
-        error: e,
-        stackTrace: st,
-      );
-      setState(() {
-        _entries = [];
-        _loading = false;
-      });
-    }
-  }
-
-  String _decryptContent(String encrypted) {
-    if (encrypted.isEmpty) return 'Sin contenido';
-
-    try {
-      return AESEncryption.decryptText(encrypted, widget.passphrase);
+      await _controller.loadEntries();
+      if (!mounted) return;
+      setState(() {});
     } catch (e) {
-      return 'Error al descifrar contenido';
+      if (!mounted) return;
+      setState(() {});
     }
   }
 
   void _showEntryDetail(Map<String, dynamic> entry) {
-    final encrypted = entry['content_encrypted'] ?? '';
-    final decrypted = _decryptContent(encrypted);
-
+    final content = entry['content_decrypted'] ?? entry['content_encrypted'] ?? 'Sin contenido';
+    final reflection = entry['analysis_decrypted'] ?? entry['analysis_encrypted'] ?? '';
+    final archetype = entry['archetype'] ?? 'The Mirror';
+    final sentiment = entry['sentiment'] ?? 'neutral';
+    
     final rawDate = entry['created_at'];
     final date = DateTime.tryParse(rawDate?.toString() ?? '') ?? DateTime.now();
 
@@ -123,7 +87,7 @@ class _AlmaReflectionsScreenState extends State<AlmaReflectionsScreen> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
-                    decrypted,
+                    content,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurface,
                       fontSize: 16,
@@ -133,7 +97,7 @@ class _AlmaReflectionsScreenState extends State<AlmaReflectionsScreen> {
 
                 const SizedBox(height: 24),
 
-                if ((entry['reflexion'] ?? '').toString().isNotEmpty) ...[
+                if (reflection.isNotEmpty) ...[
                   Text(
                     'Reflexión de Alma',
                     style: TextStyle(
@@ -144,9 +108,9 @@ class _AlmaReflectionsScreenState extends State<AlmaReflectionsScreen> {
                   ),
                   const SizedBox(height: 16),
                   AlmaReflectionCard(
-                    reflection: entry['reflexion'],
-                    archetype: entry['archetype'] ?? 'The Mirror',
-                    sentiment: entry['sentiment'] ?? 'neutral',
+                    reflection: reflection,
+                    archetype: archetype,
+                    sentiment: sentiment,
                   ),
                 ] else
                   const Text(
@@ -185,125 +149,168 @@ class _AlmaReflectionsScreenState extends State<AlmaReflectionsScreen> {
         ],
       ),
 
-      body: _loading
+body: _controller.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _entries.isEmpty
+          : _controller.entries.isEmpty
           ? Center(
               child: Text(
-                'No hay entradas de diario aún.',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 16),
+                _controller.error ?? 'No hay entradas de diario aún.',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface, 
+                  fontSize: 16,
+                ),
               ),
             )
           : RefreshIndicator(
               onRefresh: _loadEntries,
               child: ListView.builder(
                 padding: const EdgeInsets.all(8),
-                itemCount: _entries.length,
+                itemCount: _controller.entries.length,
                 itemBuilder: (context, i) {
-                  final entry = _entries[i];
+                  final entry = _controller.entries[i];
 
-                  final encrypted = entry['content_encrypted'] ?? '';
-
-                  final content = _decryptContent(encrypted);
+                  final content = entry['content_decrypted'] ?? entry['content_encrypted'] ?? '';
+                  final archetype = entry['archetype'] ?? '';
+                  final sentiment = entry['sentiment'] ?? '';
 
                   final rawDate = entry['created_at'];
-                  final date =
-                      DateTime.tryParse(rawDate?.toString() ?? '') ??
-                      DateTime.now();
+                  final date = DateTime.tryParse(rawDate?.toString() ?? '') ?? DateTime.now();
 
-                  final sentiment = (entry['sentiment'] ?? '').toString();
-
-                  final archetype = (entry['archetype'] ?? '').toString();
-
-                  return Card(
-                    color: Theme.of(context).cardColor,
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 6,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(20),
-
-                      leading: CircleAvatar(
-                        backgroundColor: Theme.of(context).colorScheme.primary.withValues(
-                          alpha: 0.3,
+                  return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                            Theme.of(context).cardColor,
+                          ],
                         ),
-                        child: Text(
-                          '${date.day}',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-
-                      title: Text(
-                        '${date.day.toString().padLeft(2, '0')}/'
-                        '${date.month.toString().padLeft(2, '0')} '
-                        '${date.hour.toString().padLeft(2, '0')}:'
-                        '${date.minute.toString().padLeft(2, '0')}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 8),
-
-                          if (sentiment.isNotEmpty)
-                            Chip(
-                              label: Text(sentiment),
-                              backgroundColor: Colors.blue.withValues(
-                                alpha: 0.2,
-                              ),
-                              labelStyle: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
-                            ),
-
-                          if (archetype.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 6),
-                              child: Chip(
-                                label: Text(archetype),
-                                backgroundColor: Theme.of(context).colorScheme.secondary.withValues(
-                                  alpha: 0.4,
-                                ),
-                                labelStyle: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface,
-                                ),
-                              ),
-                            ),
-
-                          const SizedBox(height: 8),
-
-                          Text(
-                            content.length > 120
-                                ? '${content.substring(0, 120)}...'
-                                : content,
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurface.withValues(alpha: .7),
-                            ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
                           ),
                         ],
                       ),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(24),
+                        onTap: () => _showEntryDetail(entry),
+                        child: Padding(
+                          padding: const EdgeInsets.all(18),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 📅 HEADER FECHA
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      '${date.day.toString().padLeft(2, '0')}/'
+                                      '${date.month.toString().padLeft(2, '0')}',
+                                      style: TextStyle(
+                                        color: Theme.of(context).colorScheme.onSurface,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Icon(
+                                    Icons.auto_awesome,
+                                    size: 18,
+                                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
+                                  ),
+                                ],
+                              ),
 
-                      trailing: IconButton(
-                        icon: const Icon(Icons.visibility),
-                        onPressed: () => _showEntryDetail(entry),
+                              const SizedBox(height: 12),
+
+                              // 🧠 TAGS (archetype + sentiment)
+                              if (archetype.isNotEmpty || sentiment.isNotEmpty)
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 6,
+                                  children: [
+                                    if (archetype.isNotEmpty)
+                                      _buildTag(context, archetype, Icons.psychology),
+
+                                    if (sentiment.isNotEmpty)
+                                      _buildTag(context, sentiment, Icons.favorite),
+                                  ],
+                                ),
+
+                              const SizedBox(height: 14),
+
+                              // 💬 CONTENIDO
+                              Text(
+                                content.length > 140
+                                    ? '${content.substring(0, 140)}...'
+                                    : content,
+                                style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.8),
+                                  fontSize: 14.5,
+                                  height: 1.4,
+                                ),
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // ➜ INDICADOR DE ACCIÓN
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 14,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  );
+                    );
                 },
               ),
             ),
     );
   }
+
+  Widget _buildTag(BuildContext context, String text, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }

@@ -7,9 +7,11 @@ import 'package:alma_diary/features/notifications/notifications_page.dart';
 import 'package:alma_diary/features/profile/profile_page.dart';
 import 'package:alma_diary/features/dashboard/dashboard_home.dart';
 import 'package:alma_diary/services/supabase_service.dart';
+import 'package:alma_diary/features/notifications/controller/notifications_controller.dart';
 
 class AlmaDashboard extends StatefulWidget {
-  const AlmaDashboard({super.key});
+  const AlmaDashboard({super.key, required this.profile});
+  final Map<String, dynamic>? profile;
 
   @override
   State<AlmaDashboard> createState() => _AlmaDashboardState();
@@ -24,6 +26,8 @@ class _AlmaDashboardState extends State<AlmaDashboard> {
   List<String> _painNodes = [];
 
   final String passphrase = 'alma_biometric_pass';
+
+  final _notificationController = NotificationController.instance;
 
   @override
   void initState() {
@@ -47,35 +51,37 @@ class _AlmaDashboardState extends State<AlmaDashboard> {
 
     if (!mounted) return;
 
+    _userId = user.id;
+
+    // 🔥 init notifications once at app level
+    _notificationController.setUserId(user.id);
+    await _notificationController.load();
+
     setState(() {
-      _userId = user.id;
       _archetype = profile?['archetype'] ?? 'The Self';
       _painNodes = List<String>.from(profile?['pain_nodes'] ?? []);
       _loading = false;
     });
   }
 
-List<Widget> get _pages {
-  if (_userId == null) return [];
+  List<Widget> get _pages {
+    if (_userId == null) return [];
 
-  return [
-    DashboardHome(
-      userId: _userId!,
-      archetype: _archetype,
-      painNodes: _painNodes,
-    ),
-
-    SearchPage(
-      passphrase: passphrase,
-    ),
-
-    const CreatePage(),
-
-    const NotificationsPage(),
-
-    const ProfilePage(),
-  ];
-}
+    return [
+      DashboardHome(
+        userId: _userId!,
+        archetype: _archetype,
+        painNodes: _painNodes,
+        profile: widget.profile,
+      ),
+      SearchPage(
+        passphrase: passphrase,
+      ),
+      const CreatePage(),
+      const NotificationsPage(),
+      const ProfilePage(),
+    ];
+  }
 
   void _onTab(int index) {
     setState(() => _currentIndex = index);

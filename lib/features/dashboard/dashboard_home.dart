@@ -2,25 +2,27 @@ import 'package:alma_diary/features/profile/controller/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:alma_diary/services/supabase_service.dart';
 import 'package:alma_diary/features/profile/data/profile_repository.dart';
-import "../../ai/engines/notifications_engine.dart";
+import 'package:alma_diary/features/notifications/controller/notifications_controller.dart';
 import 'alma_theme.dart';
-import '../readings/alma_readings.dart';
-import '../reflections/alma_reflections.dart';
-import '../reflections/alma_trajectory.dart';
-import '../ai/challenges/alma_challenges.dart';
-import '../ai/quotes/alma_quotes.dart';
+import 'package:alma_diary/features/readings/alma_readings.dart';
+import 'package:alma_diary/features/reflections/alma_reflections.dart';
+import 'package:alma_diary/features/reflections/alma_trajectory.dart';
+import 'package:alma_diary/features/ai/challenges/alma_challenges.dart';
+import 'package:alma_diary/features/ai/quotes/alma_quotes.dart';
 import 'dashboard_card.dart';
 
 class DashboardHome extends StatefulWidget {
   final String userId;
   final String archetype;
   final List<String> painNodes;
+  final Map<String, dynamic>? profile;
 
   const DashboardHome({
     super.key,
     required this.userId,
     required this.archetype,
     required this.painNodes,
+    required this.profile
   });
 
   @override
@@ -29,7 +31,9 @@ class DashboardHome extends StatefulWidget {
 
 class _DashboardHomeState extends State<DashboardHome> {
   bool _quoteGenerated = false;
+  bool _profileLoaded = false;
   late final ProfileController _profileController;
+
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
@@ -58,20 +62,32 @@ class _DashboardHomeState extends State<DashboardHome> {
       user: user,
     );
 
+    // Trigger rebuild to display loaded user name
+    if (mounted) {
+      setState(() {
+        _profileLoaded = true;
+      });
+    }
+
     _generateDailyQuoteOnce();
   }
 
-  Future<void> _generateDailyQuoteOnce() async {
+/// Get user name from ProfileController (single source of truth)
+  /// This ensures consistent name display across both Google Auth and Email/Password
+  String _getUserName() {
+    // ProfileController.displayName already handles fallback chain:
+    // profile.full_name -> user.userMetadata['name'] -> email -> 'Usuario'
+    return _profileController.displayName;
+  }
+
+Future<void> _generateDailyQuoteOnce() async {
     if (_quoteGenerated) return;
 
     final user = SupabaseService.instance.client.auth.currentUser;
     if (user == null) return;
 
     try {
-      final engine = AlmaNotificationEngine(SupabaseService.instance.client);
-
-      await engine.generateDailyQuote(user.id);
-
+      await NotificationController.instance.handlePostLogin(user.id);
       _quoteGenerated = true;
     } catch (e) {
       debugPrint('Error generando quote diaria: $e');
@@ -80,8 +96,9 @@ class _DashboardHomeState extends State<DashboardHome> {
 
 @override
   Widget build(BuildContext context) {
+
     final greeting = _getGreeting();
-    final userName = _profileController.firstName;
+    final userName = _getUserName();
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,

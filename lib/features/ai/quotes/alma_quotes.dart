@@ -16,48 +16,121 @@ class QuoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: pinned
-            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)
-            : Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(22),
-      ),
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+    final onSurface = theme.colorScheme.onSurface;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
       padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+
+        // 🎨 COLOR DINÁMICO
+        color: pinned
+            ? primary.withValues(alpha: 0.18)
+            : theme.cardColor.withValues(alpha: 0.85),
+
+        // 🌟 BORDE SOLO SI ESTÁ ANCLADA
+        border: Border.all(
+          color: pinned ? primary : Colors.transparent,
+          width: 1.5,
+        ),
+
+        // 💡 SOMBRA EMOCIONAL
+        boxShadow: [
+          BoxShadow(
+            color: primary.withValues(alpha: pinned ? 0.25 : 0.08),
+            blurRadius: pinned ? 20 : 10,
+            spreadRadius: pinned ? 2 : 0,
+          ),
+        ],
+      ),
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 🪶 ICONO SUTIL
+          Icon(
+            Icons.format_quote,
+            size: 26,
+            color: primary.withValues(alpha: 0.6),
+          ),
+
+          const SizedBox(height: 12),
+
+          // ✍️ FRASE
           Text(
             quote.texto,
-            style: const TextStyle(
-              fontSize: 18,
-              color: Colors.white,
+            style: TextStyle(
+              fontSize: pinned ? 19 : 17,
+              height: 1.5,
               fontStyle: FontStyle.italic,
+              color: onSurface,
+              fontWeight: pinned ? FontWeight.w500 : FontWeight.normal,
             ),
           ),
-          const SizedBox(height: 10),
+
+          const SizedBox(height: 12),
+
+          // 👤 AUTOR
           Text(
             '- ${quote.autor}',
-            style: const TextStyle(color: Colors.white70),
+            style: TextStyle(
+              color: onSurface.withValues(alpha: 0.7),
+              fontSize: 13,
+            ),
           ),
-          const SizedBox(height: 10),
+
+          const SizedBox(height: 12),
+
+          // 🧠 CONTEXTO (más suave)
           Text(
             quote.contextoAlma,
-            style: const TextStyle(color: Colors.white54),
-          ),
-          const SizedBox(height: 12),
-          TextButton(
-            onPressed: onPin,
-            child: Text(
-              pinned ? 'Frase del día' : 'Anclar',
-              style: TextStyle(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8)),
+            style: TextStyle(
+              color: onSurface.withValues(alpha: 0.55),
+              fontSize: 13,
             ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // 📌 ACTION ROW
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if (pinned)
+                Text(
+                  'Frase del día',
+                  style: TextStyle(
+                    color: primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+
+              GestureDetector(
+                onTap: onPin,
+                child: AnimatedScale(
+                  duration: const Duration(milliseconds: 200),
+                  scale: pinned ? 1.2 : 1.0,
+                  child: Icon(
+                    pinned ? Icons.push_pin : Icons.push_pin_outlined,
+                    color: pinned
+                        ? primary
+                        : onSurface.withValues(alpha: 0.5),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 }
+
 class AlmaQuotesScreen extends StatefulWidget {
   final String arquetipo;
   final List<String> nodosDolor;
@@ -116,7 +189,7 @@ Widget build(BuildContext context) {
   final onSurface = Theme.of(context).colorScheme.onSurface;
 
   return Scaffold(
-    appBar: AppBar(title: const Text('Frases del Alma')),
+    appBar: AppBar(title: const Text('Alma')),
 
     body: _loading
         ? const Center(child: CircularProgressIndicator())
@@ -131,18 +204,53 @@ Widget build(BuildContext context) {
                 ),
               )
 
-            : ListView.separated(
-                padding: const EdgeInsets.all(24),
-                itemCount: _quotes.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 20),
-                itemBuilder: (context, i) {
-                  return QuoteCard(
-                    quote: _quotes[i],
-                    pinned: i == _pinnedIndex,
-                    onPin: () => _pinQuote(i),
-                  );
-                },
+            : Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Theme.of(context).scaffoldBackgroundColor,
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+            ],
+          ),
+        ),
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            // HEADER
+            Text(
+              'Frases',
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: onSurface,
               ),
-  );
-}
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Palabras que pueden resonar contigo hoy',
+              style: TextStyle(
+                fontSize: 14,
+                color: onSurface.withValues(alpha: 0.6),
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // LISTA
+            ...List.generate(_quotes.length, (i) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: QuoteCard(
+                  quote: _quotes[i],
+                  pinned: i == _pinnedIndex,
+                  onPin: () => _pinQuote(i),
+                ),
+              );
+            }),
+          ],
+        ),
+      )
+      );
+    }
 }

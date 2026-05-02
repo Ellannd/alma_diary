@@ -18,12 +18,13 @@ class ProfileRepository {
           .eq('id', userId)
           .maybeSingle();
 
-      if (existing == null) {
-        await _client.from('profiles').insert({
-          'id': userId,
-          'is_onboarding_complete': false,
-          'created_at': DateTime.now().toIso8601String(),
-        });
+if (existing == null) {
+         await _client.from('profiles').insert({
+           'id': userId,
+           'email': currentUser?.email,
+           'is_onboarding_complete': false,
+           'created_at': DateTime.now().toIso8601String(),
+         });
 
         LogService.instance.info(
           'profile.created',
@@ -136,4 +137,15 @@ class ProfileRepository {
       rethrow;
     }
   }
+
+  String getFirstName(String? fullName) {
+    if (fullName == null) return 'Usuario';
+
+    final cleaned = fullName.trim();
+
+    if (cleaned.isEmpty) return 'Usuario';
+
+    return cleaned.split(RegExp(r'\s+')).first;
+  }
+
 }

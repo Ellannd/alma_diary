@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:alma_diary/ai/engines/readings_engine.dart';
+import "package:alma_diary/features/readings/controller/reading_controller.dart";
+import "package:alma_diary/features/readings/data/reading_repository.dart";
+
 
 class ReadingDetailScreen extends StatelessWidget {
   final dynamic reading;
@@ -20,7 +23,7 @@ class ReadingDetailScreen extends StatelessWidget {
       title = rec.titulo ?? 'Sin título';
       content = rec.porqueLeerla;
       author = rec.autor ?? 'Anónimo';
-      quote = rec.fragmento ?? '';
+      quote = ReadingController(ReadingRepository()).getFormattedText(rec.fragmento);
       tag = rec.tag ?? '';
       level = rec.nivelDeConsciencia ?? '';
     } else if (reading is Map<String, String>) {

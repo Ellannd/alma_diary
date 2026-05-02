@@ -12,12 +12,21 @@ class ProfileController {
 
   User? _user;
 
+  bool _isInitialized = false;
+
+  bool get isReady => _isInitialized;
+
     void setContext({
     required Map<String, dynamic>? profile,
     required User? user,
   }) {
     _profile = profile;
     _user = user;
+  }
+
+  Future<void> init(String userId) async {
+    _profile = await _repo.getUserProfile(userId);
+    _isInitialized = true;
   }
 
   // =========================
@@ -87,11 +96,14 @@ class ProfileController {
   }
 
 
-String get displayName {
-    return _profile?['full_name']
+  String get displayName {
+    final fullName = _profile?['full_name']
         ?? _user?.userMetadata?['name']
-        ?? _user?.email
-        ?? 'Usuario';
+        ?? _user?.email;
+
+    if (fullName == null || fullName.isEmpty) return 'Usuario';
+
+    return fullName.split(RegExp(r'\s+')).first;
   }
 
   /// Returns the first name by trimming at the first space
@@ -101,5 +113,12 @@ String get displayName {
     if (spaceIndex == -1) return name;
     return name.substring(0, spaceIndex);
   }
+
+  String get email => _user?.email ?? '';
+
+  String? get avatarUrl =>
+      _profile?['avatar_url'] ?? _user?.userMetadata?['avatar_url'];
+
+  bool get isAuthenticated => _user != null;
 
 }

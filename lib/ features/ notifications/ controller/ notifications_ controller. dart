@@ -1,0 +1,83 @@
+import 'package:flutter/foundation. dart';
+import 'package:alma_ diary/ ai/ engines/ notifications_ engine. dart';
+import 'package:alma_ diary/ core/ logging/ log_ service. dart';
+import 'package:alma_ diary/ models/ alma_ notification. dart';
+import 'package:alma_ diary/ services/ supabase_ service. dart';
+
+/// NotificationController - SINGLE SOURCE OF TRUTH
+class NotificationController extends ChangeNotifier {
+  static NotificationController? _instance;
+  
+  static NotificationController get instance {
+    _instance ??= NotificationController._();
+    return _instance!;
+  }
+
+  final AlmaNotificationEngine _engine;
+  List<AlmaNotification> _notifications = [];
+  int _unreadCount = 0;
+  bool _isLoading = false;
+  String? _userId;
+
+  List<AlmaNotification> get notifications => _notifications;
+  int get unreadCount => _unreadCount;
+  bool get isLoading => _isLoading;
+
+  NotificationController._() : _engine = AlmaNotificationEngine(SupabaseService. instance. client);
+
+  void setUserId(String userId) { _userId = userId; }
+
+  Future< void> load() async {
+    if (_userId == null) return;
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final data = await _engine. fetchUserNotifications(_userId!);
+      _notifications = data. map((e) => AlmaNotification. fromMap(e)). toList();
+      _unreadCount = await _engine. getUnreadCount(_userId!);
+    } catch (e) {
+      debugPrint('Error loading: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future< void> markAsRead(String id) async {
+    await _engine. markAsRead(id);
+    await load();
+  }
+
+  Future< void> handlePostLogin(String userId) async {
+    _userId = userId;
+    await Future. wait([_engine. generateDailyQuote(userId), _engine. trackLoginEvent(userId)]);
+    await load();
+  }
+
+  Future< void> handleOnboardingCompleted(String userId) async {
+    await _engine. notifyInsight(userId: userId, title: 'Bienvenido a Alma', message: 'Tu viaje ha comenzado');
+    await load();
+  }
+
+  Future< void> handleNewJournalEntry(String userId) async {
+    await _engine. notifyInsight(userId: userId, title: 'Nuevo registro', message: 'Has escrito una nueva entrada');
+    await load();
+  }
+
+  Future< void> handleChallengeEvent(String userId, String title, {String eventType = 'started', int points = 0}) async {
+    if (eventType == 'started') {
+      await _engine. notifyChallengeStarted(userId: userId, challengeTitle: title);
+    } else if (eventType == 'completed') {
+      await _engine. notifyChallengeCompleted(userId: userId, challengeTitle: title, rewardPoints: points);
+    }
+    await load();
+  }
+
+  void reset() {
+    _notifications = [];
+    _unreadCount = 0;
+    _isLoading = false;
+    _userId = null;
+    notifyListeners();
+  }
+}
