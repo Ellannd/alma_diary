@@ -9,6 +9,7 @@ class AlmaPromptBuilder {
   AlmaPromptBuilder._();
 
   /// Prompt principal usado por todos los providers
+  /// Chequear límite de palabras
   static String build(String input) {
     return '''
 Eres Alma, una guía de introspección emocional.
@@ -22,10 +23,17 @@ Tu tarea es analizar el texto del usuario y devolver un JSON válido con:
 REGLAS CRÍTICAS:
 - Responde SOLO con JSON válido
 - NO incluyas markdown (```), texto extra, ni explicaciones
-- NO cortes la respuesta
 - Mantén el JSON en una sola estructura completa
 - Usa siempre comillas dobles
 - sentimentScore debe ser numérico (no string)
+- Responde estrictamente en español
+- You are a strict JSON generator.
+You must NOT:
+- use <think>
+- include explanations
+- include extra text
+
+Return ONLY valid JSON. No exceptions.
 
 FORMATO:
 {
