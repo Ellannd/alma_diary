@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:alma_diary/ai/engines/readings_engine.dart';
+import 'package:alma_diary/features/readings/engine/readings_engine.dart';
 import "package:alma_diary/features/readings/controller/reading_controller.dart";
 import "package:alma_diary/features/readings/data/reading_repository.dart";
 

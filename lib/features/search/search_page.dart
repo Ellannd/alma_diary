@@ -4,7 +4,7 @@ import 'package:alma_diary/services/supabase_service.dart';
 import "package:alma_diary/features/ai/challenges/alma_challenges.dart";
 import 'package:alma_diary/data/aes_encryption.dart';
 import 'package:alma_diary/features/reflections/alma_reflection_card.dart';
-import 'package:alma_diary/ai/engines/search_engine.dart';
+import 'package:alma_diary/features/search/engine/search_engine.dart';
 
 class SearchPage extends StatefulWidget {
   final String passphrase;

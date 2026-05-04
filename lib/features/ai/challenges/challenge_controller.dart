@@ -1,6 +1,6 @@
 import 'package:alma_diary/features/notifications/controller/notifications_controller.dart';
 import 'package:flutter/foundation.dart';
-import 'package:alma_diary/ai/engines/challenges_engine_v2.dart';
+import 'package:alma_diary/features/ai/challenges/engine/challenges_engine_v2.dart';
 import 'challenge_repository.dart';
 
 

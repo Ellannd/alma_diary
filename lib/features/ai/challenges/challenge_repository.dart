@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../ai/engines/challenges_engine_v2.dart';
+import 'engine/challenges_engine_v2.dart';
 
 /// ChallengeRepository - Data Access Layer
 ///Responsibilities:

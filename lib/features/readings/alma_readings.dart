@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:alma_diary/ai/engines/readings_engine.dart';
+import 'package:alma_diary/features/readings/engine/readings_engine.dart';
 import 'reading_detail.dart';
 import 'controller/reading_controller.dart';
 import 'data/reading_repository.dart';

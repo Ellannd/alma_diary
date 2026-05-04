@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:alma_diary/ai/engines/challenges_engine_v2.dart';
+import 'package:alma_diary/features/ai/challenges/engine/challenges_engine_v2.dart';
 import 'package:alma_diary/features/dashboard/alma_theme.dart';
 import 'challenge_controller.dart';
 

@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:alma_diary/ai/engines/notifications_engine.dart';
+import 'package:alma_diary/features/notifications/engine/notifications_engine.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
 import 'package:alma_diary/core/result/validation_result.dart';
 import 'package:alma_diary/models/alma_notification.dart';

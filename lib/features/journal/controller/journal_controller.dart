@@ -1,9 +1,14 @@
+import 'package:alma_diary/features/ai/analysis/ai_services_impl.dart';
+import 'package:alma_diary/features/ai/analysis/providers/gemini_provider.dart';
+import 'package:alma_diary/features/ai/analysis/providers/huggingface_provider.dart';
+import 'package:alma_diary/features/ai/analysis/providers/mock_provider.dart';
+import 'package:alma_diary/features/ai/analysis/router/model_router.dart';
 import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
-import 'package:alma_diary/ai/analysis/gemini_analysis_service.dart' as gas;
 import 'package:alma_diary/auth/alma_auth_session.dart';
 import 'package:alma_diary/features/journal/data/journal_service.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 /// JournalEntry model for UI
 class JournalEntryModel {
@@ -51,9 +56,21 @@ class JournalEntryModel {
 /// - Calls JournalRepository via service
 /// - Authentication handling
 class JournalController extends ChangeNotifier {
+  
   final JournalService _service = JournalService.instance;
-  final gas.GeminiAnalysisService _analysisService = gas.GeminiAnalysisService();
-  final Uuid _uuid = const Uuid();
+  final aiService = AIServiceImpl(
+  router: ModelRouter(
+    mock: MockProvider(),
+
+    huggingface: HuggingFaceProvider(
+      apiKey: dotenv.get('HF_API_KEY'),
+    ),
+
+    gemini: GeminiProvider(
+      apiKey: dotenv.get('GEMINI_API_KEY'),
+    ),
+  ),
+);
 
   // State
   List<JournalEntryModel> _entries = [];
@@ -103,7 +120,7 @@ class JournalController extends ChangeNotifier {
     if (analyze) {
       _setAnalyzing(true);
       try {
-        final analysis = await _analysisService.analyzeEntry(content);
+        final analysis = await aiService.analyze(content);
         sentiment = analysis.sentiment;
         sentimentScore = analysis.sentimentScore;
         archetype = analysis.archetype;
@@ -308,4 +325,5 @@ class JournalController extends ChangeNotifier {
     _error = null;
     notifyListeners();
   }
+
 }

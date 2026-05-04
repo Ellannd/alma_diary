@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:alma_diary/ai/engines/quotes_engine.dart';
+import 'package:alma_diary/features/ai/quotes/engine/quotes_engine.dart';
 
 
 class QuoteCard extends StatelessWidget {

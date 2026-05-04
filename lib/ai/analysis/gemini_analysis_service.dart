@@ -48,12 +48,29 @@ class AnalysisResult {
 
 class GeminiAnalysisService {
   static const String _systemPrompt =
-      '''Eres Alma, una guía de introspección. Analiza el sentimiento y el arquetipo (The Mask, The Mirror, The Moon, The Shadow). Escribe una "reflection" de 3-4 frases que valide la emoción. Responde SOLO EN JSON: {"sentiment": "...", "sentimentScore": 0.0-1.0, "archetype": "...", "reflection": "..."}''';
+      '''Eres Alma.
+
+RESPONDE SOLO JSON VÁLIDO.
+
+Reglas estrictas:
+- No uses markdown
+- No uses ``` 
+- No expliques nada
+- No agregues texto fuera del JSON
+- Si no puedes cumplir, responde igualmente un JSON válido
+
+Formato exacto:
+{
+  "sentiment": "string",
+  "sentimentScore": number,
+  "archetype": "string",
+  "reflection": "string"
+}''';
 
   static const List<String> _modelList = [
-    'gemini-2.0-flash',
-    'gemini-2.5-flash',
-    'gemini-2.5-flash-lite',
+    'gemini-1.5-pro',
+    'gemini-1.5-flash-lite',
+     'gemini-1.0-flash',
   ];
 
   static const int _maxRetries = 3;
@@ -87,32 +104,40 @@ class GeminiAnalysisService {
   }
 
   Future<GenerativeModel> _getModel() async {
-    if (_model != null) return _model!;
-    final apiKey = dotenv.env['GEMINI_API_KEY']?? '';
+    final apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
 
     for (final modelName in _modelList) {
       try {
-        _model = GenerativeModel(
+        final candidate = GenerativeModel(
           model: modelName,
           apiKey: apiKey,
           requestOptions: const RequestOptions(apiVersion: 'v1'),
           generationConfig: GenerationConfig(
-            temperature: 0.9,
-            maxOutputTokens: 512,
+            temperature: 0.4,
+            maxOutputTokens: 400,
           ),
         );
-              LogService.instance.info(
-        'gemini.model.initialized',
-        context: {
-          'model': modelName,
-        },
-      );
-        return _model!;
-      } catch (e, stack) {
-        _model = null;
 
-        LogService.instance.error(
-          'gemini.model.init_failed',
+        // VALIDACIÓN REAL (clave)
+        final testResponse = await candidate.generateContent([
+          Content.text("ping")
+        ]).timeout(const Duration(seconds: 5));
+
+        if (testResponse.text != null) {
+          _model = candidate;
+
+          LogService.instance.info(
+            'gemini.model.ready',
+            context: {
+              'model': modelName,
+            },
+          );
+
+          return _model!;
+        }
+      } catch (e, stack) {
+        LogService.instance.warning(
+          'gemini.model.failed',
           error: e,
           stackTrace: stack,
           context: {
@@ -121,120 +146,227 @@ class GeminiAnalysisService {
         );
       }
     }
-    throw Exception('Sin modelos disponibles');
+
+    throw Exception('No hay modelos funcionales');
   }
 
-  Future<AnalysisResult> analyzeEntry(String text) async {
-    if (text.trim().isEmpty) {
-      return const AnalysisResult(
-        sentiment: 'neutral',
-        sentimentScore: 0.5,
-        archetype: 'The Mirror',
-        reflection: 'Tu experiencia es válida.',
-      );
-    }
+Future<AnalysisResult> analyzeEntry(String text) async {
+  print("🟢 [ANALYZE ENTRY] START");
+  final apiKey = dotenv.env['GEMINI_API_KEY'];
+  print("🔑 GEMINI API KEY: $apiKey");
+  print("📥 RAW INPUT: $text");
 
-    final inputHash = _hashInput(text);
+  final trimmed = text.trim();
+  print("✂️ TRIMMED INPUT: $trimmed");
+
+  if (trimmed.isEmpty) {
+    print("⚠️ EMPTY INPUT → returning fallback");
+    return const AnalysisResult(
+      sentiment: 'neutral',
+      sentimentScore: 0.5,
+      archetype: 'The Mirror',
+      reflection: 'Tu experiencia es válida.',
+    );
+  }
+
+  final inputHash = _hashInput(trimmed);
+
+  print("🔑 INPUT HASH: $inputHash");
+  print("📦 CACHE SIZE: ${_cache.length}");
+
+  //  CACHE HIT REAL
+  final cached = _cache[inputHash];
+  if (cached != null) {
+    print("⚡ CACHE HIT → returning cached result");
+
     LogService.instance.debug(
       'gemini.cache.hit',
       context: {
         'hash': inputHash,
         'cache_size': _cache.length,
-        'layer': 'memory',
       },
     );
+    return cached;
+  }
 
-    if (_lastInputHash == inputHash && _lastRequestTime != null) {
-      final elapsed = DateTime.now().difference(_lastRequestTime!);
-      if (elapsed < _debounceDelay) {
-        await Future.delayed(_debounceDelay - elapsed);
-      }
-    }
+  print("🧊 CACHE MISS");
 
-    if (_isRateLimited()) {
-      LogService.instance.warning(
-        'gemini.rate_limited',
-        context: {
-          'cache_size': _cache.length,
-        },
+  // DEBOUNCE GLOBAL (no por hash exacto)
+  if (_lastRequestTime != null) {
+    final elapsed = DateTime.now().difference(_lastRequestTime!);
+
+    print("⏱️ TIME SINCE LAST REQUEST: ${elapsed.inMilliseconds}ms");
+
+    if (elapsed < _debounceDelay) {
+      final wait = _debounceDelay - elapsed;
+
+      print("🕒 DEBOUNCE ACTIVE → WAITING ${wait.inMilliseconds}ms");
+
+      LogService.instance.debug(
+        'gemini.debounce.wait',
+        context: {'wait_ms': wait.inMilliseconds},
       );
-      await Future.delayed(const Duration(seconds: 5));
+
+      await Future.delayed(wait);
     }
+  }
 
-    _lastInputHash = inputHash;
-    _lastRequestTime = DateTime.now();
+  // RATE LIMIT (NO BLOQUEANTE)
+  print("📊 CHECKING RATE LIMIT...");
 
-    for (int attempt = 0; attempt < _maxRetries; attempt++) {
-      try {
-        final result = await _attemptAnalysis(text);
-        if (result != null) {
-          _cache[inputHash] = result;
-          _recordRequest();
-          return result;
-        }
-      } catch (e) {
-        final errorMsg = e.toString().toLowerCase();
-        final is429 = errorMsg.contains('429') || errorMsg.contains('rate');
-        final is503 =
-            errorMsg.contains('503') || errorMsg.contains('unavailable');
+  if (_isRateLimited()) {
+    print("🚫 RATE LIMITED TRIGGERED");
 
-        if ((is429 || is503) && attempt < _maxRetries - 1) {
-          final delay = _retryDelays[attempt];
-          LogService.instance.warning(
-            'gemini.retry',
-            context: {
-              'attempt': attempt,
-              'delay': delay,
-              'error': errorMsg,
-            },
-          );
-          await Future.delayed(Duration(seconds: delay));
-          _resetModel();
-          continue;
-        }
-        LogService.instance.error(
-          'gemini.analysis_failed',
-          error: e,
-          context: {
-            'text': text,
-          },
-        );
-      }
-      break;
-    }
+    LogService.instance.warning(
+      'gemini.rate_limited',
+      context: {
+        'cache_size': _cache.length,
+      },
+    );
 
     return const AnalysisResult(
       sentiment: 'neutral',
       sentimentScore: 0.5,
       archetype: 'The Mirror',
-      reflection: 'No pude analizar ahora. ¿Qué emoción es más fuerte?',
+      reflection: 'Estoy procesando mucho ahora. Intenta en un momento.',
     );
   }
 
-  Future<AnalysisResult?> _attemptAnalysis(String text) async {
-    final model = await _getModel();
-    final prompt = '$_systemPrompt\n\nEntrada:\n$text';
-    final response = await model.generateContent([Content.text(prompt)]);
+  _lastRequestTime = DateTime.now();
+  print("🚀 REQUEST TIMESTAMP UPDATED");
 
-    if (response.text == null || response.text!.isEmpty) {
-      return null;
+  // RETRIES + TIMEOUT
+  for (int attempt = 0; attempt < _maxRetries; attempt++) {
+    print("🧪 ATTEMPT START: $attempt");
+
+    try {
+      final result = await _attemptAnalysis(trimmed)
+          .timeout(const Duration(seconds: 10));
+
+      print("📨 RESPONSE RECEIVED FROM GEMINI");
+      print("📦 RESULT NULL? ${result == null}");
+
+      if (result != null) {
+        print("💾 CACHING RESULT FOR HASH");
+
+        _cache[inputHash] = result;
+
+        if (_cache.length > 100) {
+          print("🧹 CACHE LIMIT REACHED → CLEANING OLDEST");
+          _cache.remove(_cache.keys.first);
+        }
+
+        _recordRequest();
+
+        LogService.instance.info(
+          'gemini.analysis.success',
+          context: {
+            'attempt': attempt,
+            'cache_size': _cache.length,
+          },
+        );
+
+        print("✅ ANALYSIS SUCCESS RETURNING RESULT");
+        return result;
+      }
+
+      print("⚠️ GEMINI RETURNED NULL RESULT");
+    } catch (e, stack) {
+      print("❌ GEMINI ANALYSIS FAILED");
+      print("🧨 ERROR: $e");
+      print("📚 STACKTRACE: $stack");
+      print("🔁 ATTEMPT: $attempt");
+      print("📏 INPUT LENGTH: ${trimmed.length}");
+
+      final errorMsg = e.toString().toLowerCase();
+
+      final isRetryable =
+          errorMsg.contains('429') ||
+          errorMsg.contains('rate') ||
+          errorMsg.contains('503') ||
+          errorMsg.contains('unavailable') ||
+          errorMsg.contains('timeout');
+
+      print("🔍 ERROR CLASSIFICATION");
+      print("↪️ retryable: $isRetryable");
+
+      LogService.instance.error(
+        'gemini.analysis.failed',
+        error: e,
+        stackTrace: stack,
+        context: {
+          'attempt': attempt,
+          'text_length': trimmed.length,
+          'error_type': e.runtimeType.toString(),
+          'is_retryable': isRetryable,
+        },
+      );
+
+      if (isRetryable && attempt < _maxRetries - 1) {
+        final delay = _retryDelays[attempt];
+
+        print("⏳ RETRYING IN ${delay}s");
+        print("🔄 RESETTING MODEL");
+
+        await Future.delayed(Duration(seconds: delay));
+        _resetModel();
+        continue;
+      }
+
+      print("🛑 NO MORE RETRIES → BREAK");
+      break;
     }
+  }
 
-    final cleaned = _cleanResponse(response.text!.trim());
-    final decoded = jsonDecode(cleaned);
+  print("❌ FINAL FALLBACK RETURNED");
 
-    if (decoded is! Map<String, dynamic>) {
-      return null;
+  return const AnalysisResult(
+    sentiment: 'neutral',
+    sentimentScore: 0.5,
+    archetype: 'The Mirror',
+    reflection: 'No pude analizar ahora. ¿Qué emoción es más fuerte?',
+  );
+}
+
+ Future<AnalysisResult> _attemptAnalysis(String text) async {
+    final model = await _getModel();
+
+    final prompt = '$_systemPrompt\n\nEntrada:\n$text';
+
+    final response = await model.generateContent([
+      Content.text(prompt),
+    ]);
+
+    final raw = response.text;
+
+    if (raw == null || raw.trim().isEmpty) {
+      throw Exception("Empty Gemini response");
+    }
+      print("📩 RAW GEMINI RESPONSE:");
+   print(response.text);
+    final cleaned = extractJsonSafe(raw.trim());
+
+    Map<String, dynamic> decoded;
+
+    try {
+      decoded = jsonDecode(cleaned) as Map<String, dynamic>;
+    } catch (e) {
+      print("❌ GEMINI RAW OUTPUT:\n$raw");
+      print("❌ EXTRACTED JSON:\n$cleaned");
+      rethrow;
     }
 
     return AnalysisResult.fromJson(decoded);
   }
 
-  String _cleanResponse(String response) {
-    return response
-        .replaceAll(RegExp(r'^```json\s*', multiLine: true), '')
-        .replaceAll(RegExp(r'^```\s*', multiLine: true), '')
-        .replaceAll(RegExp(r'\s*```$', multiLine: true), '')
-        .trim();
+  String extractJsonSafe(String input) {
+    final start = input.indexOf('{');
+    final end = input.lastIndexOf('}');
+
+    if (start == -1 || end == -1 || end <= start) {
+      throw Exception("No JSON found in response");
+    }
+
+    return input.substring(start, end + 1);
   }
 }

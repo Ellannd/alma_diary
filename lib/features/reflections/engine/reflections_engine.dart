@@ -1,5 +1,5 @@
 import 'package:alma_diary/services/supabase_service.dart';
-import '../../data/aes_encryption.dart';
+import '../../../data/aes_encryption.dart';
 
 class ReflectionCard {
   final String titulo;

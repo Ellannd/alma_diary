@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:alma_diary/ai/engines/trajectory_engine.dart';
+import 'package:alma_diary/features/reflections/engine/trajectory_engine.dart';
 
 class AlmaTrajectoryScreen extends StatefulWidget {
   final String passphrase;

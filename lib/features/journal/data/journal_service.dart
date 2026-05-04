@@ -1,8 +1,14 @@
 import 'package:uuid/uuid.dart';
 import 'package:alma_diary/data/aes_encryption.dart';
-import 'package:alma_diary/ai/analysis/gemini_analysis_service.dart';
 import 'package:alma_diary/features/journal/data/journal_repository.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
+import 'package:alma_diary/features/ai/analysis/ai_services_impl.dart';
+import 'package:alma_diary/features/ai/analysis/providers/gemini_provider.dart';
+import 'package:alma_diary/features/ai/analysis/providers/huggingface_provider.dart';
+import 'package:alma_diary/features/ai/analysis/providers/mock_provider.dart';
+import 'package:alma_diary/features/ai/analysis/router/model_router.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 /// JournalService - UTILITARIO LAYER
 /// Handles pure utility functions:
@@ -18,7 +24,19 @@ class JournalService {
   static const String _passphrase = 'alma_biometric_pass';
   final _repository = JournalRepository.instance;
   final _uuid = const Uuid();
-  final _analysisService = GeminiAnalysisService();
+    final aiService = AIServiceImpl(
+  router: ModelRouter(
+    mock: MockProvider(),
+
+    huggingface: HuggingFaceProvider(
+      apiKey: dotenv.get('HF_API_KEY'),
+    ),
+
+    gemini: GeminiProvider(
+      apiKey: dotenv.get('GEMINI_API_KEY'),
+    ),
+  ),
+);
 
   // =========================
   // ENCRYPTION METHODS
@@ -76,7 +94,7 @@ class JournalService {
   /// Returns sentiment, archetype, and reflection
   Future<Map<String, dynamic>> analyzeEntry(String content) async {
     try {
-      final analysis = await _analysisService.analyzeEntry(content);
+      final analysis = await aiService.analyze(content);
       return {
         'sentiment': analysis.sentiment,
         'sentimentScore': analysis.sentimentScore,

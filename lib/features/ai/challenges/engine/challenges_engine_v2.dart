@@ -10,7 +10,7 @@
 /// This engine is 100% STATELESS
 library;
 
-import 'package:alma_diary/ai/engines/notifications_engine.dart';
+import 'package:alma_diary/features/notifications/engine/notifications_engine.dart';
 
 /// Challenge states enum
 enum ChallengeState {

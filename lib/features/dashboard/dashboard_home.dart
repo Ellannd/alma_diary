@@ -10,9 +10,6 @@ import 'package:alma_diary/features/reflections/alma_trajectory.dart';
 import 'package:alma_diary/features/ai/challenges/alma_challenges.dart';
 import 'package:alma_diary/features/ai/quotes/alma_quotes.dart';
 import 'dashboard_card.dart';
-import "package:firebase_messaging/firebase_messaging.dart";
-import "package:firebase_core/firebase_core.dart";
-import "package:alma_diary/firebase_options.dart";
 
 class DashboardHome extends StatefulWidget {
   final String userId;
