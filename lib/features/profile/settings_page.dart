@@ -10,8 +10,12 @@ import "package:alma_diary/features/notifications/controller/notifications_setti
 class SettingsPage extends StatefulWidget {
 
   final AuthController controller;
+  final ProfileController profileController;
+  final NotificationSettingsController notificationController;
 
-  const SettingsPage({super.key, required this.controller});
+  const SettingsPage({super.key, required this.controller, 
+  required this.profileController,
+  required this.notificationController,});
 
 
 
@@ -20,48 +24,53 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  late final ProfileController _profileController;
-  
-  late final NotificationSettingsController _notificationSettings;
 
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _profileController = ProfileController(ProfileRepository());
-    _notificationSettings =  NotificationSettingsController();
     _loadProfile();
   }
 
   Future<void> _loadProfile() async {
-    final user = SupabaseService.instance.currentUser;
-    if (user != null) {
-      final profile = await _profileController.loadProfile(user.id);
-      _profileController.setContext(
-        profile: profile,
-        user: user,
-      );
+    final user = widget.controller.currentUser;
+
+    if (user == null) {
+      setState(() => _isLoading = false);
+      return;
     }
+
+    final profile = await widget.profileController.loadProfile(user.id);
+
+    widget.profileController.setContext(
+      profile: profile,
+      user: user,
+    );
+
     if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    //todo:  Fix with proper controller
-    final userId = SupabaseService.instance.currentUser?.id;
+    final user = widget.controller.currentUser;
+
+  if (user == null) {
+    //TODO: Redirect to login
+    return const SizedBox(); // o redirect
+  }
+
+  final String userId = user.id;
 
     final colorScheme = Theme.of(context).colorScheme;
     final onSurface = colorScheme.onSurface;
     final primary = colorScheme.primary;
 
-    final name = _profileController.displayName;
-    final email = _profileController.email;
-    final avatar = _profileController.avatarUrl;
+    final name = widget.profileController.displayName;
+    final email = widget.profileController.email;
+    final avatar = widget.profileController.avatarUrl;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -97,7 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
 
                 title: Text(
-                  _profileController.displayName,
+                  widget.profileController.displayName,
                   style: TextStyle(color: onSurface),
                 ),
 
@@ -112,18 +121,38 @@ class _SettingsPageState extends State<SettingsPage> {
 
             const SizedBox(height: 16),
           ],
-          //TODO: FIX BUTTON
-          SwitchListTile(
-            title: const Text("Recordatorio diario"),
-            value: _notificationSettings.dailyReminderEnabled,
+         Card(
+          color: Theme.of(context).cardColor,
+          child: SwitchListTile(
+            secondary: Icon(Icons.notifications, color: primary),
+
+            title: Text(
+              'Recordatorio diario',
+              style: TextStyle(color: onSurface),
+            ),
+
+            subtitle: Text(
+              'Recibe un recordatorio para escribir',
+              style: TextStyle(
+                color: onSurface.withValues(alpha: .6),
+              ),
+            ),
+
+            value: widget.notificationController.dailyReminderEnabled,
+            
+
             onChanged: (value) async {
-              await _notificationSettings.setDailyReminder(
-                //Fix this block
-                userId: userId??"",
+              await widget.notificationController.setDailyReminder(
+                userId: userId,
                 enabled: value,
               );
+              LogService.instance.info("Daily Reminder: $value");
             },
           ),
+        ),
+
+           const SizedBox(height: 8),
+
           Card(
             color: Theme.of(context).cardColor,
             child: ListTile(
@@ -170,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
           const SizedBox(height: 24),
 
-          if (_profileController.isAuthenticated)
+          if (widget.profileController.isAuthenticated)
             Card(
               color: Theme.of(context).cardColor,
               child: ListTile(

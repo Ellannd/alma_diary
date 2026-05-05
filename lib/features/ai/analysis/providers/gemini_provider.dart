@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:google_generative_ai/google_generative_ai.dart';
 
@@ -21,30 +20,39 @@ class GeminiProvider {
     ],
   });
 
-  Future<Map<String, dynamic>> analyze(String input) async {
-    LogService.instance.debug(
-      'gemini.provider.start',
-      context: {
-        'input_length': input.length,
-      },
-    );
+ Future<Map<String, dynamic>> analyze(String input) async {
+  LogService.instance.debug(
+    'gemini.provider.start',
+    context: {
+      'input_length': input.length,
+    },
+  );
 
-    final model = await _getModel();
+  final model = await _getModel();
 
-    final prompt = AlmaPromptBuilder.build(input);
+  final prompt = AlmaPromptBuilder.build(input);
 
-    LogService.instance.debug(
-      'gemini.prompt.built',
-      context: {
-        'prompt_length': prompt.length,
-      },
-    );
+  LogService.instance.debug(
+    'gemini.prompt.built',
+    context: {
+      'prompt_length': prompt.length,
+    },
+  );
 
+  try {
     final response = await model
-        .generateContent([Content.text(prompt)])
-        .timeout(const Duration(seconds: 15));
+        .generateContent([
+          Content.text(prompt),
+        ])
+        .timeout(const Duration(seconds: 20));
 
-    final text = _extractText(response);
+    // extracción robusta (Gemini SDK)
+    final text = response.text;
+
+    if (text == null || text.isEmpty) {
+      LogService.instance.error('gemini.empty_response');
+      throw Exception('Empty Gemini response');
+    }
 
     LogService.instance.debug(
       'gemini.raw.response',
@@ -64,7 +72,16 @@ class GeminiProvider {
     );
 
     return json;
+  } catch (e, stack) {
+    LogService.instance.error(
+      'gemini.provider.failed',
+      error: e,
+      stackTrace: stack,
+    );
+
+    throw Exception('Gemini analyze failed');
   }
+}
 
   Future<GenerativeModel> _getModel() async {
     if (_model != null) return _model!;
