@@ -24,7 +24,7 @@ class AlmaTheme {
         foregroundColor: AlmaColors.lightTextPrimary,
         centerTitle: false,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AlmaColors.lightSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -62,7 +62,7 @@ class AlmaTheme {
         foregroundColor: AlmaColors.darkTextPrimary,
         centerTitle: false,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AlmaColors.darkSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(

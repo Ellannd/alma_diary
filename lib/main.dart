@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:alma_diary/features/profile/data/profile_repository.dart';
-import 'package:alma_diary/state/profile/profile_controller.dart';
 import 'package:alma_diary/state/profile/profile_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -15,7 +14,6 @@ import 'core/logging/log_service.dart';
 import 'services/supabase_service.dart';
 import 'services/storage_service.dart';
 import 'services/encryption_service.dart';
-import 'core/theme/theme_controller.dart';
 import 'core/logging/error_handlers.dart';
 import 'core/config/app_environment.dart';
 import 'core/navigation/app_navigator_observer.dart';
@@ -23,6 +21,7 @@ import 'core/logging/log_context.dart';
 import 'core/logging/crash/crash_reporter.dart';
 import "package:flutter_dotenv/flutter_dotenv.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
+import "package:alma_diary/state/theme/theme_controller.dart";
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,14 +42,31 @@ Future<void> main() async {
 }
 
 Future<void> initFirebase() async {
-  try{
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,);
-    LogService.instance.info("Inicializando Firebase...");
-  }
-  catch(e){
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    FirebaseMessaging.onBackgroundMessage(
+      _firebaseMessagingBackgroundHandler,
+    );
+
+    final messaging = FirebaseMessaging.instance;
+
+    await messaging.requestPermission();
+
+    LogService.instance.info("Firebase + FCM inicializado");
+  } catch (e) {
     LogService.instance.error("Error al inicializar Firebase: $e");
   }
+}
+
+Future<void> _firebaseMessagingBackgroundHandler(
+  RemoteMessage message,
+) async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 }
 
 Future<void> _bootstrapServices() async {
@@ -89,42 +105,42 @@ Future<void> _bootstrapServices() async {
   }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return ProviderScope(
-      overrides: [
-        profileRepositoryProvider.overrideWithValue(ProfileRepository()),],
-      child: ValueListenableBuilder<bool>(
-        valueListenable: ThemeController.notifier,
-        builder: (context, isDark, _) {
-          return MaterialApp(
-            title: 'Alma - Diario Consciente',
-            debugShowCheckedModeBanner: false,
+@override
+Widget build(BuildContext context, WidgetRef ref) {
+  final themeState = ref.watch(themeProvider);
+  final isDark = themeState.isDarkMode;
 
-            theme: isDark ? AlmaTheme.dark : AlmaTheme.light,
+  return ProviderScope(
+    overrides: [
+      profileRepositoryProvider.overrideWithValue(ProfileRepository()),
+    ],
+    child: MaterialApp(
+      title: 'Alma - Diario Consciente',
+      debugShowCheckedModeBanner: false,
 
-            initialRoute: '/',
-            routes: {
-              '/': (context) => const AuthGate(),
-              '/journal': (context) => const AlmaJournal(),
-              '/profile': (context) => const ProfilePage(),
-            },
+      theme: isDark ? AlmaTheme.dark : AlmaTheme.light,
 
-            onUnknownRoute: (settings) {
-              return MaterialPageRoute(
-                builder: (_) => const AuthGate(),
-              );
-            },
+      initialRoute: '/',
 
-            navigatorObservers: [
-              AppNavigatorObserver(),
-            ],
-          );
-        },
-      ),
-    );
-  }
+      routes: {
+        '/': (context) => const AuthGate(),
+        '/journal': (context) => const AlmaJournal(),
+        '/profile': (context) => const ProfilePage(),
+      },
+
+      onUnknownRoute: (settings) {
+        return MaterialPageRoute(
+          builder: (_) => const AuthGate(),
+        );
+      },
+
+      navigatorObservers: [
+        AppNavigatorObserver(),
+      ],
+    ),
+  );
+}
 }

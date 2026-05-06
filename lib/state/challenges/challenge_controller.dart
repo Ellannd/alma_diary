@@ -4,7 +4,6 @@ import "package:alma_diary/features/challenges/challenge_repository.dart";
 import "package:alma_diary/features/challenges/engine/challenges_engine_v2.dart";
 import "package:alma_diary/state/notifications/notifications_controller.dart";
 import "package:alma_diary/state/challenges/challenge_state.dart";
-import "package:alma_diary/state/notifications/notifications_provider.dart";
 
 class ChallengeController extends Notifier<ChallengeState> {
   late final ChallengeRepository _repository;

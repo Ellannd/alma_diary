@@ -1,5 +1,16 @@
 import 'package:alma_diary/features/profile/data/profile_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+//
+//  PROVIDER
+//
+final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
+  return ProfileRepository();
+});
+
+//
+//  CONTROLLER
+//
 class OnboardingController {
   final ProfileRepository _repo;
 

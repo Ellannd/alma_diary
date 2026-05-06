@@ -3,9 +3,26 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:alma_diary/features/notifications/engine/notifications_engine.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
 import 'package:alma_diary/models/alma_notification.dart';
-import "package:alma_diary/state/notifications/notifications_provider.dart";
 import "package:alma_diary/state/notifications/notification_state.dart";
+import "package:supabase_flutter/supabase_flutter.dart";
 
+
+//
+//  PROVIDER
+//
+final notificationEngineProvider = Provider<AlmaNotificationEngine>((ref) {
+  final client = Supabase.instance.client;
+  return AlmaNotificationEngine(client);
+});
+
+final notificationControllerProvider =
+    NotifierProvider<NotificationController, NotificationState>(
+  NotificationController.new,
+);
+
+//
+//  CONTROLLER
+//
 class NotificationController extends Notifier<NotificationState> {
   late final AlmaNotificationEngine _engine;
 

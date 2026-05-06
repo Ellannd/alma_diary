@@ -4,6 +4,11 @@ import "package:alma_diary/ai/analysis/repository/ai_repository.dart";
 import "package:alma_diary/state/ai/ai_provider.dart";
 import "package:alma_diary/core/logging/log_service.dart";
 
+final analysisControllerProvider =
+    NotifierProvider<AnalysisController, AnalysisState>(
+  AnalysisController.new,
+);
+
 class AnalysisController extends Notifier<AnalysisState> {
   late final AIRepository _aiRepository;
 

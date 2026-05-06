@@ -3,9 +3,18 @@ import 'package:alma_diary/features/journal/data/journal_service.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
 
 import "package:alma_diary/state/reflections/reflection_state.dart";
-import "package:alma_diary/state/reflections/reflection_provider.dart";
 
+/// =========================
+/// PROVIDERS
+/// =========================
+final journalServiceProvider = Provider<JournalService>((ref) {
+  return JournalService.instance;
+});
 
+final reflectionControllerProvider =
+    NotifierProvider<ReflectionController, ReflectionState>(
+  ReflectionController.new,
+);
 
 /// =========================
 /// CONTROLLER (NotifierProvider)
