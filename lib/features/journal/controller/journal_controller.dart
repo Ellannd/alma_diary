@@ -1,8 +1,8 @@
-import 'package:alma_diary/features/ai/analysis/ai_services_impl.dart';
-import 'package:alma_diary/features/ai/analysis/providers/gemini_provider.dart';
-import 'package:alma_diary/features/ai/analysis/providers/huggingface_provider.dart';
-import 'package:alma_diary/features/ai/analysis/providers/mock_provider.dart';
-import 'package:alma_diary/features/ai/analysis/router/model_router.dart';
+import 'package:alma_diary/ai/analysis/ai_services_impl.dart';
+import 'package:alma_diary/ai/analysis/providers/gemini_provider.dart';
+import 'package:alma_diary/ai/analysis/providers/huggingface_provider.dart';
+import 'package:alma_diary/ai/analysis/providers/mock_provider.dart';
+import 'package:alma_diary/ai/analysis/router/model_router.dart';
 import 'package:flutter/material.dart';
 import 'package:alma_diary/auth/alma_auth_session.dart';
 import 'package:alma_diary/features/journal/data/journal_service.dart';

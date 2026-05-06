@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:alma_diary/features/profile/data/profile_repository.dart';
+import 'package:alma_diary/state/controllers/profile_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
@@ -19,6 +21,7 @@ import 'core/navigation/app_navigator_observer.dart';
 import 'core/logging/log_context.dart';
 import 'core/logging/crash/crash_reporter.dart';
 import "package:flutter_dotenv/flutter_dotenv.dart";
+import "package:flutter_riverpod/flutter_riverpod.dart";
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -90,33 +93,37 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: ThemeController.notifier,
-      builder: (context, isDark, _) {
-        return MaterialApp(
-          title: 'Alma - Diario Consciente',
-          debugShowCheckedModeBanner: false,
+    return ProviderScope(
+      overrides: [
+        profileRepositoryProvider.overrideWithValue(ProfileRepository()),],
+      child: ValueListenableBuilder<bool>(
+        valueListenable: ThemeController.notifier,
+        builder: (context, isDark, _) {
+          return MaterialApp(
+            title: 'Alma - Diario Consciente',
+            debugShowCheckedModeBanner: false,
 
-          // TEMA DINÁMICO
-          theme: isDark ? AlmaTheme.dark : AlmaTheme.light,
+            theme: isDark ? AlmaTheme.dark : AlmaTheme.light,
 
-          initialRoute: '/',
-          routes: {
-            '/': (context) => const AuthGate(),
-            '/journal': (context) => const AlmaJournal(),
-            '/profile': (context) => const ProfilePage(),
-          },
+            initialRoute: '/',
+            routes: {
+              '/': (context) => const AuthGate(),
+              '/journal': (context) => const AlmaJournal(),
+              '/profile': (context) => const ProfilePage(),
+            },
 
-          onUnknownRoute: (settings) {
-            return MaterialPageRoute(
-              builder: (_) => const AuthGate(),
-            );
-          },
-          navigatorObservers: [
-            AppNavigatorObserver(),
-          ],
-        );
-      },
+            onUnknownRoute: (settings) {
+              return MaterialPageRoute(
+                builder: (_) => const AuthGate(),
+              );
+            },
+
+            navigatorObservers: [
+              AppNavigatorObserver(),
+            ],
+          );
+        },
+      ),
     );
   }
 }

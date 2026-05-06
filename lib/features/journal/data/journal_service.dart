@@ -2,11 +2,11 @@ import 'package:uuid/uuid.dart';
 import 'package:alma_diary/data/aes_encryption.dart';
 import 'package:alma_diary/features/journal/data/journal_repository.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
-import 'package:alma_diary/features/ai/analysis/ai_services_impl.dart';
-import 'package:alma_diary/features/ai/analysis/providers/gemini_provider.dart';
-import 'package:alma_diary/features/ai/analysis/providers/huggingface_provider.dart';
-import 'package:alma_diary/features/ai/analysis/providers/mock_provider.dart';
-import 'package:alma_diary/features/ai/analysis/router/model_router.dart';
+import 'package:alma_diary/ai/analysis/ai_services_impl.dart';
+import 'package:alma_diary/ai/analysis/providers/gemini_provider.dart';
+import 'package:alma_diary/ai/analysis/providers/huggingface_provider.dart';
+import 'package:alma_diary/ai/analysis/providers/mock_provider.dart';
+import 'package:alma_diary/ai/analysis/router/model_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 

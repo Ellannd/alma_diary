@@ -7,8 +7,8 @@ import 'package:alma_diary/features/notifications/controller/notifications_contr
 import 'package:alma_diary/features/readings/alma_readings.dart';
 import 'package:alma_diary/features/reflections/alma_reflections.dart';
 import 'package:alma_diary/features/reflections/alma_trajectory.dart';
-import 'package:alma_diary/features/ai/challenges/alma_challenges.dart';
-import 'package:alma_diary/features/ai/quotes/alma_quotes.dart';
+import 'package:alma_diary/features/challenges/alma_challenges.dart';
+import 'package:alma_diary/features/quotes/alma_quotes.dart';
 import 'dashboard_card.dart';
 
 class DashboardHome extends StatefulWidget {
