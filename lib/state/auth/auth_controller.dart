@@ -1,46 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import "package:alma_diary/state/auth/auth_provider.dart";
+import "package:alma_diary/state/auth/auth_app_state.dart";
 
-/// =========================
-/// STATE
-/// =========================
-class AuthAppState {
-  final User? user;
-  final bool isLoading;
-  final bool isAuthenticated;
-  final String? error;
-
-  const AuthAppState({
-    this.user,
-    this.isLoading = false,
-    this.isAuthenticated = false,
-    this.error,
-  });
-
-  AuthAppState copyWith({
-    User? user,
-    bool? isLoading,
-    bool? isAuthenticated,
-    String? error,
-  }) {
-    return AuthAppState(
-      user: user ?? this.user,
-      isLoading: isLoading ?? this.isLoading,
-      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
-      error: error,
-    );
-  }
-
-  factory AuthAppState.initial() => const AuthAppState();
-}
-
-/// =========================
-/// PROVIDER
-/// =========================
-final authControllerProvider =
-    NotifierProvider<AuthController, AuthAppState>(
-  AuthController.new,
-);
 
 /// =========================
 /// CONTROLLER
@@ -50,7 +12,7 @@ class AuthController extends Notifier<AuthAppState> {
 
   @override
   AuthAppState build() {
-    _supabase = Supabase.instance.client;
+    _supabase = ref.read(supabaseClientProvider);
 
     _listenAuthChanges();
 

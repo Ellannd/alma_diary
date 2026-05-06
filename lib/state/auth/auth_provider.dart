@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import "package:alma_diary/state/auth/auth_app_state.dart";
+import 'package:alma_diary/state/auth/auth_controller.dart';
 
-import 'package:alma_diary/state/controllers/auth_controller.dart';
 
 /// =========================
 /// PROVIDER (CONTROLLER STATE)

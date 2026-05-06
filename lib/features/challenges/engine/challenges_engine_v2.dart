@@ -13,7 +13,7 @@ library;
 import 'package:alma_diary/features/notifications/engine/notifications_engine.dart';
 
 /// Challenge states enum
-enum ChallengeState {
+enum ChallengeProgress {
   notStarted,
   active,
   completed,
@@ -116,16 +116,16 @@ class UserChallenge {
   }
 
   /// Get ChallengeState from status string
-  ChallengeState get state {
+  ChallengeProgress get state {
     switch (status) {
       case 'completed':
-        return ChallengeState.completed;
+        return ChallengeProgress.completed;
       case 'paused':
-        return ChallengeState.paused;
+        return ChallengeProgress.paused;
       case 'active':
-        return ChallengeState.active;
+        return ChallengeProgress.active;
       default:
-        return ChallengeState.notStarted;
+        return ChallengeProgress.notStarted;
     }
   }
 }

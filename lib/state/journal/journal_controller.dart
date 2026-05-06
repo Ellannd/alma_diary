@@ -4,12 +4,8 @@ import 'package:alma_diary/features/journal/data/journal_service.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
 
 import 'package:alma_diary/ai/analysis/ai_services_impl.dart';
-import 'package:alma_diary/ai/analysis/providers/gemini_provider.dart';
-import 'package:alma_diary/ai/analysis/providers/huggingface_provider.dart';
-import 'package:alma_diary/ai/analysis/providers/mock_provider.dart';
-import 'package:alma_diary/ai/analysis/router/model_router.dart';
-
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import "package:alma_diary/state/journal/journal_state.dart";
+import 'package:alma_diary/state/journal/journal_provider.dart';
 
 /// =========================
 /// MODEL
@@ -43,93 +39,35 @@ class JournalEntryModel {
       sentiment: map['sentiment'] ?? 'neutral',
       sentimentScore: (map['sentiment_score'] ?? 0.5).toDouble(),
       archetype: map['archetype'] ?? 'The Mirror',
-      createdAt: DateTime.tryParse(map['created_at']?.toString() ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse(map['created_at']?.toString() ?? '') ??
+          DateTime.now(),
       updatedAt: map['updated_at'] != null
-          ? DateTime.tryParse(map['updated_at'].toString())
+          ? DateTime.tryParse(map['updated_at']?.toString() ?? '')
           : null,
     );
   }
 }
 
-/// =========================
-/// STATE
-/// =========================
-class JournalState {
-  final List<JournalEntryModel> entries;
-  final JournalEntryModel? currentEntry;
-  final bool loading;
-  final bool saving;
-  final bool analyzing;
-  final String? error;
 
-  const JournalState({
-    this.entries = const [],
-    this.currentEntry,
-    this.loading = false,
-    this.saving = false,
-    this.analyzing = false,
-    this.error,
-  });
-
-  JournalState copyWith({
-    List<JournalEntryModel>? entries,
-    JournalEntryModel? currentEntry,
-    bool? loading,
-    bool? saving,
-    bool? analyzing,
-    String? error,
-  }) {
-    return JournalState(
-      entries: entries ?? this.entries,
-      currentEntry: currentEntry ?? this.currentEntry,
-      loading: loading ?? this.loading,
-      saving: saving ?? this.saving,
-      analyzing: analyzing ?? this.analyzing,
-      error: error,
-    );
-  }
-}
 
 /// =========================
-/// PROVIDERS
-/// =========================
-final journalServiceProvider = Provider<JournalService>((ref) {
-  return JournalService.instance;
-});
-
-final aiServiceProvider = Provider<AIServiceImpl>((ref) {
-  return AIServiceImpl(
-    router: ModelRouter(
-      mock: MockProvider(),
-      huggingface: HuggingFaceProvider(apiKey: dotenv.get('HF_API_KEY')),
-      gemini: GeminiProvider(apiKey: dotenv.get('GEMINI_API_KEY')),
-    ),
-  );
-});
-
-final journalControllerProvider =
-    NotifierProvider<JournalController, JournalState>(
-  JournalController.new,
-);
-
-/// =========================
-/// CONTROLLER (RIVERPOD MODERNO)
+/// CONTROLLER (MODERNO RIVERPOD)
 /// =========================
 class JournalController extends Notifier<JournalState> {
-  late final JournalService _service;
-  late final AIServiceImpl _ai;
+  late final JournalService service;
+  late final AIServiceImpl ai;
 
   @override
   JournalState build() {
-    _service = ref.read(journalServiceProvider);
-    _ai = ref.read(aiServiceProvider);
+    service = ref.read(journalServiceProvider);
+    ai = ref.read(aiServiceProvider);
 
     return const JournalState();
   }
 
-  // =========================
-  // CREATE ENTRY
-  // =========================
+  /// =========================
+  /// CREATE ENTRY
+  /// =========================
   Future<String?> createEntry({
     required String content,
     bool analyze = true,
@@ -145,21 +83,21 @@ class JournalController extends Notifier<JournalState> {
       return null;
     }
 
-    var sentiment = 'neutral';
-    var sentimentScore = 0.5;
-    var archetype = 'The Mirror';
-    var reflection = 'Tu experiencia es válida y merece atención.';
+    String sentiment = 'neutral';
+    double sentimentScore = 0.5;
+    String archetype = 'The Mirror';
+    String reflection = 'Tu experiencia es válida y merece atención.';
 
     if (analyze) {
       state = state.copyWith(analyzing: true);
       try {
-        final analysis = await _ai.analyze(content);
+        final analysis = await ai.analyze(content);
         sentiment = analysis.sentiment;
         sentimentScore = analysis.sentimentScore;
         archetype = analysis.archetype;
         reflection = analysis.reflection;
       } catch (e) {
-        LogService.instance.error('journal.analysis.error', error: e);
+        LogService.instance.error('journal.analysis.error');
       } finally {
         state = state.copyWith(analyzing: false);
       }
@@ -168,7 +106,7 @@ class JournalController extends Notifier<JournalState> {
     state = state.copyWith(saving: true);
 
     try {
-      final entryId = await _service.createEntry(
+      final entryId = await service.createEntry(
         content: content,
         sentiment: sentiment,
         sentimentScore: sentimentScore,
@@ -178,9 +116,10 @@ class JournalController extends Notifier<JournalState> {
 
       state = state.copyWith(saving: false, error: null);
       await loadEntries();
+
       return entryId;
     } catch (e) {
-      LogService.instance.error('journal.create_failed', error: e);
+      LogService.instance.error('journal.create_failed');
       state = state.copyWith(
         saving: false,
         error: 'Error al guardar la entrada',
@@ -189,16 +128,18 @@ class JournalController extends Notifier<JournalState> {
     }
   }
 
-  // =========================
-  // LOAD ENTRIES
-  // =========================
+  /// =========================
+  /// LOAD ENTRIES
+  /// =========================
   Future<void> loadEntries() async {
     state = state.copyWith(loading: true);
 
     try {
-      final raw = await _service.getEntries(decrypt: true);
+      final entries = await service.getEntries(decrypt: true);
 
-      final mapped = raw.map(JournalEntryModel.fromMap).toList();
+      final mapped = entries
+          .map((e) => JournalEntryModel.fromMap(e))
+          .toList();
 
       state = state.copyWith(
         entries: mapped,
@@ -206,7 +147,7 @@ class JournalController extends Notifier<JournalState> {
         error: null,
       );
     } catch (e) {
-      LogService.instance.error('journal.load_failed', error: e);
+      LogService.instance.error('journal.load_failed');
       state = state.copyWith(
         loading: false,
         error: 'Error al cargar las entradas',
@@ -214,14 +155,14 @@ class JournalController extends Notifier<JournalState> {
     }
   }
 
-  // =========================
-  // LOAD BY ID
-  // =========================
+  /// =========================
+  /// LOAD BY ID
+  /// =========================
   Future<JournalEntryModel?> loadEntryById(String id) async {
     state = state.copyWith(loading: true);
 
     try {
-      final entry = await _service.getEntryById(id, decrypt: true);
+      final entry = await service.getEntryById(id, decrypt: true);
 
       if (entry == null) {
         state = state.copyWith(
@@ -241,7 +182,7 @@ class JournalController extends Notifier<JournalState> {
 
       return model;
     } catch (e) {
-      LogService.instance.error('journal.load_by_id_failed', error: e);
+      LogService.instance.error('journal.load_by_id_failed');
       state = state.copyWith(
         loading: false,
         error: 'Error al cargar la entrada',
@@ -250,9 +191,9 @@ class JournalController extends Notifier<JournalState> {
     }
   }
 
-  // =========================
-  // UPDATE
-  // =========================
+  /// =========================
+  /// UPDATE
+  /// =========================
   Future<bool> updateEntry({
     required String entryId,
     String? content,
@@ -264,7 +205,7 @@ class JournalController extends Notifier<JournalState> {
     state = state.copyWith(saving: true);
 
     try {
-      await _service.updateEntry(
+      await service.updateEntry(
         entryId: entryId,
         content: content,
         reflection: reflection,
@@ -277,7 +218,7 @@ class JournalController extends Notifier<JournalState> {
       await loadEntries();
       return true;
     } catch (e) {
-      LogService.instance.error('journal.update_failed', error: e);
+      LogService.instance.error('journal.update_failed');
       state = state.copyWith(
         saving: false,
         error: 'Error al actualizar la entrada',
@@ -286,16 +227,17 @@ class JournalController extends Notifier<JournalState> {
     }
   }
 
-  // =========================
-  // DELETE
-  // =========================
+  /// =========================
+  /// DELETE
+  /// =========================
   Future<bool> deleteEntry(String entryId) async {
     state = state.copyWith(saving: true);
 
     try {
-      await _service.deleteEntry(entryId);
+      await service.deleteEntry(entryId);
 
-      final updated = state.entries.where((e) => e.id != entryId).toList();
+      final updated =
+          state.entries.where((e) => e.id != entryId).toList();
 
       state = state.copyWith(
         entries: updated,
@@ -305,7 +247,7 @@ class JournalController extends Notifier<JournalState> {
 
       return true;
     } catch (e) {
-      LogService.instance.error('journal.delete_failed', error: e);
+      LogService.instance.error('journal.delete_failed');
       state = state.copyWith(
         saving: false,
         error: 'Error al eliminar la entrada',
@@ -314,6 +256,9 @@ class JournalController extends Notifier<JournalState> {
     }
   }
 
+  /// =========================
+  /// HELPERS
+  /// =========================
   void clearError() {
     state = state.copyWith(error: null);
   }

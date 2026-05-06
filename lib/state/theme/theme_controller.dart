@@ -1,5 +1,5 @@
 import "package:flutter_riverpod/flutter_riverpod.dart";
-import "package:alma_diary/state/providers/theme_provider.dart";
+import "package:alma_diary/state/theme/theme_state.dart";
 
 class ThemeController extends Notifier<ThemeState> {
   @override

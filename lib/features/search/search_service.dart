@@ -1,5 +1,5 @@
 import '../../models/search_result.dart';
-import 'search_engine.dart';
+import 'engine/search_engine.dart';
 import 'search_repository.dart';
 
 class SearchService {

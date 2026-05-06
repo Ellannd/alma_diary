@@ -3,53 +3,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:alma_diary/core/logging/log_service.dart';
 import 'package:alma_diary/features/profile/data/profile_repository.dart';
+import "package:alma_diary/state/profile/profile_state.dart";
+import "package:alma_diary/state/profile/profile_provider.dart";
 
-/// =========================
-/// STATE
-/// =========================
-class ProfileState {
-  final Map<String, dynamic>? profile;
-  final User? user;
-  final bool loading;
-  final bool initialized;
-  final String? error;
-
-  const ProfileState({
-    this.profile,
-    this.user,
-    this.loading = false,
-    this.initialized = false,
-    this.error,
-  });
-
-  ProfileState copyWith({
-    Map<String, dynamic>? profile,
-    User? user,
-    bool? loading,
-    bool? initialized,
-    String? error,
-  }) {
-    return ProfileState(
-      profile: profile ?? this.profile,
-      user: user ?? this.user,
-      loading: loading ?? this.loading,
-      initialized: initialized ?? this.initialized,
-      error: error,
-    );
-  }
-}
-
-/// =========================
-/// PROVIDERS
-/// =========================
-final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
-  throw UnimplementedError('Provide ProfileRepository in main');
-});
-
-final profileControllerProvider =
-    NotifierProvider<ProfileController, ProfileState>(
-  ProfileController.new,
-);
 
 /// =========================
 /// CONTROLLER (MODERNO)
