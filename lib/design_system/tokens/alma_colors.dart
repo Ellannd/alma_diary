@@ -44,6 +44,11 @@ class AlmaColors {
   static const Color error = Color(0xFFEF4444);
   static const Color info = Color(0xFF3B82F6);
 
+  // =========================
+  // TRANSPARENT
+  // =========================
+  static const transparent = Colors.transparent;
+
   // Emotional / AI system accents (for future Emotion Engine)
   static const Color emotionCalm = Color(0xFF38BDF8);
   static const Color emotionFocus = Color(0xFF6366F1);

@@ -4,7 +4,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
 import 'package:alma_diary/features/profile/data/profile_repository.dart';
 import "package:alma_diary/state/profile/profile_state.dart";
-import "package:alma_diary/state/profile/profile_provider.dart";
+
+/// =========================
+/// PROVIDERS
+/// =========================
+final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
+  throw UnimplementedError('Provide ProfileRepository in main');
+});
+
+final profileControllerProvider =
+    NotifierProvider<ProfileController, ProfileState>(
+  ProfileController.new,
+);
 
 
 /// =========================

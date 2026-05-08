@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:alma_diary/features/profile/data/profile_repository.dart';
-import 'package:alma_diary/state/profile/profile_provider.dart';
+import 'package:alma_diary/state/onboarding/onboarding_controller.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';

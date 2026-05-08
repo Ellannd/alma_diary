@@ -13,5 +13,5 @@ class AlmaRadius {
   static const double input = 14.0;
 
   // Full pill (Spotify-like elements)
-  static const double pill = 999.0;
+  static const double full = 999.0;
 }

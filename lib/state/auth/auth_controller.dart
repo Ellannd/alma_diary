@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import "package:alma_diary/state/auth/auth_app_state.dart";
+import "package:alma_diary/features/auth/data/auth_repository.dart";
+import "package:alma_diary/core/logging/log_service.dart";
 
 
 /// =========================
@@ -24,10 +26,12 @@ final supabaseClientProvider = Provider<SupabaseClient>((ref) {
 /// =========================
 class AuthController extends Notifier<AuthAppState> {
   late final SupabaseClient _supabase;
+  late final AuthRepository _repo;
 
   @override
   AuthAppState build() {
     _supabase = ref.read(supabaseClientProvider);
+    _repo = AuthRepository();
 
     _listenAuthChanges();
 
@@ -104,6 +108,29 @@ class AuthController extends Notifier<AuthAppState> {
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
+      );
+    }
+  }
+
+    Future<void> signInWithGoogle() async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      await _repo.signInWithGoogle();
+
+      // NO setear isAuthenticated aquí
+      // Supabase onAuthStateChange lo hará automáticamente
+
+    } catch (e, st) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+
+      LogService.instance.error(
+        'auth.controller_google_failed',
+        error: e,
+        stackTrace: st,
       );
     }
   }
