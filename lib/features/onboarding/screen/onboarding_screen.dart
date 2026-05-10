@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:alma_diary/state/profile/profile_controller.dart';
-import 'package:alma_diary/features/onboarding/controller/onboarding_controller.dart';
+import 'package:alma_diary/features/onboarding/controller/onboarding_controller_old.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {

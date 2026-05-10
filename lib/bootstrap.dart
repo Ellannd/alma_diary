@@ -98,6 +98,6 @@ Future<void> _safeInit({
       stackTrace: st,
     );
 
-    rethrow;
+    return;
   }
 }

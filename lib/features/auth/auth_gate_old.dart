@@ -7,7 +7,7 @@ import 'package:alma_diary/features/onboarding/onboarding_screen.dart';
 import 'package:alma_diary/features/profile/data/profile_repository.dart';
 import 'package:alma_diary/features/notifications/controller/notifications_controller_old.dart';
 import 'package:alma_diary/core/session/auth_session_service.dart';
-import "auth_orchestrator.dart";
+import "auth_orchestrator_old.dart";
 import 'auth_controller.dart';
 import "data/auth_repository.dart";
 

@@ -11,7 +11,6 @@ import 'package:alma_diary/features/profile/presentation/widgets/profile_support
 import "package:alma_diary/core/logging/log_service.dart";
 
 import "../../settings/screen/settings_page.dart";
-import "package:alma_diary/state/notifications/notification_settings_controller.dart";
 import 'package:alma_diary/state/auth/auth_controller.dart';
 
 
@@ -88,8 +87,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           const SizedBox(height: 16),
 
           ProfileJourneyCard(
-            painPoint: state.profile?['pain_point'],
-            hopefulGoal: state.profile?['hopeful_goal'],
+            painPoint: state.profile?.painPoint.toString(),
+            hopefulGoal: state.profile?.hopefulGoal.toString(),
           ),
 
           const SizedBox(height: 16),
@@ -106,12 +105,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => SettingsPage(
-                    controller: _authController,
-                    profileController: controller,
-                    notificationController:
-                        NotificationSettingsController(),
-                  ),
+                  builder: (_) => SettingsPage(),
                 ),
               );
             },

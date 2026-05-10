@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
 import "package:alma_diary/features/profile/data/profile_repository.dart";
-import "controller/onboarding_controller.dart";
+import "controller/onboarding_controller_old.dart";
 
 class OnboardingScreen extends StatefulWidget {
   final String userId;

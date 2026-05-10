@@ -1,5 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 
 import 'firebase_options.dart';
 
@@ -13,14 +14,14 @@ Future<void> initFirebase() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  //todo no fcm en web
+  if(!kIsWeb){
+    //FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler,);
+  }
 
-  FirebaseMessaging.onBackgroundMessage(
-    firebaseMessagingBackgroundHandler,
-  );
+  //final messaging = FirebaseMessaging.instance;
 
-  final messaging = FirebaseMessaging.instance;
-
-  await messaging.requestPermission();
+ // await messaging.requestPermission();
 
   LogService.instance.info(
     'Firebase + FCM inicializado',

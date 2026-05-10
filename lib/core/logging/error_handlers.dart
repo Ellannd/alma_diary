@@ -36,4 +36,15 @@ class ErrorHandlers {
       },
     );
   }
+
+
+
+  static void handleError(Object error, StackTrace stack) {
+    LogService.instance.error(
+      'Unhandled error',
+      error: error,
+      stackTrace: stack,
+    );
+  }
+
 }

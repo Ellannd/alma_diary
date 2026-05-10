@@ -25,7 +25,7 @@ class AuthTitle extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Text(
-          'Escribe. Sana. Observa.\nTu espacio interno seguro.',
+          'Escribe. Sana. Vive.',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 14,

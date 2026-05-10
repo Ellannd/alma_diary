@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/logging/log_service.dart';
 import 'core/logging/error_handlers.dart';
 import 'core/config/app_environment.dart';
@@ -23,7 +24,12 @@ Future<void> main() async {
 
   LogContext.instance.newSession();
 
-  ErrorHandlers.runAppGuarded(const MyApp());
+  runZonedGuarded(() {
+    runApp(
+      ProviderScope(
+        child: const MyApp(),
+      ),
+    );
+  }, ErrorHandlers.handleError);
 }
-
 
