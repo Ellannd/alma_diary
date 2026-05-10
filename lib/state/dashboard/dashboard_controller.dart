@@ -68,7 +68,7 @@ class DashboardController extends Notifier<DashboardState> {
       try {
         final notification = NotificationController();
 
-        notification.setUser(userId);
+        notification.setUserId(userId);
         await notification.load();
 
         await FcmService.instance.registerDevice(userId);

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:alma_diary/features/notifications/controller/notifications_controller.dart';
+import 'package:alma_diary/features/notifications/controller/notifications_controller_old.dart';
 
 class AlmaNavbar extends StatefulWidget {
   final int currentIndex;

@@ -1,4 +1,4 @@
-import "package:alma_diary/state/journal/journal_controller.dart";
+import "domain/journal_entry_model.dart";
 
 /// =========================
 /// STATE

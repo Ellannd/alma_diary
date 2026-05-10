@@ -21,13 +21,13 @@ Future<List<Map<String, dynamic>>> getRecommendedReadings({
   int limit = 10,
 }) async {
   try {
-    // 🧠 Limpieza defensiva de tags del usuario
+    // Limpieza defensiva de tags del usuario
     final safeTags = userTags
         .map((t) => t.trim().toLowerCase())
         .where((t) => t.isNotEmpty)
         .toList();
 
-    // 🟡 Fallback si no hay tags útiles
+    // Fallback si no hay tags útiles
     if (safeTags.isEmpty) {
       return await getExploreReadings(limit: limit);
     }
@@ -41,7 +41,7 @@ Future<List<Map<String, dynamic>>> getRecommendedReadings({
 
     final data = List<Map<String, dynamic>>.from(response);
 
-    // 🔴 Fallback inteligente si no hay matches
+    // Fallback inteligente si no hay matches
     if (data.isEmpty) {
       return await getExploreReadings(limit: limit);
     }
@@ -53,12 +53,12 @@ Future<List<Map<String, dynamic>>> getRecommendedReadings({
       error: e,
     );
 
-    // 🔥 nunca romper UI
+    // nunca romper UI
     return await getExploreReadings(limit: limit);
   }
 }
 
-  /// 🌿 Lecturas generales (explorar)
+  ///  Lecturas generales (explorar)
   Future<List<Map<String, dynamic>>> getExploreReadings({
     int limit = 10,
   }) async {
@@ -79,7 +79,7 @@ Future<List<Map<String, dynamic>>> getRecommendedReadings({
     }
   }
 
-  /// 🧠 Lecturas por categoría
+  /// Lecturas por categoría
   Future<List<Map<String, dynamic>>> getReadingsByCategory(
     String category,
   ) async {
@@ -103,7 +103,7 @@ Future<List<Map<String, dynamic>>> getRecommendedReadings({
     }
   }
 
-  /// 🔎 Buscar lecturas (simple)
+  /// Buscar lecturas (simple)
   Future<List<Map<String, dynamic>>> searchReadings(String query) async {
     try {
       final response = await _client

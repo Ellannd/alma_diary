@@ -1,5 +1,6 @@
 import "package:alma_diary/models/search_result.dart";
 
+
 class SearchState {
   final List<SearchResult> results;
   final bool isLoading;
@@ -10,7 +11,7 @@ class SearchState {
     this.isLoading = false,
     this.error,
   });
-
+  
   SearchState copyWith({
     List<SearchResult>? results,
     bool? isLoading,
@@ -22,4 +23,6 @@ class SearchState {
       error: error,
     );
   }
+
+
 }

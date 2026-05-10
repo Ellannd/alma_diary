@@ -5,6 +5,7 @@ import 'package:alma_diary/core/logging/log_service.dart';
 import 'package:alma_diary/models/alma_notification.dart';
 import "package:alma_diary/state/notifications/notification_state.dart";
 import "package:supabase_flutter/supabase_flutter.dart";
+import "package:alma_diary/state/auth/auth_controller.dart";
 
 
 //
@@ -19,7 +20,6 @@ final notificationControllerProvider =
     NotifierProvider<NotificationController, NotificationState>(
   NotificationController.new,
 );
-
 //
 //  CONTROLLER
 //
@@ -28,11 +28,17 @@ class NotificationController extends Notifier<NotificationState> {
 
   @override
   NotificationState build() {
+
     _engine = ref.read(notificationEngineProvider);
-    return const NotificationState();
+
+    final auth = ref.watch(authControllerProvider);
+
+    return NotificationState(
+      userId: auth.user?.id
+    );
   }
 
-  void setUser(String userId) {
+  void setUserId(String userId) {
     state = state.copyWith(userId: userId);
   }
 
@@ -91,7 +97,7 @@ class NotificationController extends Notifier<NotificationState> {
   }
 
   Future<void> handlePostLogin(String userId) async {
-    setUser(userId);
+    setUserId(userId);
 
     try {
       await Future.wait([
@@ -209,5 +215,55 @@ class NotificationController extends Notifier<NotificationState> {
 
   Future<void> reset() async {
     state = const NotificationState();
+  }
+
+  Future<void> handleChallengeEventDevice({
+    required String userId,
+    required String title,
+    String eventType = 'started',
+    int points = 0,
+  }) async {
+    try {
+     
+      if (eventType == 'started') {
+        await _engine.notifyChallengeStarted(
+          userId: userId,
+          challengeTitle: title,
+        );
+
+        await _engine.sendPush(
+          userId: userId,
+          title: 'Nuevo desafío iniciado',
+          body: title,
+        );
+      }
+
+     
+      if (eventType == 'completed') {
+        await _engine.notifyChallengeCompleted(
+          userId: userId,
+          challengeTitle: title,
+          rewardPoints: points,
+        );
+
+        await _engine.sendPush(
+          userId: userId,
+          title: 'Desafío completado 🎉',
+          body: '$title (+$points pts)',
+        );
+      }
+
+      await load();
+    } catch (e, st) {
+      LogService.instance.error(
+        'notification.challenge_device_failed',
+        error: e,
+        stackTrace: st,
+      );
+
+      state = state.copyWith(
+        error: 'Error enviando notificación',
+      );
+    }
   }
 }

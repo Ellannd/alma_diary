@@ -26,7 +26,7 @@ class AlmaTypography {
   }
 
   // =========================
-  // DISPLAY (Hero / Splash)
+  // DISPLAY
   // =========================
   static TextStyle displayLarge(bool isDark) => _base(
         isDark: isDark,
@@ -51,7 +51,6 @@ class AlmaTypography {
         isDark: isDark,
         size: 24,
         weight: FontWeight.w600,
-        height: 1.2,
       );
 
   static TextStyle h2(bool isDark) => _base(
@@ -67,14 +66,13 @@ class AlmaTypography {
       );
 
   // =========================
-  // BODY (Core reading UX)
+  // BODY
   // =========================
   static TextStyle bodyLarge(bool isDark) => _base(
         isDark: isDark,
         size: 16,
         weight: FontWeight.w400,
         height: 1.5,
-        color: AlmaColors.textPrimary(isDark),
       );
 
   static TextStyle bodyMedium(bool isDark) => _base(
@@ -82,7 +80,6 @@ class AlmaTypography {
         size: 14,
         weight: FontWeight.w400,
         height: 1.45,
-        color: AlmaColors.textSecondary(isDark),
       );
 
   static TextStyle bodySmall(bool isDark) => _base(
@@ -90,11 +87,10 @@ class AlmaTypography {
         size: 12,
         weight: FontWeight.w400,
         height: 1.4,
-        color: AlmaColors.textMuted(isDark),
       );
 
   // =========================
-  // LABELS (UI elements)
+  // LABELS
   // =========================
   static TextStyle labelLarge(bool isDark) => _base(
         isDark: isDark,
@@ -118,7 +114,7 @@ class AlmaTypography {
       );
 
   // =========================
-  // SPECIAL (Alma emotional system)
+  // SPECIAL
   // =========================
   static TextStyle emotion(bool isDark) => _base(
         isDark: isDark,
@@ -142,5 +138,4 @@ class AlmaTypography {
         weight: FontWeight.w600,
         letterSpacing: 0.2,
       );
-  
 }

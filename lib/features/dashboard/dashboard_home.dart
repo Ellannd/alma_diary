@@ -3,7 +3,7 @@ import 'package:alma_diary/features/profile/controller/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:alma_diary/services/supabase_service.dart';
 import 'package:alma_diary/features/profile/data/profile_repository.dart';
-import 'package:alma_diary/features/notifications/controller/notifications_controller.dart';
+import 'package:alma_diary/features/notifications/controller/notifications_controller_old.dart';
 import 'package:alma_diary/features/readings/alma_readings.dart';
 import 'package:alma_diary/features/reflections/alma_reflections.dart';
 import 'package:alma_diary/features/reflections/alma_trajectory.dart';
