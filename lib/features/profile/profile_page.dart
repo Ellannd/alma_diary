@@ -1,5 +1,6 @@
 import 'package:alma_diary/core/logging/log_service.dart';
 import 'package:alma_diary/features/notifications/controller/notifications_settings_controller.dart';
+import 'package:alma_diary/features/profile/domain/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -28,7 +29,7 @@ class _ProfilePageState extends State<ProfilePage> {
   late final ProfileController _controller;
   late final AuthController _authController;
 
-  Map<String, dynamic>? _profile;
+  Profile? _profile;
 
   @override
   void initState() {

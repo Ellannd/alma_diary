@@ -1,3 +1,4 @@
+import "package:alma_diary/features/profile/domain/profile.dart";
 import 'package:alma_diary/features/profile/data/profile_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -38,7 +39,7 @@ class OnboardingController {
     );
   }
 
-  Future<Map<String, dynamic>?> loadProfile(String userId) {
+  Future<Profile?> loadProfile(String userId) {
     return _repo.getUserProfile(userId);
   }
 

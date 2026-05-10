@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import "package:alma_diary/features/profile/domain/profile.dart";
 import 'package:alma_diary/core/logging/log_service.dart';
 import 'package:alma_diary/features/profile/data/profile_repository.dart';
 import "package:alma_diary/state/profile/profile_state.dart";
@@ -67,40 +68,40 @@ class ProfileController extends Notifier<ProfileState> {
   // =========================
   // LOAD PROFILE
   // =========================
-  Future<void> loadProfile(String userId) async {
-    state = state.copyWith(loading: true);
+Future<void> loadProfile(String userId) async {
+  state = state.copyWith(loading: true);
 
-    try {
-      await _repo.ensureProfileExists(userId);
+  try {
+    await _repo.ensureProfileExists(userId);
 
-      final profile = await _repo.getUserProfile(userId);
+    final profile = await _repo.getUserProfile(userId); // Profile
 
-      state = state.copyWith(
-        profile: profile,
-        loading: false,
-      );
+    state = state.copyWith(
+      profile: profile,
+      loading: false,
+    );
 
-      LogService.instance.info(
-        'profile.load_success',
-        context: {
-          'user_id': userId,
-          'onboarding': profile?['is_onboarding_complete'],
-        },
-      );
-    } catch (e, st) {
-      LogService.instance.error(
-        'profile.load_failed',
-        error: e,
-        stackTrace: st,
-        context: {'user_id': userId},
-      );
+    LogService.instance.info(
+      'profile.load_success',
+      context: {
+        'user_id': userId,
+        'onboarding': profile?.isOnboardingComplete,
+      },
+    );
+  } catch (e, st) {
+    LogService.instance.error(
+      'profile.load_failed',
+      error: e,
+      stackTrace: st,
+      context: {'user_id': userId},
+    );
 
-      state = state.copyWith(
-        loading: false,
-        error: 'Error al cargar perfil',
-      );
-    }
+    state = state.copyWith(
+      loading: false,
+      error: 'Error al cargar perfil',
+    );
   }
+}
 
   // =========================
   // UPDATE PROFILE
@@ -186,7 +187,7 @@ class ProfileController extends Notifier<ProfileState> {
   bool get isReady => state.initialized;
 
   String get displayName {
-    final fullName = state.profile?['full_name'] ??
+    final fullName = state.profile?.displayName ??
         state.user?.userMetadata?['name'] ??
         state.user?.email;
 
@@ -201,9 +202,19 @@ class ProfileController extends Notifier<ProfileState> {
     return name.substring(0, spaceIndex);
   }
 
-  String get email => state.user?.email ?? '';
+  String get email =>
+    state.profile?.email ??
+    state.user?.email ??
+    '';
 
   String? get avatarUrl =>
-      state.profile?['avatar_url'] ??
-      state.user?.userMetadata?['avatar_url'];
+    state.profile?.avatarUrl ??
+    state.user?.userMetadata?['avatar_url'];
+
+      bool get isOnboardingComplete {
+    final profile = state.profile;
+    if (profile == null) return false;
+
+    return state.profile?.isOnboardingComplete ?? false;
+  }
 }

@@ -2,6 +2,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:alma_diary/services/supabase_service.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
 
+import 'package:alma_diary/features/profile/domain/profile.dart';
+
 class ProfileRepository {
   final SupabaseClient _client = SupabaseService.instance.client;
 
@@ -45,13 +47,17 @@ if (existing == null) {
   // =========================
   // GET
   // =========================
-  Future<Map<String, dynamic>?> getUserProfile(String userId) async {
+  Future<Profile?> getUserProfile(String userId) async {
     try {
-      return await _client
+      final data = await _client
           .from('profiles')
           .select()
           .eq('id', userId)
           .maybeSingle();
+
+      if (data == null) return null;
+
+      return Profile.fromMap(data);
     } catch (e, st) {
       LogService.instance.error(
         'profile.get_failed',
@@ -62,7 +68,6 @@ if (existing == null) {
       return null;
     }
   }
-
   // =========================
   // UPDATE
   // =========================

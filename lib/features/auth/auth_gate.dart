@@ -1,3 +1,4 @@
+import 'package:alma_diary/features/profile/domain/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:alma_diary/features/profile/controller/profile_controller.dart';
@@ -55,7 +56,7 @@ class _ProfileGate extends StatefulWidget {
 }
 
 class _ProfileGateState extends State<_ProfileGate> {
-  Map<String, dynamic>? _profile;
+  Profile? _profile;
   bool _isLoading = true;
   bool _hasError = false;
   late final AuthOrchestrator _orchestrator;

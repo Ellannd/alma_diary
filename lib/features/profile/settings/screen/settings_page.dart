@@ -4,8 +4,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 
 import 'package:alma_diary/core/logging/log_service.dart';
+
 import 'package:alma_diary/state/auth/auth_controller.dart';
 import 'package:alma_diary/state/profile/profile_controller.dart';
+import 'package:alma_diary/state/theme/theme_controller.dart';
 import 'package:alma_diary/state/notifications/notification_settings_controller.dart';
 
 import 'package:alma_diary/features/profile/settings/widgets/settings_profile_card.dart';
@@ -14,19 +16,11 @@ import 'package:alma_diary/features/profile/settings/widgets/settings_notificati
 import 'package:alma_diary/features/profile/settings/widgets/settings_report_tile.dart';
 import 'package:alma_diary/features/profile/settings/widgets/settings_clear_logs_tile.dart';
 import 'package:alma_diary/features/profile/settings/widgets/settings_logout_tile.dart';
+
 import 'package:alma_diary/design_system/components/feedback/alma_feedback.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
-  final AuthController controller;
-  final ProfileController profileController;
-  final NotificationSettingsController notificationController;
-
-  const SettingsPage({
-    super.key,
-    required this.controller,
-    required this.profileController,
-    required this.notificationController,
-  });
+  const SettingsPage({super.key});
 
   @override
   ConsumerState<SettingsPage> createState() => _SettingsPageState();
@@ -38,12 +32,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    _load();
+    Future.microtask(_load);
   }
 
   Future<void> _load() async {
     try {
-      final user = widget.controller.currentUser;
+      final user = Supabase.instance.client.auth.currentUser;
 
       if (user != null) {
         await ref
@@ -51,7 +45,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             .loadProfile(user.id);
       }
     } catch (e) {
-      LogService.instance.error('settings.load_failed', error: e);
+      LogService.instance.error(
+        'settings.load_failed',
+        error: e,
+      );
     }
 
     if (mounted) {
@@ -59,13 +56,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
-  //todo UI reaccione al estado de auth, no que fuerce navegación. sin navegación manual
   Future<void> _signOut() async {
     await ref.read(authControllerProvider.notifier).signOut();
 
     if (!mounted) return;
 
-    Navigator.of(context).pushNamedAndRemoveUntil('/', (r) => false);
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      '/',
+      (_) => false,
+    );
   }
 
   Future<void> _sendReport() async {
@@ -73,7 +72,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       final logs = LogService.instance.getFullLog();
 
       if (logs.isEmpty) {
-        AlmaFeedbackHelper.info('No hay logs disponibles');
+        AlmaFeedbackHelper.info(
+          'No hay logs disponibles',
+        );
         return;
       }
 
@@ -82,12 +83,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         subject: 'Alma Diary - Reporte de Error',
       );
 
-      AlmaFeedbackHelper.success('Reporte preparado');
+      AlmaFeedbackHelper.success(
+        'Reporte preparado',
+      );
     } catch (e) {
-      LogService.instance.error('settings.share_failed', error: e);
+      LogService.instance.error(
+        'settings.share_failed',
+        error: e,
+      );
 
-      if (context.mounted) {
-        AlmaFeedbackHelper.error('Error al generar el reporte');
+      if (mounted) {
+        AlmaFeedbackHelper.error(
+          'Error al generar el reporte',
+        );
       }
     }
   }
@@ -95,11 +103,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Future<void> _clearLogs() async {
     await LogService.instance.clear();
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Logs eliminados')),
-      );
-    }
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Logs eliminados'),
+      ),
+    );
   }
 
   @override
@@ -107,33 +117,48 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final user = Supabase.instance.client.auth.currentUser;
 
     final profileState = ref.watch(profileControllerProvider);
+
+    final notificationState = ref.watch(
+      notificationSettingsControllerProvider,
+    );
+
+    final themeState = ref.watch(themeProvider);
+
     final profile = profileState.profile;
 
     if (user == null) {
       return const Scaffold(
-        body: Center(child: Text('No autenticado')),
+        body: Center(
+          child: Text('No autenticado'),
+        ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajustes')),
+      appBar: AppBar(
+        title: const Text('Ajustes'),
+      ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 SettingsProfileCard(
-                  name: widget.profileController.displayName,
-                  email: widget.profileController.email,
-                  avatarUrl: widget.profileController.avatarUrl,
+                  name: profile?.displayName ?? 'Usuario',
+                  email: profile?.email ?? user.email ?? '',
+                  avatarUrl: profile?.avatarUrl,
                 ),
 
                 const SizedBox(height: 16),
 
                 ProfileThemeSwitch(
-                  value: Theme.of(context).brightness == Brightness.dark,
-                  onChanged: (v) {
-                    // ThemeController si lo conectas
+                  value: themeState.isDarkMode,
+                  onChanged: (_) {
+                    ref
+                        .read(themeProvider.notifier)
+                        .toggle();
                   },
                 ),
 
@@ -141,14 +166,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
                 SettingsNotificationsTile(
                   title: 'Recordatorio diario',
-                  subtitle: 'Recibe un recordatorio para escribir',
+                  subtitle:
+                      'Recibe un recordatorio para escribir',
                   value:
-                      widget.notificationController.dailyReminderEnabled,
-                  onChanged: (v) async {
-                    await widget.notificationController.setDailyReminder(
-                      userId: user.id,
-                      enabled: v,
-                    );
+                      notificationState.dailyReminderEnabled,
+                  onChanged: (enabled) async {
+                    await ref
+                        .read(
+                          notificationSettingsControllerProvider
+                              .notifier,
+                        )
+                        .setDailyReminder(
+                          userId: user.id,
+                          enabled: enabled,
+                        );
                   },
                 ),
 
@@ -164,7 +195,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
                 SettingsClearLogsTile(
                   title: 'Limpiar logs',
-                  subtitle: 'Eliminar historial de errores local',
+                  subtitle:
+                      'Eliminar historial de errores local',
                   onTap: _clearLogs,
                 ),
 

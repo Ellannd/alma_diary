@@ -1,3 +1,4 @@
+import 'package:alma_diary/features/profile/domain/profile.dart';
 import "package:supabase_flutter/supabase_flutter.dart";
 import 'package:alma_diary/core/logging/log_service.dart';
 import 'package:alma_diary/features/profile/data/profile_repository.dart';
@@ -8,7 +9,7 @@ class ProfileController {
 
   ProfileController(this._repo);
 
-  Map<String, dynamic>? _profile;
+  Profile? _profile;
 
   User? _user;
 
