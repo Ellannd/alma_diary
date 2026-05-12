@@ -11,14 +11,14 @@ import "auth_orchestrator_old.dart";
 import 'auth_controller.dart';
 import "data/auth_repository.dart";
 
-class AuthGate extends StatefulWidget {
-  const AuthGate({super.key});
+class AuthGateOld extends StatefulWidget {
+  const AuthGateOld({super.key});
 
   @override
-  State<AuthGate> createState() => _AuthGateState();
+  State<AuthGateOld> createState() => _AuthGateState();
 }
 
-class _AuthGateState extends State<AuthGate> {
+class _AuthGateState extends State<AuthGateOld> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<AuthState>(

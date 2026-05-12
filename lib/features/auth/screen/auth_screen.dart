@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:alma_diary/state/auth/auth_controller.dart';
+import 'package:alma_diary/core/navigation/app_routes.dart';
 
 import '../widgets/auth_glass_container.dart';
 import '../widgets/auth_title.dart';
@@ -26,6 +27,22 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   bool isLogin = true;
 
   @override
+void initState() {
+  super.initState();
+
+  Future.microtask(() {
+    ref.listen(authControllerProvider, (previous, next) {
+      if (next.isAuthenticated) {
+        Navigator.pushReplacementNamed(
+          context,
+          AppRoutes.dashboard,
+        );
+      }
+    });
+  });
+}
+
+  @override
   void dispose() {
     email.dispose();
     password.dispose();
@@ -38,16 +55,16 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     });
   }
 
-  void _submit(AuthController controller) {
+  void _submit(AuthController controller) async{
     if (email.text.isEmpty || password.text.isEmpty) return;
 
     if (isLogin) {
-      controller.signInWithEmail(
+      await controller.signInWithEmail(
         email: email.text,
         password: password.text,
       );
     } else {
-      controller.signUpWithEmail(
+      await controller.signUpWithEmail(
         email: email.text,
         password: password.text,
       );
@@ -87,7 +104,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                   AuthButton(
                     text: isLogin ? "Entrar" : "Crear cuenta",
                     loading: isLoading,
-                    onPressed: isLoading ? null : () => _submit(controller),
+                    onPressed: () async => _submit(controller),
                   ),
 
                   const SizedBox(height: 12),
@@ -118,7 +135,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                     loading: isLoading,
                     onPressed: isLoading
                         ? null
-                        : controller.signInWithGoogle,
+                        : () async => controller.signInWithGoogle,
                   ),
 
                   const SizedBox(height: 20),

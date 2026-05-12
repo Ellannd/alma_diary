@@ -9,6 +9,7 @@ import 'package:alma_diary/features/search/screen/search_screen.dart';
 import 'package:alma_diary/features/reflections/screen/reflections_screen.dart';
 import "package:alma_diary/features/dashboard/screen/dashboard_screen.dart";
 import "package:alma_diary/features/profile/settings/screen/settings_page.dart";
+import "package:alma_diary/features/auth/screen/auth_gate.dart"; 
 //todo dont hardode passphrase
 class AppRouter {
   static Route<dynamic> onGenerateRoute(
@@ -16,7 +17,7 @@ class AppRouter {
   ) {
     switch (settings.name) {
       case AppRoutes.auth:
-        return _page(const AuthScreen());
+        return _page(const AuthGate());
 
       case AppRoutes.dashboard:
         return _page(const DashboardScreen());

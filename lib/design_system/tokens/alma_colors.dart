@@ -12,12 +12,15 @@ class AlmaColors {
   static const Color darkTextSecondary = Color(0xFFA7B0B8);
   static const Color darkTextMuted = Color(0xFF6C7680);
 
-  // Accent (Spotify-inspired, customizable later via theme controller)
+  // Nav icons inactivos — más visibles que textMuted sobre glass oscuro
+  static const Color darkNavIcon = Color(0xFFCDD5DE);
+
   static const Color darkAccent = Color(0xFF7C3AED);
   static const Color darkAccentSoft = Color(0x337C3AED);
 
-  static const Color darkBorder = Color(0x1AFFFFFF);
-  static const Color darkGlass = Color(0x0FFFFFFF);
+  // Glass — suficiente cuerpo para separarse del fondo oscuro
+  static const Color darkBorder = Color(0x2EFFFFFF);  // 0x1A → 0x2E (~18%)
+  static const Color darkGlass = Color(0x1FFFFFFF);   // 0x18 → 0x1F (~12%)
 
   // =========================
   // LIGHT THEME
@@ -30,11 +33,15 @@ class AlmaColors {
   static const Color lightTextSecondary = Color(0xFF4B5563);
   static const Color lightTextMuted = Color(0xFF9AA3AF);
 
+  // Nav icons inactivos en light — gris legible sobre glass blanco
+  static const Color lightNavIcon = Color(0xFF4B5563);
+
   static const Color lightAccent = Color(0xFF6D28D9);
   static const Color lightAccentSoft = Color(0x336D28D9);
 
-  static const Color lightBorder = Color(0x14000000);
-  static const Color lightGlass = Color(0x0A000000);
+  // Glass — blanco opaco, limpio sobre fondo claro
+  static const Color lightBorder = Color(0x99000000);  // 0x14 → 0x99 (~60%)
+  static const Color lightGlass = Color(0xE6FFFFFF);   // 0xCC → 0xE6 (~90%)
 
   // =========================
   // SHARED SEMANTIC COLORS
@@ -49,13 +56,17 @@ class AlmaColors {
   // =========================
   static const transparent = Colors.transparent;
 
-  // Emotional / AI system accents (for future Emotion Engine)
+  // =========================
+  // EMOTION ENGINE
+  // =========================
   static const Color emotionCalm = Color(0xFF38BDF8);
   static const Color emotionFocus = Color(0xFF6366F1);
   static const Color emotionIntense = Color(0xFFF43F5E);
   static const Color emotionNeutral = Color(0xFFA7B0B8);
 
-  // Glassmorphism helper
+  // =========================
+  // HELPERS
+  // =========================
   static Color glass(bool isDark) =>
       isDark ? darkGlass : lightGlass;
 
@@ -85,4 +96,8 @@ class AlmaColors {
 
   static Color textMuted(bool isDark) =>
       isDark ? darkTextMuted : lightTextMuted;
+
+  // Iconos inactivos en navbar — más contraste que textMuted
+  static Color navIcon(bool isDark) =>
+      isDark ? darkNavIcon : lightNavIcon;
 }

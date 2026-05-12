@@ -37,7 +37,7 @@ class DashboardBackground extends StatelessWidget {
       child: Stack(
         children: [
           // =========================
-          // TOP GLOW
+          // ORBS / GLOWS
           // =========================
           Positioned(
             top: -120,
@@ -51,9 +51,6 @@ class DashboardBackground extends StatelessWidget {
             ),
           ),
 
-          // =========================
-          // RIGHT GLOW
-          // =========================
           Positioned(
             top: 120,
             right: -100,
@@ -63,9 +60,6 @@ class DashboardBackground extends StatelessWidget {
             ),
           ),
 
-          // =========================
-          // BOTTOM GLOW
-          // =========================
           Positioned(
             bottom: -140,
             left: 20,
@@ -79,7 +73,7 @@ class DashboardBackground extends StatelessWidget {
           ),
 
           // =========================
-          // GLASS OVERLAY
+          // GLASS LAYER
           // =========================
           BackdropFilter(
             filter: ImageFilter.blur(
@@ -87,14 +81,14 @@ class DashboardBackground extends StatelessWidget {
               sigmaY: 80,
             ),
             child: Container(
-              color: Colors.white.withValues(alpha: .015),
+              color: Colors.transparent,
             ),
           ),
 
           // =========================
-          // CONTENT
+          // CONTENT SOLO (SIN SAFEAREA)
           // =========================
-          SafeArea(child: child),
+          child,
         ],
       ),
     );

@@ -1,3 +1,5 @@
+import "dart:async";
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import "package:alma_diary/state/auth/auth_app_state.dart";
@@ -27,22 +29,35 @@ final supabaseClientProvider = Provider<SupabaseClient>((ref) {
 class AuthController extends Notifier<AuthAppState> {
   late final SupabaseClient _supabase;
   late final AuthRepository _repo;
+  bool _initialized = false;
+  StreamSubscription<AuthState>? _authSub;
 
   @override
   AuthAppState build() {
     _supabase = ref.read(supabaseClientProvider);
     _repo = AuthRepository();
 
-    _listenAuthChanges();
+    if (!_initialized) {
+      _initialized = true;
+      _listenAuthChanges();
+    }
 
-    return AuthAppState.initial();
+    final session = _supabase.auth.currentSession;
+    final user = session?.user;
+
+    return AuthAppState(
+      user: user,
+      isAuthenticated: user != null,
+      isLoading: false,
+      error: null,
+    );
   }
 
   // =========================
   // AUTH LISTENER
   // =========================
   void _listenAuthChanges() {
-    _supabase.auth.onAuthStateChange.listen((data) {
+    _authSub = _supabase.auth.onAuthStateChange.listen((data) {
       final user = data.session?.user;
 
       state = state.copyWith(
@@ -50,6 +65,11 @@ class AuthController extends Notifier<AuthAppState> {
         isAuthenticated: user != null,
       );
     });
+
+    ref.onDispose(() {
+    _authSub?.cancel();
+
+});
   }
 
   // =========================

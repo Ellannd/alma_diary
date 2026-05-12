@@ -50,42 +50,9 @@ class DashboardNavbar extends StatelessWidget {
     final primary =
         Theme.of(context).colorScheme.primary;
 
-    return SafeArea(
-      minimum: const EdgeInsets.only(
-        left: AlmaSpacing.lg,
-        right: AlmaSpacing.lg,
-        bottom: AlmaSpacing.md,
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(
-          AlmaRadius.xxl,
-        ),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(
-            sigmaX: 22,
-            sigmaY: 22,
-          ),
-          child: Container(
-            height: 74,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AlmaSpacing.md,
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(
-                AlmaRadius.xxl,
-              ),
-
-              // =====================
-              // GLASS
-              // =====================
-              color: AlmaColors.glass(isDark),
-
-              border: Border.all(
-                color: AlmaColors.border(
-                  isDark,
-                ),
-              ),
-
+    return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AlmaRadius.xxl),
               // =====================
               // SHADOW
               // =====================
@@ -99,42 +66,74 @@ class DashboardNavbar extends StatelessWidget {
                   offset: const Offset(0, 12),
                 ),
               ],
+        ),
+
+    child: ClipRRect(
+          borderRadius: BorderRadius.circular(
+            AlmaRadius.xxl,
+          ),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(
+              sigmaX: 22,
+              sigmaY: 22,
             ),
+            child: Container(
+              height: 74,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AlmaSpacing.md,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(
+                  AlmaRadius.xxl,
+                ),
 
-            child: Row(
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceAround,
-              children: List.generate(
-                _items.length,
-                (index) {
-                  final item = _items[index];
+                // =====================
+                // GLASS
+                // =====================
+                color: AlmaColors.glass(isDark),
 
-                  final selected =
-                      currentIndex == index;
+                border: Border.all(
+                  color: AlmaColors.border(
+                    isDark,
+                  ),
+                ),
+              ),
 
-                  return _NavbarItem(
-                    icon: item.icon,
-                    label: item.label,
-                    selected: selected,
-                    primary: primary,
-                    isDark: isDark,
-                    showBadge:
-                        index == 3 &&
-                        notificationCount > 0,
-                    badge:
-                        notificationCount > 9
-                            ? '9+'
-                            : notificationCount
-                                  .toString(),
-                    onTap: () => onTap(index),
-                  );
-                },
+              child: Row(
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceAround,
+                children: List.generate(
+                  _items.length,
+                  (index) {
+                    final item = _items[index];
+
+                    final selected =
+                        currentIndex == index;
+
+                    return _NavbarItem(
+                      icon: item.icon,
+                      label: item.label,
+                      selected: selected,
+                      primary: primary,
+                      isDark: isDark,
+                      showBadge:
+                          index == 3 &&
+                          notificationCount > 0,
+                      badge:
+                          notificationCount > 9
+                              ? '9+'
+                              : notificationCount
+                                    .toString(),
+                      onTap: () => onTap(index),
+                    );
+                  },
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
+        );
+      
   }
 }
 
