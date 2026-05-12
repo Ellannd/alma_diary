@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:alma_diary/models/search_result.dart';
 import 'package:alma_diary/services/supabase_service.dart';
-import "package:alma_diary/features/challenges/alma_challenges.dart";
+import "package:alma_diary/features/challenges/alma_challenges_old.dart";
 import 'package:alma_diary/data/aes_encryption.dart';
 import 'package:alma_diary/features/reflections/alma_reflection_card.dart';
 import 'package:alma_diary/features/search/engine/search_engine.dart';

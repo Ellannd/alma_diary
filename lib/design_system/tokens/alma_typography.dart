@@ -21,7 +21,7 @@ class AlmaTypography {
       height: height,
       letterSpacing: letterSpacing,
       color: color ?? AlmaColors.textPrimary(isDark),
-      fontFamily: 'System',
+      fontFamily: 'Inter',
     );
   }
 

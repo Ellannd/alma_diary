@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:alma_diary/features/dashboard/alma_navbar.dart';
+import 'package:alma_diary/features/dashboard/alma_navbar_old.dart';
 import 'package:alma_diary/features/search/search_page_old.dart';
 import 'package:alma_diary/features/journal/create_page.dart';
 import 'package:alma_diary/features/notifications/notifications_page.dart';

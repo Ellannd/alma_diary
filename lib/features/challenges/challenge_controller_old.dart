@@ -1,7 +1,7 @@
 import 'package:alma_diary/features/notifications/controller/notifications_controller_old.dart';
 import 'package:flutter/foundation.dart';
 import 'package:alma_diary/features/challenges/engine/challenges_engine_v2.dart';
-import 'challenge_repository.dart';
+import 'challenge_repository_old.dart';
 
 
 class ChallengeController extends ChangeNotifier {

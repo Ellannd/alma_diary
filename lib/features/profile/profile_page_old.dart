@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:alma_diary/features/dashboard/alma_theme.dart';
+import 'package:alma_diary/features/dashboard/alma_theme_old.dart';
 import 'package:alma_diary/features/profile/settings_page_old.dart';
 import "package:alma_diary/core/theme/theme_controller.dart";
 import "package:alma_diary/features/profile/controller/profile_controller.dart";

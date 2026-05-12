@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:alma_diary/features/challenges/engine/challenges_engine_v2.dart';
-import 'package:alma_diary/features/dashboard/alma_theme.dart';
-import 'challenge_controller.dart';
+import 'package:alma_diary/features/dashboard/alma_theme_old.dart';
+import 'challenge_controller_old.dart';
 
 class AlmaChallengesScreen extends StatefulWidget {
   final String passphrase;

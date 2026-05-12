@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import "package:alma_diary/design_system/tokens/alma_colors.dart";
 
 enum AlmaButtonVariant { primary, secondary, ghost, danger }
 
@@ -89,21 +90,21 @@ class AlmaButton extends StatelessWidget {
       case AlmaButtonVariant.primary:
         return _ButtonColors(
           background: isDark
-              ? const Color(0xFF7C3AED)
-              : const Color(0xFF6D28D9),
-          foreground: Colors.white,
+              ? AlmaColors.darkAccent
+              : AlmaColors.darkAccentSoft,
+          foreground: AlmaColors.background(isDark),
           border: Colors.transparent,
         );
 
       case AlmaButtonVariant.secondary:
         return _ButtonColors(
           background: isDark
-              ? const Color(0xFF1E1E2A)
-              : const Color(0xFFF3F4F6),
+              ? AlmaColors.surfaceVariant(isDark)
+              : AlmaColors.surface(isDark),
           foreground: isDark ? Colors.white : Colors.black,
           border: isDark
-              ? Colors.white.withValues(alpha: .08)
-              : Colors.black.withValues(alpha: .08),
+              ? AlmaColors.border(isDark).withValues(alpha: .08)
+              : AlmaColors.border(isDark).withValues(alpha: .08),
         );
 
       case AlmaButtonVariant.ghost:
