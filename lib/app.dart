@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import "package:responsive_framework/responsive_framework.dart";
 import 'design_system/theme/alma_theme.dart';
 import 'features/auth/screen/auth_screen.dart';
 
@@ -17,26 +18,62 @@ Widget build(BuildContext context, WidgetRef ref) {
   final themeState = ref.watch(themeProvider);
   final isDark = themeState.isDarkMode;
 
-  return MaterialApp(
-      title: 'Alma - Tu lugar seguro',
-      debugShowCheckedModeBanner: false,
+ return MaterialApp(
+  title: 'Alma - Tu lugar seguro',
+  debugShowCheckedModeBanner: false,
 
-      theme: isDark ? AlmaTheme.dark() : AlmaTheme.light(), 
+  theme: isDark
+      ? AlmaTheme.dark()
+      : AlmaTheme.light(),
 
-       initialRoute: '/',
+  // =========================
+  // RESPONSIVE FRAMEWORK
+  // =========================
+  builder: (context, child) {
+    return ResponsiveBreakpoints.builder(
+      child: child!,
+      breakpoints: [
+        const Breakpoint(
+          start: 0,
+          end: 450,
+          name: PHONE,
+        ),
 
-      onGenerateRoute: AppRouter.onGenerateRoute,
+        const Breakpoint(
+          start: 451,
+          end: 800,
+          name: TABLET,
+        ),
 
-      onUnknownRoute: (settings) {
-        return MaterialPageRoute(
-          builder: (_) => const AuthScreen(),
-        );
-      },
-      navigatorObservers: [
-        AppNavigatorObserver(),
+        const Breakpoint(
+          start: 801,
+          end: 1920,
+          name: DESKTOP,
+        ),
+
+        const Breakpoint(
+          start: 1921,
+          end: 3840,
+          name: '4K',
+        ),
       ],
-      
     );
+  },
+
+  initialRoute: '/',
+
+  onGenerateRoute: AppRouter.onGenerateRoute,
+
+  onUnknownRoute: (settings) {
+    return MaterialPageRoute(
+      builder: (_) => const AuthScreen(),
+    );
+  },
+
+  navigatorObservers: [
+    AppNavigatorObserver(),
+  ],
+);
 
   }
 }

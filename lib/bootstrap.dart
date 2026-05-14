@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import "package:google_fonts/google_fonts.dart";
 
 import 'core/logging/log_service.dart';
 import 'core/logging/crash/crash_reporter.dart';
@@ -13,6 +14,8 @@ Future<void> bootstrapServices() async {
   LogService.instance.info(
     'Iniciando Bootstrap services...',
   );
+
+   await _initFonts();
 
   /// =========================
   /// FIREBASE
@@ -77,6 +80,13 @@ Future<void> bootstrapServices() async {
   }
 }
 
+  Future<void> _initFonts() async {
+  await GoogleFonts.pendingFonts([
+    GoogleFonts.inter(),
+    GoogleFonts.manrope(),
+    GoogleFonts.roboto(),
+  ]);
+}
 /// =========================
 /// SAFE INIT
 /// =========================
@@ -100,4 +110,6 @@ Future<void> _safeInit({
 
     return;
   }
+
+
 }

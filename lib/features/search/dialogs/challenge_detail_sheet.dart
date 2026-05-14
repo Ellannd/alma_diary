@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:alma_diary/features/challenges/alma_challenges_old.dart';
+import 'package:alma_diary/features/challenges/old/alma_challenges_old.dart';
 
 //todo dont hardcode any colors
 class ChallengeDetailSheet {

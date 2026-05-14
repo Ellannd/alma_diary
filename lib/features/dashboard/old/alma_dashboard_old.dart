@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import 'package:alma_diary/features/dashboard/alma_navbar_old.dart';
+import 'package:alma_diary/features/dashboard/old/alma_navbar_old.dart';
 import 'package:alma_diary/features/search/search_page_old.dart';
 import 'package:alma_diary/features/journal/create_page.dart';
 import 'package:alma_diary/features/notifications/notifications_page.dart';
 import 'package:alma_diary/features/profile/profile_page_old.dart';
-import 'package:alma_diary/features/dashboard/dashboard_home_old.dart';
+import 'package:alma_diary/features/dashboard/old/dashboard_home_old.dart';
 import 'package:alma_diary/services/supabase_service.dart';
 import 'package:alma_diary/features/notifications/controller/notifications_controller_old.dart';
 import 'package:alma_diary/core/navigation/alma_navigation_router.dart';

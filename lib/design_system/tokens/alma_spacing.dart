@@ -22,4 +22,19 @@ class AlmaSpacing {
 
   // Touch targets (accessibility)
   static const double minTouchTarget = 44.0;
+
+  // =========================
+  // DASHBOARD SPECIFIC
+  // =========================
+  // El margen que separa las cards de los bordes del dispositivo
+  static const double edgeMargin = 40.0; 
+  
+  // El espacio vertical entre secciones (ej: entre Saludo y Grid)
+  static const double section = 32.0; 
+
+  // Espacio entre las tarjetas del Grid
+  static const double gridGap = 30.0;
+
+  //Espacio vertical entra las cards
+  static const double cardVGap = 55.0;
 }

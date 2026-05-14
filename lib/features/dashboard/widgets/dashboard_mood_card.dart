@@ -52,7 +52,7 @@ class DashboardMoodCard extends StatelessWidget {
             // =========================
             // GLASS
             // =========================
-            color: AlmaColors.glass(isDark),
+            color: AlmaColors.transparent,
 
             border: Border.all(
               color: AlmaColors.border(
@@ -60,29 +60,7 @@ class DashboardMoodCard extends StatelessWidget {
               ),
             ),
 
-            // =========================
-            // AMBIENT SHADOW
-            // =========================
-            boxShadow: [
-              BoxShadow(
-                color: primary.withValues(alpha: .10),
-                blurRadius: 28,
-                spreadRadius: 2,
-                offset: const Offset(0, 12),
-              ),
-            ],
 
-            // =========================
-            // SUBTLE GRADIENT
-            // =========================
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                primary.withValues(alpha: .10),
-                AlmaColors.transparent,
-              ],
-            ),
           ),
 
           child: Column(
@@ -192,12 +170,10 @@ class DashboardMoodCard extends StatelessWidget {
                     Text(
                       "Continuar",
                       style:
-                          AlmaTypography.labelLarge(
+                          AlmaTypography.dashboardSecondary(
                         isDark,
                       ).copyWith(
                         color: primary,
-                        fontWeight:
-                            FontWeight.w700,
                       ),
                     ),
 

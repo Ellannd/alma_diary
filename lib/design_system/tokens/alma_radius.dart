@@ -9,6 +9,8 @@ class AlmaRadius {
   // Semantic usage
   static const double button = 14.0;
   static const double card = 20.0;
+  static const double navbar = 20.0;
+  static const double ftcard = 30.0;
   static const double sheet = 28.0;
   static const double input = 14.0;
 

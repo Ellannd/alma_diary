@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
+import 'package:alma_diary/design_system/tokens/alma_colors.dart';
+import 'package:alma_diary/design_system/tokens/alma_typography.dart';
+
 
 import 'dashboard_feature_card.dart';
 
@@ -18,6 +21,9 @@ class DashboardFeatureGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+        final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+
     return GridView(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -26,89 +32,129 @@ class DashboardFeatureGrid extends StatelessWidget {
       gridDelegate:
           const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        mainAxisSpacing: AlmaSpacing.md,
-        crossAxisSpacing: AlmaSpacing.md,
-        childAspectRatio: .82,
+        mainAxisSpacing: AlmaSpacing.xxl,
+        crossAxisSpacing: AlmaSpacing.xl,
+        childAspectRatio: 1.1,
       ),
 
       children: [
-        DashboardFeatureCard(
-          title: "Diario",
-          subtitle:
-              "Escribe tus pensamientos y emociones.",
-          icon: Icons.edit_rounded,
-          onTap: () {
-            Navigator.pushNamed(
-              context,
-              '/journal',
-            );
-          },
-        ),
 
-        DashboardFeatureCard(
-          title: "Reflexiones",
-          subtitle:
-              "Descubre patrones emocionales internos.",
-          icon: Icons.psychology_rounded,
-          onTap: () {
-            Navigator.pushNamed(
-              context,
-              '/reflections',
-            );
-          },
-        ),
+             Column(
+                children: [
+                  Expanded(
+                    child: DashboardFeatureCard(
+                      icon: Icons.edit_outlined,
+                      cardColor: AlmaColors.cardJournal,
+                      onTap: () => Navigator.pushNamed(context, '/journal'),
+                    ),
+                  ),
 
-        DashboardFeatureCard(
-          title: "Lecturas",
-          subtitle:
-              "Explora lecturas para tu crecimiento.",
-          icon: Icons.auto_stories_rounded,
-          onTap: () {
-            Navigator.pushNamed(
-              context,
-              '/readings',
-            );
-          },
-        ),
+                  const SizedBox(height: 8),
 
-        DashboardFeatureCard(
-          title: "Trayectoria",
-          subtitle:
-              "Observa tu evolución emocional.",
-          icon: Icons.trending_up_rounded,
-          onTap: () {
-            Navigator.pushNamed(
-              context,
-              '/trajectory',
-            );
-          },
-        ),
+                  Text(
+                    "Diario",
+                    textAlign: TextAlign.center,
+                    style: AlmaTypography.dashboardSecondary(isDark),
+                  ),
+                ],
+              ),
+            Column(
+              children: [
+                Expanded(
+                  child: DashboardFeatureCard(
+                icon: Icons.psychology_outlined,
+                cardColor: AlmaColors.cardReflections, // verde azulado
+                onTap: () => Navigator.pushNamed(context, '/reflections'),
+              ),
+            ),
+              
+             const SizedBox(height: 8),
 
-        DashboardFeatureCard(
-          title: "Desafíos",
-          subtitle:
-              "Pequeños retos para transformar hábitos.",
-          icon: Icons.emoji_events_rounded,
-          onTap: () {
-            Navigator.pushNamed(
-              context,
-              '/challenges',
-            );
-          },
-        ),
+                  Text(
+                    "Reflexiones",
+                    textAlign: TextAlign.center,
+                    style: AlmaTypography.dashboardSecondary(isDark),
+                  ),
+              ]
+            ),
+             Column(
+              children: [
+                Expanded(
+                  child: DashboardFeatureCard(
+                          icon: Icons.auto_stories_outlined,
+                          cardColor: AlmaColors.cardReadings, // tierra
+                          onTap: () => Navigator.pushNamed(context, '/readings'),
+                          ),
+                        ),
+              
+                 const SizedBox(height: 8),
 
-        DashboardFeatureCard(
-          title: "Citas",
-          subtitle:
-              "Frases y pensamientos para acompañarte.",
-          icon: Icons.format_quote_rounded,
-          onTap: () {
-            Navigator.pushNamed(
-              context,
-              '/quotes',
-            );
-          },
-        ),
+                  Text(
+                    "Lecturas",
+                    textAlign: TextAlign.center,
+                    style: AlmaTypography.dashboardSecondary(isDark),
+                  ),
+              ]
+            ),
+             Column(
+              children: [
+                Expanded(
+                  child: 
+              DashboardFeatureCard(
+                icon: Icons.show_chart_rounded,
+                cardColor: AlmaColors.cardTrajectory, // azul
+                onTap: () => Navigator.pushNamed(context, '/trajectory'),
+              ),
+                ),
+                 const SizedBox(height: 8),
+
+                  Text(
+                    "Trayectoria",
+                    textAlign: TextAlign.center,
+                    style: AlmaTypography.dashboardSecondary(isDark),
+                  ),
+                  ]
+            ),
+              Column(
+              children: [
+                Expanded(
+                  child: 
+              DashboardFeatureCard(
+                icon: Icons.format_quote_outlined,
+                cardColor: AlmaColors.cardQuotes, // marrón cálido
+                onTap: () => Navigator.pushNamed(context, '/quotes'),
+              ),
+              ),
+              
+                 const SizedBox(height: 8),
+
+                  Text(
+                    "Frases",
+                    textAlign: TextAlign.center,
+                    style: AlmaTypography.dashboardSecondary(isDark),
+                  ),
+                ]
+            ),
+            Column(
+              children: [
+                Expanded(
+                  child: 
+              DashboardFeatureCard(
+                icon: Icons.track_changes_outlined,
+                cardColor: AlmaColors.cardChallenges, // rojo oscuro
+                onTap: () => Navigator.pushNamed(context, '/challenges'),
+              ),
+              ),
+              
+                 const SizedBox(height: 8),
+
+                  Text(
+                    "Desafíos",
+                    textAlign: TextAlign.center,
+                    style: AlmaTypography.dashboardSecondary(isDark),
+                  ),
+                  ]
+            ),
       ],
     );
   }

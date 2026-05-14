@@ -8,6 +8,7 @@ import '../widgets/dashboard_quote_card.dart';
 import '../widgets/dashboard_mood_card.dart';
 import '../widgets/dashboard_section.dart';
 import '../widgets/dashboard_navbar.dart';
+import '../widgets/dashboard_greeting.dart';
 import 'package:alma_diary/design_system/tokens/alma_colors.dart';
 import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 
@@ -55,23 +56,33 @@ class DashboardScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AlmaSpacing.lg,
-                    vertical: AlmaSpacing.sm,
-                  ),
-                  child: DashboardHeader(
-                    userName: userName,
-                    archetype: archetype,
-                  ),
-                ),
-                const SizedBox(height: 20),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AlmaSpacing.lg,
+                        vertical: AlmaSpacing.sm,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          DashboardHeader(
+                            onSettingsTap: () =>
+                                Navigator.of(context).pushNamed('/settings'),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          DashboardGreeting(
+                            userName: userName,
+                            archetype: archetype,
+                          ),
+                        ],
+                      ),
+                    ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     children: [
                       DashboardSection(
-                        title: "Tu espacio",
                         child: DashboardFeatureGrid(
                           userId: state.userId!,
                           archetype: archetype,

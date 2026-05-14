@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 
 class AlmaNavbarItem {
   final IconData icon;
-  final String label;
 
   const AlmaNavbarItem({
     required this.icon,
-    required this.label,
   });
 }
 
@@ -27,11 +25,11 @@ class AlmaNavbar extends StatelessWidget {
     final theme = Theme.of(context);
 
     final items = [
-      const AlmaNavbarItem(icon: Icons.home_outlined, label: 'Home'),
-      const AlmaNavbarItem(icon: Icons.search, label: 'Buscar'),
-      const AlmaNavbarItem(icon: Icons.add_circle_outline, label: 'Nuevo'),
-      const AlmaNavbarItem(icon: Icons.notifications_outlined, label: 'Notifs'),
-      const AlmaNavbarItem(icon: Icons.person_outline, label: 'Perfil'),
+      const AlmaNavbarItem(icon: Icons.home_outlined),
+      const AlmaNavbarItem(icon: Icons.search),
+      const AlmaNavbarItem(icon: Icons.add_circle_outline),
+      const AlmaNavbarItem(icon: Icons.notifications_outlined),
+      const AlmaNavbarItem(icon: Icons.person_outline),
     ];
 
     return Container(
@@ -138,14 +136,6 @@ class _NavItem extends StatelessWidget {
                     ),
                   ),
               ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              item.label,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: isSelected ? activeColor : inactiveColor,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
             ),
           ],
         ),

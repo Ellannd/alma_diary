@@ -2,7 +2,7 @@ import 'package:alma_diary/features/profile/domain/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:alma_diary/features/profile/controller/profile_controller.dart';
-import 'package:alma_diary/features/dashboard/alma_dashboard_old.dart';
+import 'package:alma_diary/features/dashboard/old/alma_dashboard_old.dart';
 import 'package:alma_diary/features/onboarding/onboarding_screen.dart';
 import 'package:alma_diary/features/profile/data/profile_repository.dart';
 import 'package:alma_diary/features/notifications/controller/notifications_controller_old.dart';

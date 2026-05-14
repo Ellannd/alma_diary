@@ -22,23 +22,23 @@ class DashboardNavbar extends StatelessWidget {
   static const _items = [
     (
       icon: Icons.home_rounded,
-      label: "Inicio",
+      //label: "Inicio",
     ),
     (
-      icon: Icons.auto_awesome_rounded,
-      label: "Explorar",
+      icon: Icons.search_rounded,
+     // label: "Buscar",
     ),
     (
       icon: Icons.add_rounded,
-      label: "Crear",
+      //label: "Crear",
     ),
     (
       icon: Icons.notifications_rounded,
-      label: "Alerts",
+     // label: "Alerts",
     ),
     (
       icon: Icons.person_rounded,
-      label: "Perfil",
+      //label: "Perfil",
     ),
   ];
 
@@ -47,35 +47,19 @@ class DashboardNavbar extends StatelessWidget {
     final isDark =
         Theme.of(context).brightness == Brightness.dark;
 
-    final primary =
-        Theme.of(context).colorScheme.primary;
-
     return Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AlmaRadius.xxl),
-              // =====================
-              // SHADOW
-              // =====================
-              boxShadow: [
-                BoxShadow(
-                  color: primary.withValues(
-                    alpha: .10,
-                  ),
-                  blurRadius: 30,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 12),
-                ),
-              ],
+          borderRadius: BorderRadius.circular(AlmaRadius.navbar),
         ),
 
     child: ClipRRect(
           borderRadius: BorderRadius.circular(
-            AlmaRadius.xxl,
+            AlmaRadius.navbar,
           ),
           child: BackdropFilter(
             filter: ImageFilter.blur(
-              sigmaX: 22,
-              sigmaY: 22,
+              sigmaX: 18,
+              sigmaY: 18,
             ),
             child: Container(
               height: 74,
@@ -84,13 +68,13 @@ class DashboardNavbar extends StatelessWidget {
               ),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(
-                  AlmaRadius.xxl,
+                  AlmaRadius.navbar,
                 ),
 
                 // =====================
                 // GLASS
                 // =====================
-                color: AlmaColors.glass(isDark),
+                color: AlmaColors.transparent,
 
                 border: Border.all(
                   color: AlmaColors.border(
@@ -112,9 +96,8 @@ class DashboardNavbar extends StatelessWidget {
 
                     return _NavbarItem(
                       icon: item.icon,
-                      label: item.label,
                       selected: selected,
-                      primary: primary,
+                      primary: AlmaColors.navIcon(isDark),
                       isDark: isDark,
                       showBadge:
                           index == 3 &&
@@ -139,7 +122,6 @@ class DashboardNavbar extends StatelessWidget {
 
 class _NavbarItem extends StatelessWidget {
   final IconData icon;
-  final String label;
   final bool selected;
   final bool isDark;
   final Color primary;
@@ -149,7 +131,6 @@ class _NavbarItem extends StatelessWidget {
 
   const _NavbarItem({
     required this.icon,
-    required this.label,
     required this.selected,
     required this.isDark,
     required this.primary,
@@ -158,119 +139,99 @@ class _NavbarItem extends StatelessWidget {
     this.badge = '',
   });
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(
-          milliseconds: 220,
-        ),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AlmaSpacing.md,
-          vertical: AlmaSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(
-            AlmaRadius.xl,
-          ),
-          color: selected
-              ? primary.withValues(alpha: .14)
-              : AlmaColors.transparent,
-        ),
+ @override
+Widget build(BuildContext context) {
+  return GestureDetector(
+    onTap: onTap,
+    behavior: HitTestBehavior.opaque,
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      width: 56,
+      height: 56,
 
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Icon(
-                  icon,
-                  size: 24,
-                  color: selected
-                      ? primary
-                      : AlmaColors.textMuted(
-                          isDark,
-                        ),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+
+        color: selected
+            ? AlmaColors.navbarHover
+            : Colors.transparent,
+
+        boxShadow: selected
+            ? [
+                BoxShadow(
+                  color: AlmaColors.darkBackground.withValues(alpha: .18),
+                  blurRadius: 12,
+                  offset: const Offset(0, 10),
                 ),
 
-                // =================
-                // BADGE
-                // =================
-                if (showBadge)
-                  Positioned(
-                    top: -6,
-                    right: -10,
-                    child: Container(
-                      padding:
-                          const EdgeInsets.symmetric(
-                        horizontal: 5,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AlmaColors.error,
-                        borderRadius:
-                            BorderRadius.circular(
-                          AlmaRadius.full,
-                        ),
-                      ),
-                      constraints:
-                          const BoxConstraints(
-                        minWidth: 18,
-                        minHeight: 18,
-                      ),
-                      child: Center(
-                        child: Text(
-                          badge,
-                          style:
-                              AlmaTypography
-                                  .labelSmall(
-                            isDark,
-                          ).copyWith(
-                            color: Colors.white,
-                            fontWeight:
-                                FontWeight.w700,
-                            fontSize: 9,
-                          ),
-                        ),
+                // neumorphism highlight
+                BoxShadow(
+                  color: AlmaColors.lightBackground.withValues(alpha: .04),
+                  blurRadius: 6,
+                  offset: const Offset(-2, -2),
+                ),
+              ]
+            : [],
+
+        border: Border.all(
+          color: selected
+              ? AlmaColors.lightBackground.withValues(alpha: .04)
+              : Colors.transparent,
+        ),
+      ),
+
+      child: Center(
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Icon(
+              icon,
+              size: 28,
+              color: selected
+                  ? primary
+                  : AlmaColors.textMuted(isDark),
+            ),
+
+            // =================
+            // BADGE
+            // =================
+            if (showBadge)
+              Positioned(
+                top: -6,
+                right: -10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AlmaColors.error,
+                    borderRadius: BorderRadius.circular(
+                      AlmaRadius.full,
+                    ),
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 18,
+                    minHeight: 18,
+                  ),
+                  child: Center(
+                    child: Text(
+                      badge,
+                      style: AlmaTypography.labelSmall(
+                        isDark,
+                      ).copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 9,
                       ),
                     ),
                   ),
-              ],
-            ),
-
-            const SizedBox(
-              height: AlmaSpacing.xs,
-            ),
-
-            AnimatedOpacity(
-              duration: const Duration(
-                milliseconds: 180,
-              ),
-              opacity: selected ? 1 : .7,
-              child: Text(
-                label,
-                style:
-                    AlmaTypography.labelSmall(
-                  isDark,
-                ).copyWith(
-                  color: selected
-                      ? primary
-                      : AlmaColors.textMuted(
-                          isDark,
-                        ),
-                  fontWeight: selected
-                      ? FontWeight.w700
-                      : FontWeight.w500,
                 ),
               ),
-            ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

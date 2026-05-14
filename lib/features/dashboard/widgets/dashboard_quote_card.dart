@@ -27,14 +27,6 @@ class DashboardQuoteCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AlmaSpacing.lg),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AlmaColors.accent(isDark).withValues(alpha: 0.25),
-                  AlmaColors.accentSoft(isDark).withValues(alpha: 0.10),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
             ),
           ),
 
@@ -66,7 +58,7 @@ class DashboardQuoteCard extends StatelessWidget {
                   // Quote
                   Text(
                     quote,
-                    style: AlmaTypography.quote(isDark),
+                    style: AlmaTypography.dashboardSecondary(isDark),
                   ),
 
                   const SizedBox(height: AlmaSpacing.md),

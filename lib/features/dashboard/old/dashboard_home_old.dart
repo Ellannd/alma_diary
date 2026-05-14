@@ -7,7 +7,7 @@ import 'package:alma_diary/features/notifications/controller/notifications_contr
 import 'package:alma_diary/features/readings/alma_readings.dart';
 import 'package:alma_diary/features/reflections/alma_reflections.dart';
 import 'package:alma_diary/features/reflections/alma_trajectory.dart';
-import 'package:alma_diary/features/challenges/alma_challenges_old.dart';
+import 'package:alma_diary/features/challenges/old/alma_challenges_old.dart';
 import 'package:alma_diary/features/quotes/alma_quotes.dart';
 import 'dashboard_card_old.dart';
 

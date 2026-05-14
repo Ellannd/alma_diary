@@ -1,13 +1,43 @@
 import 'package:flutter/material.dart';
 
 class AlmaColors {
+
+  // =========================
+  // CATEGORY COLORS (Basados en tu maqueta)
+  // =========================
+  static const Color cardJournal = Color(0xFF6D28D9);      // Violeta
+  static const Color cardReflections = Color(0xFF5A8473); // Verde desaturado
+  static const Color cardReadings = Color(0xFFB3A592);    // Beige/Arena
+  static const Color cardTrajectory = Color(0xFF4F6D7A); // Azul grisáceo
+  static const Color cardQuotes = Color(0xFF8D7464);      // Marrón suave
+  static const Color cardChallenges = Color(0xFF9E524F);    // Terracota
+
+  // =========================
+  // HELPER DE SATURACIÓN
+  // =========================
+  /// Si isSelected es false, baja la saturación un 40% y sube la luminosidad
+  static Color adaptativeCard(Color color, bool isSelected) {
+    if (isSelected) return color;
+    
+    final hsl = HSLColor.fromColor(color);
+    return hsl
+        .withSaturation((hsl.saturation * 0.5).clamp(0.0, 1.0))
+        .withLightness((hsl.lightness * 1.1).clamp(0.0, 1.0))
+        .toColor();
+  }
+
+  // Non changing
+   static const Color navbarHover = Color(0xFF4F6D7A); // Azul grisáceo
+
+
   // =========================
   // DARK THEME
   // =========================
-  static const Color darkBackground = Color(0xFF0B0F14);
+  static const Color darkBackground = Color(0xFF161616);
   static const Color darkSurface = Color(0xFF121824);
   static const Color darkSurfaceVariant = Color(0xFF1A2230);
 
+  static const Color darkTextDashboard = Color.fromARGB(255, 255, 255, 255);
   static const Color darkTextPrimary = Color(0xFFFFFFFF);
   static const Color darkTextSecondary = Color(0xFFA7B0B8);
   static const Color darkTextMuted = Color(0xFF6C7680);
@@ -19,7 +49,7 @@ class AlmaColors {
   static const Color darkAccentSoft = Color(0x337C3AED);
 
   // Glass — suficiente cuerpo para separarse del fondo oscuro
-  static const Color darkBorder = Color(0x2EFFFFFF);  // 0x1A → 0x2E (~18%)
+  static const Color darkBorder = Color.fromARGB(66, 255, 255, 255);  // 0x1A → 0x2E (~18%)
   static const Color darkGlass = Color(0x1FFFFFFF);   // 0x18 → 0x1F (~12%)
 
   // =========================
@@ -29,6 +59,7 @@ class AlmaColors {
   static const Color lightSurface = Color(0xFFFFFFFF);
   static const Color lightSurfaceVariant = Color(0xFFF1F3F6);
 
+  static const Color lightTextDashboard = Color(0xFF555555);
   static const Color lightTextPrimary = Color(0xFF0B0F14);
   static const Color lightTextSecondary = Color(0xFF4B5563);
   static const Color lightTextMuted = Color(0xFF9AA3AF);
@@ -81,6 +112,9 @@ class AlmaColors {
 
   static Color textPrimary(bool isDark) =>
       isDark ? darkTextPrimary : lightTextPrimary;
+  
+  static Color dashboardText(bool isDark) =>
+      isDark ? darkTextDashboard : lightTextDashboard;
 
   static Color textSecondary(bool isDark) =>
       isDark ? darkTextSecondary : lightTextSecondary;

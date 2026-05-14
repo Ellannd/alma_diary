@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import "package:google_fonts/google_fonts.dart";
 import 'alma_colors.dart';
 
 class AlmaTypography {
@@ -15,19 +16,86 @@ class AlmaTypography {
     Color? color,
     double letterSpacing = 0.0,
   }) {
-    return TextStyle(
+    return GoogleFonts.inter(
       fontSize: size,
       fontWeight: weight,
       height: height,
       letterSpacing: letterSpacing,
       color: color ?? AlmaColors.textPrimary(isDark),
-      fontFamily: 'Inter',
+    );
+  }
+
+    static TextStyle _secondary({
+    required bool isDark,
+    required double size,
+    required FontWeight weight,
+    double height = 1.2,
+    Color? color,
+    double letterSpacing = 0.0,
+  }) {
+    return GoogleFonts.manrope(
+      fontSize: size,
+      fontWeight: weight,
+      height: height,
+      letterSpacing: letterSpacing,
+      color: color ?? AlmaColors.textPrimary(isDark),
+    );
+  }
+
+      static TextStyle _logo({
+    required bool isDark,
+    required double size,
+    required FontWeight weight,
+    double height = 1.2,
+    Color? color,
+    double letterSpacing = 0.0,
+  }) {
+    return GoogleFonts.roboto(
+      fontSize: size,
+      fontWeight: weight,
+      height: height,
+      letterSpacing: letterSpacing,
+      color: color ?? AlmaColors.textPrimary(isDark),
     );
   }
 
   // =========================
   // DISPLAY
   // =========================
+
+   static TextStyle dashboardGreetingLigtht(bool isDark) => _base(
+        isDark: isDark,
+        size: 46,
+        weight: FontWeight.w200,
+        height: 1.1,
+        letterSpacing: -0.5,
+      );
+
+       static TextStyle logoHeader(bool isDark) => _logo(
+        isDark: isDark,
+        size: 40,
+        weight: FontWeight.w100,
+        height: 1.1,
+        letterSpacing: 0,
+      );
+
+   static TextStyle dashboardGreetingDark(bool isDark) => _base(
+        isDark: isDark,
+        size: 46,
+        weight: FontWeight.w500,
+        height: 1.1,
+        letterSpacing: -0.5,
+      );
+  
+     static TextStyle dashboardSecondary(bool isDark) => _secondary(
+        isDark: isDark,
+        size: 16,
+        weight: FontWeight.w400,
+        height: 1.1,
+        letterSpacing: -0.5,
+      );
+  
+
   static TextStyle displayLarge(bool isDark) => _base(
         isDark: isDark,
         size: 34,

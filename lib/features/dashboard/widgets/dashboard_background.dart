@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import 'package:alma_diary/design_system/tokens/alma_colors.dart';
+import "package:alma_diary/design_system/effects/svg_overlay.dart";
 
 class DashboardBackground extends StatelessWidget {
   final Widget child;
@@ -15,6 +16,7 @@ class DashboardBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark =
         Theme.of(context).brightness == Brightness.dark;
+    final primary = Theme.of(context).colorScheme.primary;
 
     return Container(
       decoration: BoxDecoration(
@@ -37,29 +39,24 @@ class DashboardBackground extends StatelessWidget {
       child: Stack(
         children: [
           // =========================
-          // ORBS / GLOWS
+          // ORBS
           // =========================
           Positioned(
             top: -120,
             left: -80,
             child: _BlurOrb(
               size: 260,
-              color: Theme.of(context)
-                  .colorScheme
-                  .primary
-                  .withValues(alpha: .22),
+              color: primary.withValues(alpha: .22),
             ),
           ),
-
           Positioned(
             top: 120,
             right: -100,
             child: _BlurOrb(
               size: 220,
-              color: Colors.cyan.withValues(alpha: .12),
+              color: Colors.cyan.withValues(alpha: .10),
             ),
           ),
-
           Positioned(
             bottom: -140,
             left: 20,
@@ -68,25 +65,27 @@ class DashboardBackground extends StatelessWidget {
               color: Theme.of(context)
                   .colorScheme
                   .secondary
-                  .withValues(alpha: .16),
+                  .withValues(alpha: .14),
             ),
           ),
 
           // =========================
-          // GLASS LAYER
+          // SVG OVERLAYS — estilo Picasso/minimalista
           // =========================
-          BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: 80,
-              sigmaY: 80,
-            ),
-            child: Container(
-              color: Colors.transparent,
-            ),
+          
+          Positioned(
+            top: 40,
+            right: 20,
+            child: AlmaSvgOverlay(asset: "bg_overlay/picasso_1.svg")
+          ),
+          Positioned(
+            bottom: 10,
+            left: -50,
+            child: AlmaSvgOverlay(asset: "bg_overlay/picasso_2.svg")
           ),
 
           // =========================
-          // CONTENT SOLO (SIN SAFEAREA)
+          // CONTENT
           // =========================
           child,
         ],
@@ -95,31 +94,27 @@ class DashboardBackground extends StatelessWidget {
   }
 }
 
+// =========================
+// BLUR ORB
+// =========================
 class _BlurOrb extends StatelessWidget {
   final double size;
   final Color color;
 
-  const _BlurOrb({
-    required this.size,
-    required this.color,
-  });
+  const _BlurOrb({required this.size, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: color,
-      ),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
       child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: 120,
-          sigmaY: 120,
-        ),
+        filter: ImageFilter.blur(sigmaX: 120, sigmaY: 120),
         child: const SizedBox(),
       ),
     );
   }
 }
+
+
