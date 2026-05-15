@@ -25,65 +25,75 @@ class JournalEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark =
-        Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final primary =
-        Theme.of(context).colorScheme.primary;
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(
-        AlmaRadius.xl,
-      ),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(
-          sigmaX: 18,
-          sigmaY: 18,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: AlmaSpacing.r(context, AlmaSpacing.cardVGap),
+          ),
+          child: Text(
+            'La única salida es a través de ello.',
+            textAlign: TextAlign.center,
+            style: AlmaTypography.journal(isDark, context),
+          ),
         ),
-        child: Container(
-          padding: const EdgeInsets.all(
-            AlmaSpacing.lg,
-          ),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(
-              AlmaRadius.xl,
-            ),
-            color: AlmaColors.surface(isDark)
-                .withValues(alpha: .72),
-            border: Border.all(
-              color: AlmaColors.border(isDark),
-            ),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                primary.withValues(alpha: .10),
-                AlmaColors.transparent,
-              ],
-            ),
-          ),
-          child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            enabled: enabled,
-            onChanged: onChanged,
-            minLines: 14,
-            maxLines: null,
-            cursorColor: primary,
-            style: AlmaTypography.bodyLarge(isDark),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText:
-                  hintText ?? 'Escribe lo que sientes...',
-              hintStyle:
-                  AlmaTypography.bodyLarge(isDark)
-                      .copyWith(
-                color: AlmaColors.textMuted(isDark),
+
+        ClipRRect(
+          borderRadius: BorderRadius.circular(AlmaRadius.xl),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(
+                AlmaSpacing.r(context, AlmaSpacing.lg),
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AlmaRadius.xl),
+                color: AlmaColors.surface(isDark).withValues(alpha: .72),
+                border: Border.all(
+                  color: AlmaColors.border(isDark),
+                ),
+              ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: AlmaSpacing.r(context, 300),
+                  maxHeight: AlmaSpacing.r(context, 420),
+                ),
+                child: SingleChildScrollView(
+                  child: TextField(
+                    controller: controller,
+                    focusNode: focusNode,
+                    enabled: enabled,
+                    onChanged: onChanged,
+                    maxLines: null,
+                    cursorColor: AlmaColors.textPrimary(isDark),
+                    style: AlmaTypography.bodyMedium(isDark),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      fillColor: AlmaColors.transparent,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
+                      hoverColor: AlmaColors.transparent,
+                      errorBorder: InputBorder.none,
+                      focusedErrorBorder: InputBorder.none,
+                      hintText: hintText ?? 'Escribe tus pensamientos.',
+                      hintStyle: AlmaTypography.bodyLarge(isDark).copyWith(
+                        color: AlmaColors.textMuted(isDark),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 }

@@ -34,7 +34,7 @@ class NotificationController extends Notifier<NotificationState> {
     final auth = ref.watch(authControllerProvider);
 
     return NotificationState(
-      userId: auth.user?.id
+      userId: auth.asData?.value.user?.id
     );
   }
 

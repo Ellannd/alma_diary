@@ -1,5 +1,5 @@
+import 'package:alma_diary/features/challenges/screen/challenges_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:alma_diary/features/challenges/old/alma_challenges_old.dart';
 
 //todo dont hardcode any colors
 class ChallengeDetailSheet {
@@ -93,8 +93,7 @@ class ChallengeDetailSheet {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => AlmaChallengesScreen(
-                          passphrase: passphrase,
+                        builder: (_) => ChallengeScreen(
                         ),
                       ),
                     );

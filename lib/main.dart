@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'package:alma_diary/features/profile/data/profile_repository.dart';
+import 'package:alma_diary/state/profile/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/logging/log_service.dart';
 import 'core/logging/error_handlers.dart';
 import 'core/config/app_environment.dart';
@@ -26,10 +29,15 @@ Future<void> main() async {
 
   runZonedGuarded(() {
     runApp(
-      ProviderScope(
-        child: const MyApp(),
-      ),
-    );
+        ProviderScope(
+          overrides: [
+            profileRepositoryProvider.overrideWithValue(
+              ProfileRepository(),
+            ),
+          ],
+          child: const MyApp(),
+        ),
+      );
   }, ErrorHandlers.handleError);
 }
 

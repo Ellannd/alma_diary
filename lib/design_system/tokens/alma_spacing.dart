@@ -1,5 +1,11 @@
+// lib/design_system/tokens/alma_spacing.dart
+import 'package:flutter/material.dart';
+import 'alma_responsive.dart';
+
 class AlmaSpacing {
-  // Base scale (8pt system)
+  AlmaSpacing._();
+
+  // Base scale (8pt system) — constantes para uso sin contexto
   static const double xxs = 4.0;
   static const double xs = 8.0;
   static const double sm = 12.0;
@@ -9,32 +15,41 @@ class AlmaSpacing {
   static const double xxl = 40.0;
   static const double xxxl = 56.0;
 
-  // Semantic spacing (UI consistency layer)
   static const double screenPadding = 20.0;
   static const double sectionGap = 28.0;
   static const double cardPadding = 16.0;
   static const double buttonPadding = 14.0;
-
-  // Layout spacing
   static const double listItemGap = 12.0;
   static const double formFieldGap = 14.0;
   static const double iconGap = 8.0;
-
-  // Touch targets (accessibility)
   static const double minTouchTarget = 44.0;
 
-  // =========================
-  // DASHBOARD SPECIFIC
-  // =========================
-  // El margen que separa las cards de los bordes del dispositivo
-  static const double edgeMargin = 40.0; 
-  
-  // El espacio vertical entre secciones (ej: entre Saludo y Grid)
-  static const double section = 32.0; 
-
-  // Espacio entre las tarjetas del Grid
+  // Dashboard specific — constantes legacy
+  static const double edgeMargin = 40.0;
+  static const double section = 32.0;
   static const double gridGap = 30.0;
-
-  //Espacio vertical entra las cards
   static const double cardVGap = 55.0;
+
+  // =========================
+  // RESPONSIVOS — requieren contexto
+  // =========================
+  static double r(BuildContext context, double value) =>
+      value * AlmaResponsive.scale(context);
+
+  static double screenH(BuildContext context) =>
+      AlmaResponsive.isCompact(context) ? 16.0 : 20.0;
+
+  static double gridGapR(BuildContext context) =>
+      AlmaResponsive.isCompact(context) ? 12.0 : 16.0;
+
+  static double sectionR(BuildContext context) =>
+      AlmaResponsive.isCompact(context) ? 20.0 : 28.0;
+
+  static double cardPaddingR(BuildContext context) =>
+      AlmaResponsive.isCompact(context) ? 14.0 : 18.0;
+
+  static double navbarBottomR(BuildContext context) {
+    final bottom = MediaQuery.paddingOf(context).bottom;
+    return bottom > 0 ? bottom + 12 : 16.0;
+  }
 }

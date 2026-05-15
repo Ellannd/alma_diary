@@ -26,8 +26,8 @@ class DashboardHeader extends StatelessWidget {
         //todo make responsive
         SvgPicture.asset(
           'logo/logo.svg',
-          width: 65,
-          height: 65,
+          width: 55,
+          height: 55,
     
         ),
 

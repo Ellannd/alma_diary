@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:alma_diary/design_system/tokens/alma_colors.dart';
 import 'package:alma_diary/design_system/tokens/alma_typography.dart';
+import 'package:alma_diary/design_system/tokens/alma_responsive.dart';
 
 
 import 'dashboard_feature_card.dart';
@@ -24,17 +25,27 @@ class DashboardFeatureGrid extends StatelessWidget {
         final isDark =
         Theme.of(context).brightness == Brightness.dark;
 
+        final gap = AlmaSpacing.gridGapR(context);
+           // Altura de card proporcional al ancho disponible
+        final cardWidth =
+            (AlmaResponsive.screenWidth(context) -
+                    AlmaSpacing.screenPadding * 2 -
+                    gap) /
+                2;
+        final cardHeight = cardWidth * 1.15;
+
+
     return GridView(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
 
       gridDelegate:
-          const SliverGridDelegateWithFixedCrossAxisCount(
+          SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        mainAxisSpacing: AlmaSpacing.xxl,
-        crossAxisSpacing: AlmaSpacing.xl,
-        childAspectRatio: 1.1,
+        mainAxisSpacing: gap,
+        crossAxisSpacing: gap,
+        childAspectRatio: cardWidth / cardHeight + 0.15,
       ),
 
       children: [
@@ -45,7 +56,7 @@ class DashboardFeatureGrid extends StatelessWidget {
                     child: DashboardFeatureCard(
                       icon: Icons.edit_outlined,
                       cardColor: AlmaColors.cardJournal,
-                      onTap: () => Navigator.pushNamed(context, '/journal'),
+                      onTap: () => Navigator.of(context).pushNamed('/journal'),
                     ),
                   ),
 
@@ -64,7 +75,7 @@ class DashboardFeatureGrid extends StatelessWidget {
                   child: DashboardFeatureCard(
                 icon: Icons.psychology_outlined,
                 cardColor: AlmaColors.cardReflections, // verde azulado
-                onTap: () => Navigator.pushNamed(context, '/reflections'),
+                onTap: () => Navigator.of(context).pushNamed('/reflections'),
               ),
             ),
               
@@ -83,7 +94,7 @@ class DashboardFeatureGrid extends StatelessWidget {
                   child: DashboardFeatureCard(
                           icon: Icons.auto_stories_outlined,
                           cardColor: AlmaColors.cardReadings, // tierra
-                          onTap: () => Navigator.pushNamed(context, '/readings'),
+                          onTap: () => Navigator.of(context).pushNamed('/readings'),
                           ),
                         ),
               
@@ -103,7 +114,7 @@ class DashboardFeatureGrid extends StatelessWidget {
               DashboardFeatureCard(
                 icon: Icons.show_chart_rounded,
                 cardColor: AlmaColors.cardTrajectory, // azul
-                onTap: () => Navigator.pushNamed(context, '/trajectory'),
+                onTap: () => Navigator.of(context).pushNamed('/trajectory'),
               ),
                 ),
                  const SizedBox(height: 8),
@@ -122,7 +133,7 @@ class DashboardFeatureGrid extends StatelessWidget {
               DashboardFeatureCard(
                 icon: Icons.format_quote_outlined,
                 cardColor: AlmaColors.cardQuotes, // marrón cálido
-                onTap: () => Navigator.pushNamed(context, '/quotes'),
+                onTap: () => Navigator.of(context).pushNamed('/quotes'),
               ),
               ),
               
@@ -142,7 +153,7 @@ class DashboardFeatureGrid extends StatelessWidget {
               DashboardFeatureCard(
                 icon: Icons.track_changes_outlined,
                 cardColor: AlmaColors.cardChallenges, // rojo oscuro
-                onTap: () => Navigator.pushNamed(context, '/challenges'),
+                onTap: () => Navigator.of(context).pushNamed('/challenges'),
               ),
               ),
               

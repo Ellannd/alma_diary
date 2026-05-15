@@ -13,7 +13,7 @@ class AuthGate extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authControllerProvider);
 
-    if (auth.isAuthenticated) {
+    if (auth.asData?.value.isAuthenticated == true) {
       return const DashboardScreen();
     }
 

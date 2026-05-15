@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:alma_diary/design_system/tokens/alma_radius.dart';
 import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:alma_diary/design_system/tokens/alma_typography.dart';
+import 'package:alma_diary/design_system/tokens/alma_colors.dart';
 
 class JournalSaveButton extends StatelessWidget {
   final bool loading;
@@ -19,23 +20,32 @@ class JournalSaveButton extends StatelessWidget {
     final isDark =
         Theme.of(context).brightness == Brightness.dark;
 
-    final primary =
-        Theme.of(context).colorScheme.primary;
 
-    return SizedBox(
-      width: double.infinity,
-      height: 58,
+    return Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    // tus otros iconos (B, imagen, micrófono)
+    Row(
+      children: [
+        IconButton(icon: const Icon(Icons.format_bold), onPressed: () {}),
+        IconButton(icon: const Icon(Icons.image_outlined), onPressed: () {}),
+        IconButton(icon: const Icon(Icons.mic_outlined), onPressed: () {}),
+      ],
+    ),
+
+    // botón guardar a la derecha
+    SizedBox(
+      width: AlmaSpacing.r(context, 58),
+      height: AlmaSpacing.r(context, 58),
       child: ElevatedButton(
         onPressed: loading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           elevation: 0,
-          backgroundColor: primary,
-          foregroundColor:
-              Theme.of(context).colorScheme.onPrimary,
+          backgroundColor: AlmaColors.info,
+          foregroundColor: AlmaColors.info,
+          padding: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              AlmaRadius.full,
-            ),
+            borderRadius: BorderRadius.circular(AlmaRadius.md),
           ),
         ),
         child: loading
@@ -44,25 +54,16 @@ class JournalSaveButton extends StatelessWidget {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onPrimary,
+                  color: AlmaColors.info,
                 ),
               )
-            : Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AlmaSpacing.md,
-                ),
-                child: Text(
-                  'Guardar entrada',
-                  style: AlmaTypography.labelLarge(
-                    isDark,
-                  ).copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
+            : Icon(Icons.edit_rounded, size: AlmaSpacing.r(context, 32), color: AlmaColors.lightBackground,
       ),
-    );
+    ),
+    )
+    ]
+    
+);
+
   }
 }

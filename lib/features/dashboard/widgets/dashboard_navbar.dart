@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:alma_diary/state/dashboard/dashboard_state.dart';
 import 'package:flutter/material.dart';
 
 import 'package:alma_diary/design_system/tokens/alma_colors.dart';
@@ -8,114 +9,96 @@ import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:alma_diary/design_system/tokens/alma_typography.dart';
 
 class DashboardNavbar extends StatelessWidget {
-  final int currentIndex;
-  final ValueChanged<int> onTap;
+  final NavbarTab currentTab;
+ final ValueChanged<NavbarTab> onTap;
   final int notificationCount;
 
   const DashboardNavbar({
     super.key,
-    required this.currentIndex,
+    required this.currentTab,
     required this.onTap,
     this.notificationCount = 0,
   });
 
-  static const _items = [
-    (
-      icon: Icons.home_rounded,
-      //label: "Inicio",
-    ),
-    (
-      icon: Icons.search_rounded,
-     // label: "Buscar",
-    ),
-    (
-      icon: Icons.add_rounded,
-      //label: "Crear",
-    ),
-    (
-      icon: Icons.notifications_rounded,
-     // label: "Alerts",
-    ),
-    (
-      icon: Icons.person_rounded,
-      //label: "Perfil",
-    ),
-  ];
+static const _items = [
+  (
+    tab: NavbarTab.dashboard,
+    icon: Icons.home_rounded,
+  ),
+
+  (
+    tab: NavbarTab.search,
+    icon: Icons.search_rounded,
+  ),
+
+  (
+    tab: NavbarTab.create,
+    icon: Icons.add_rounded,
+  ),
+
+  (
+    tab: NavbarTab.notifications,
+    icon: Icons.notifications_rounded,
+  ),
+
+  (
+    tab: NavbarTab.profile,
+    icon: Icons.person_rounded,
+  ),
+];
 
   @override
   Widget build(BuildContext context) {
     final isDark =
         Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AlmaRadius.navbar),
-        ),
-
-    child: ClipRRect(
-          borderRadius: BorderRadius.circular(
-            AlmaRadius.navbar,
-          ),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: 18,
-              sigmaY: 18,
-            ),
-            child: Container(
-              height: 74,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AlmaSpacing.md,
-              ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(
-                  AlmaRadius.navbar,
-                ),
-
-                // =====================
-                // GLASS
-                // =====================
-                color: AlmaColors.transparent,
-
-                border: Border.all(
-                  color: AlmaColors.border(
-                    isDark,
-                  ),
-                ),
-              ),
-
-              child: Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.spaceAround,
-                children: List.generate(
-                  _items.length,
-                  (index) {
-                    final item = _items[index];
-
-                    final selected =
-                        currentIndex == index;
-
-                    return _NavbarItem(
-                      icon: item.icon,
-                      selected: selected,
-                      primary: AlmaColors.navIcon(isDark),
-                      isDark: isDark,
-                      showBadge:
-                          index == 3 &&
-                          notificationCount > 0,
-                      badge:
-                          notificationCount > 9
-                              ? '9+'
-                              : notificationCount
-                                    .toString(),
-                      onTap: () => onTap(index),
-                    );
-                  },
-                ),
-              ),
+    return ClipRRect(
+  borderRadius: BorderRadius.circular(AlmaRadius.navbar),
+  child: Stack(
+    children: [
+      // Capa visual: solo el blur, sin capturar gestos
+      Positioned.fill(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AlmaColors.transparent,
+              borderRadius: BorderRadius.circular(AlmaRadius.navbar),
+              border: Border.all(color: AlmaColors.border(isDark)),
             ),
           ),
         ),
-        );
+      ),
+
+      // Capa interactiva: los items encima, reciben los taps
+      Container(
+        height: AlmaSpacing.r(context, 70),
+        padding: EdgeInsets.symmetric(
+          horizontal: AlmaSpacing.r(context, AlmaSpacing.md),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(_items.length, (index) {
+            final item = _items[index];
+            final selected = currentTab == item.tab;
+
+            return _NavbarItem(
+              icon: item.icon,
+              selected: selected,
+              primary: AlmaColors.navIcon(isDark),
+              isDark: isDark,
+              showBadge: index == 3 && notificationCount > 0,
+              badge: notificationCount > 9
+                  ? '9+'
+                  : notificationCount.toString(),
+              onTap: () => onTap(item.tab),
+            );
+          }),
+        ),
+      ),
+    ],
+  ),
+);
       
   }
 }
@@ -186,7 +169,7 @@ Widget build(BuildContext context) {
           children: [
             Icon(
               icon,
-              size: 28,
+              size: AlmaSpacing.r(context, AlmaSpacing.sectionGap),
               color: selected
                   ? primary
                   : AlmaColors.textMuted(isDark),

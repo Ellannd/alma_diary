@@ -1,8 +1,7 @@
+import 'package:alma_diary/state/onboarding/onboarding_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:alma_diary/state/profile/profile_controller.dart';
-import 'package:alma_diary/features/onboarding/controller/onboarding_controller_old.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -64,6 +63,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   Future<void> _finish() async {
     try {
       LogService.instance.info('onboarding.complete.start');
+      
 
       final controller = OnboardingController(
         ref.read(profileRepositoryProvider),

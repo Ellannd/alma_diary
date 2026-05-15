@@ -30,16 +30,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 void initState() {
   super.initState();
 
-  Future.microtask(() {
-    ref.listen(authControllerProvider, (previous, next) {
-      if (next.isAuthenticated) {
-        Navigator.pushReplacementNamed(
-          context,
-          AppRoutes.dashboard,
-        );
-      }
-    });
-  });
+    
 }
 
   @override
@@ -73,6 +64,15 @@ void initState() {
 
   @override
   Widget build(BuildContext context) {
+
+    ref.listen(authControllerProvider, (previous, next) {
+    next.whenData((authState) {
+      if (authState.isAuthenticated) {
+        Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+      }
+    });
+  });
+
     final state = ref.watch(authControllerProvider);
     final controller = ref.read(authControllerProvider.notifier);
 
@@ -111,7 +111,7 @@ void initState() {
 
                   if (state.error != null) ...[
                     AlmaFeedback(
-                      message: state.error!,
+                      message: state.error!.toString(),
                       type: AlmaFeedbackType.error,
                     ),
                   ],
@@ -135,7 +135,7 @@ void initState() {
                     loading: isLoading,
                     onPressed: isLoading
                         ? null
-                        : () async => controller.signInWithGoogle,
+                        : () async => controller.signInWithGoogle(),
                   ),
 
                   const SizedBox(height: 20),

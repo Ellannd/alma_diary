@@ -37,7 +37,7 @@ class DashboardGreeting extends StatelessWidget {
             // =========================
             Text(
               _greeting(),
-              style: AlmaTypography.dashboardGreetingLigtht(isDark).copyWith(
+              style: AlmaTypography.dashboardGreetingLight(isDark, context).copyWith(
                 color: AlmaColors.textSecondary(isDark),
                 fontSize: 30
               ),
@@ -52,7 +52,7 @@ class DashboardGreeting extends StatelessWidget {
               userName,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AlmaTypography.dashboardGreetingDark(isDark).copyWith(
+              style: AlmaTypography.dashboardGreetingDark(isDark, context).copyWith(
                 letterSpacing: -1.0,
               ),
             ),

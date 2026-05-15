@@ -6,19 +6,18 @@ import "package:alma_diary/state/auth/auth_app_state.dart";
 import "package:alma_diary/features/auth/data/auth_repository.dart";
 import "package:alma_diary/core/logging/log_service.dart";
 
-
 /// =========================
-/// PROVIDER (CONTROLLER STATE)
+/// PROVIDERS
 /// =========================
 final authControllerProvider =
-    NotifierProvider<AuthController, AuthAppState>(
+    AsyncNotifierProvider<AuthController, AuthAppState>(
   AuthController.new,
 );
 
-/// =========================
-/// OPTIONAL: SUPABASE DEPENDENCY PROVIDER
-/// =========================
-/// (buena práctica para desacoplar Supabase del controller)
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepository();
+});
+
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
 });
@@ -26,24 +25,22 @@ final supabaseClientProvider = Provider<SupabaseClient>((ref) {
 /// =========================
 /// CONTROLLER
 /// =========================
-class AuthController extends Notifier<AuthAppState> {
+class AuthController extends AsyncNotifier<AuthAppState> {
   late final SupabaseClient _supabase;
   late final AuthRepository _repo;
-  bool _initialized = false;
   StreamSubscription<AuthState>? _authSub;
 
   @override
-  AuthAppState build() {
+  Future<AuthAppState> build() async {
+    
+    ref.onDispose(() => _authSub?.cancel());
+
     _supabase = ref.read(supabaseClientProvider);
-    _repo = AuthRepository();
+    
+    _repo = ref.read(authRepositoryProvider);
+    _listenAuthChanges();
 
-    if (!_initialized) {
-      _initialized = true;
-      _listenAuthChanges();
-    }
-
-    final session = _supabase.auth.currentSession;
-    final user = session?.user;
+    final user = _supabase.auth.currentSession?.user;
 
     return AuthAppState(
       user: user,
@@ -60,26 +57,37 @@ class AuthController extends Notifier<AuthAppState> {
     _authSub = _supabase.auth.onAuthStateChange.listen((data) {
       final user = data.session?.user;
 
-      state = state.copyWith(
-        user: user,
-        isAuthenticated: user != null,
-      );
+      // Solo actualiza si el notifier sigue vivo
+      if (state case AsyncData(:final value)) {
+        state = AsyncData(
+          value.copyWith(
+            user: user,
+            clearUser: user == null,
+            isAuthenticated: user != null,
+          ),
+        );
+      }
     });
-
-    ref.onDispose(() {
-    _authSub?.cancel();
-
-});
   }
 
   // =========================
-  // LOGIN
+  // HELPERS INTERNOS
+  // =========================
+
+  /// Lee el estado actual de forma segura, lanza si no está listo.
+  AuthAppState get _state => state.requireValue;
+
+  /// Actualiza el estado de forma segura.
+  void _setState(AuthAppState next) => state = AsyncData(next);
+
+  // =========================
+  // SIGN IN — EMAIL
   // =========================
   Future<void> signInWithEmail({
     required String email,
     required String password,
   }) async {
-    state = state.copyWith(isLoading: true, error: null);
+    _setState(_state.copyWith(isLoading: true, error: null));
 
     try {
       final response = await _supabase.auth.signInWithPassword(
@@ -89,27 +97,49 @@ class AuthController extends Notifier<AuthAppState> {
 
       final user = response.user;
 
-      state = state.copyWith(
+      _setState(_state.copyWith(
         user: user,
         isAuthenticated: user != null,
         isLoading: false,
+      ));
+
+      LogService.instance.info(
+        'auth.signin_email_success',
+        context: {'user_id': user?.id},
       );
-    } catch (e) {
-      state = state.copyWith(
+    } on AuthException catch (e, st) {
+      LogService.instance.error(
+        'auth.signin_email_failed',
+        error: e,
+        stackTrace: st,
+      );
+
+      _setState(_state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: e.message,
+      ));
+    } catch (e, st) {
+      LogService.instance.error(
+        'auth.signin_email_unexpected',
+        error: e,
+        stackTrace: st,
       );
+
+      _setState(_state.copyWith(
+        isLoading: false,
+        error: 'Error inesperado al iniciar sesión',
+      ));
     }
   }
 
   // =========================
-  // SIGN UP
+  // SIGN UP — EMAIL
   // =========================
   Future<void> signUpWithEmail({
     required String email,
     required String password,
   }) async {
-    state = state.copyWith(isLoading: true, error: null);
+    _setState(_state.copyWith(isLoading: true, error: null));
 
     try {
       final response = await _supabase.auth.signUp(
@@ -119,39 +149,77 @@ class AuthController extends Notifier<AuthAppState> {
 
       final user = response.user;
 
-      state = state.copyWith(
+      _setState(_state.copyWith(
         user: user,
         isAuthenticated: user != null,
         isLoading: false,
+      ));
+
+      LogService.instance.info(
+        'auth.signup_email_success',
+        context: {'user_id': user?.id},
       );
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
-    }
-  }
-
-    Future<void> signInWithGoogle() async {
-    state = state.copyWith(isLoading: true, error: null);
-
-    try {
-      await _repo.signInWithGoogle();
-
-      // NO setear isAuthenticated aquí
-      // Supabase onAuthStateChange lo hará automáticamente
-
-    } catch (e, st) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
-
+    } on AuthException catch (e, st) {
       LogService.instance.error(
-        'auth.controller_google_failed',
+        'auth.signup_email_failed',
         error: e,
         stackTrace: st,
       );
+
+      _setState(_state.copyWith(
+        isLoading: false,
+        error: e.message,
+      ));
+    } catch (e, st) {
+      LogService.instance.error(
+        'auth.signup_email_unexpected',
+        error: e,
+        stackTrace: st,
+      );
+
+      _setState(_state.copyWith(
+        isLoading: false,
+        error: 'Error inesperado al registrarse',
+      ));
+    }
+  }
+
+  // =========================
+  // SIGN IN — GOOGLE
+  // =========================
+  Future<void> signInWithGoogle() async {
+    _setState(_state.copyWith(isLoading: true, error: null));
+
+    try {
+      await _repo.signInWithGoogle();
+      // onAuthStateChange maneja el user automáticamente
+      // solo bajamos el loading aquí por si el flujo OAuth
+      // no dispara el listener de inmediato
+      _setState(_state.copyWith(isLoading: false));
+
+      LogService.instance.info('auth.signin_google_success');
+    } on AuthException catch (e, st) {
+      LogService.instance.error(
+        'auth.signin_google_failed',
+        error: e,
+        stackTrace: st,
+      );
+
+      _setState(_state.copyWith(
+        isLoading: false,
+        error: e.message,
+      ));
+    } catch (e, st) {
+      LogService.instance.error(
+        'auth.signin_google_unexpected',
+        error: e,
+        stackTrace: st,
+      );
+
+      _setState(_state.copyWith(
+        isLoading: false,
+        error: 'Error inesperado con Google',
+      ));
     }
   }
 
@@ -159,26 +227,48 @@ class AuthController extends Notifier<AuthAppState> {
   // SIGN OUT
   // =========================
   Future<void> signOut() async {
-    state = state.copyWith(isLoading: true);
+    _setState(_state.copyWith(isLoading: true, error: null));
 
     try {
       await _supabase.auth.signOut();
-      state = AuthAppState.initial();
-    } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
+
+      _setState(AuthAppState.initial());
+
+      LogService.instance.info('auth.signout_success');
+    } on AuthException catch (e, st) {
+      LogService.instance.error(
+        'auth.signout_failed',
+        error: e,
+        stackTrace: st,
       );
+
+      _setState(_state.copyWith(
+        isLoading: false,
+        error: e.message,
+      ));
+    } catch (e, st) {
+      LogService.instance.error(
+        'auth.signout_unexpected',
+        error: e,
+        stackTrace: st,
+      );
+
+      _setState(_state.copyWith(
+        isLoading: false,
+        error: 'Error inesperado al cerrar sesión',
+      ));
     }
   }
 
   // =========================
-  // HELPERS
+  // HELPERS PÚBLICOS
   // =========================
   void clearError() {
-    state = state.copyWith(error: null);
+    if (state case AsyncData(:final value)) {
+      state = AsyncData(value.copyWith(error: null));
+    }
   }
 
-  User? get currentUser => state.user;
-  bool get isLoggedIn => state.isAuthenticated;
+  User? get currentUser => state.asData?.value.user;
+  bool get isAuthenticated => state.asData?.value.isAuthenticated ?? false;
 }

@@ -1,16 +1,14 @@
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import 'package:flutter/material.dart';
 import "package:alma_diary/state/quotes/quote_controller.dart";
+import 'package:alma_diary/state/dashboard/dashboard_controller.dart';
 
 import "package:alma_diary/features/quotes/widgets/quote_card.dart";
+
 class AlmaQuotesScreen extends ConsumerStatefulWidget {
-  final String arquetipo;
-  final List<String> nodosDolor;
 
   const AlmaQuotesScreen({
     super.key,
-    required this.arquetipo,
-    required this.nodosDolor,
   });
 
   @override
@@ -22,11 +20,15 @@ class _AlmaQuotesScreenState extends ConsumerState<AlmaQuotesScreen> {
   void initState() {
     super.initState();
 
+    final dashboard = ref.watch(dashboardControllerProvider);
+
+    final archetype = dashboard.archetype;
+
     final controller = ref.read(quotesControllerProvider.notifier);
 
     controller.init(
-      arquetipo: widget.arquetipo,
-      nodosDolor: widget.nodosDolor,
+      arquetipo: archetype,
+      nodosDolor: dashboard.painNodes,
     );
 
     controller.loadQuotes();

@@ -30,7 +30,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   void initState() {
     super.initState();
 
-    _authController = AuthController();
+    
 
     final user = Supabase.instance.client.auth.currentUser;
 
@@ -126,12 +126,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () async {
-                await _authController.signOut();
-                if (context.mounted) {
-                  Navigator.of(context)
-                      .pushNamedAndRemoveUntil('/', (r) => false);
+                await ref.read(authControllerProvider.notifier).signOut();
+                if(context.mounted){
+                  Navigator.pushNamedAndRemoveUntil(context, "/", (_) => false );
                 }
-              },
+              }, 
               icon: const Icon(Icons.logout),
               label: const Text('Cerrar sesión'),
             ),

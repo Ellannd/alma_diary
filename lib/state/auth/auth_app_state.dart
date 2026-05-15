@@ -19,12 +19,13 @@ class AuthAppState {
 
   AuthAppState copyWith({
     User? user,
+    bool? clearUser,         // flag explícito para nullear
     bool? isLoading,
     bool? isAuthenticated,
     String? error,
   }) {
     return AuthAppState(
-      user: user ?? this.user,
+      user: (clearUser == true) ? null : (user ?? this.user),
       isLoading: isLoading ?? this.isLoading,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       error: error,

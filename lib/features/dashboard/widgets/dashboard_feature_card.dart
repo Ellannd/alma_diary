@@ -85,11 +85,11 @@ class _DashboardFeatureCardState
                 ? widget.cardColor.withValues(alpha: .85)
                 : widget.cardColor,
           ),
-          padding: const EdgeInsets.all(AlmaSpacing.lg),
+          padding: EdgeInsets.all(AlmaSpacing.r(context, AlmaSpacing.md)),
             child: Center(
                 child: Icon(
                   widget.icon,
-                  size: 60,
+                  size: AlmaSpacing.r(context, AlmaSpacing.cardVGap),
                   color: Colors.white.withValues(alpha: .90),
                 ),
               ),

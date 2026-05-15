@@ -1,3 +1,7 @@
+import 'dart:ui';
+
+import 'package:alma_diary/design_system/tokens/alma_colors.dart';
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:flutter/material.dart';
 
 import 'package:alma_diary/features/reflections/widgets/reflection_card.dart';
@@ -29,9 +33,15 @@ Future<void> showReflectionDetail({
   return showDialog(
     context: context,
     builder: (ctx) {
-      return Dialog(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        insetPadding: const EdgeInsets.all(16),
+    return BackdropFilter(
+      filter: ImageFilter.blur(
+        sigmaX: 18,
+        sigmaY: 18,
+      ),
+      child: Dialog(
+        
+        backgroundColor: AlmaColors.transparent,
+        insetPadding: EdgeInsets.all(AlmaSpacing.r(context, 16)),
 
         child: Container(
           constraints: BoxConstraints(
@@ -40,7 +50,7 @@ Future<void> showReflectionDetail({
           ),
 
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.all(AlmaSpacing.r(context, 24)),
 
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,7 +174,9 @@ Future<void> showReflectionDetail({
             ),
           ),
         ),
+      )
       );
+      
     },
   );
 }

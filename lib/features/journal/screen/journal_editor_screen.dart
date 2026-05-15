@@ -81,74 +81,19 @@ class _JournalEditorScreenState
 
       appBar: AppBar(
         elevation: 0,
-        centerTitle: false,
-        title: Text(
-          'Diario',
-          style: AlmaTypography.h3(isDark),
-        ),
       ),
 
       body: Stack(
         children: [
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(
-                AlmaSpacing.lg,
+              padding: EdgeInsets.all(
+                AlmaSpacing.r(context, AlmaSpacing.lg)
               ),
               child: Column(
                 crossAxisAlignment:
                     CrossAxisAlignment.start,
                 children: [
-                  // =====================
-                  // HEADER
-                  // =====================
-                  Text(
-                    '¿Qué estás sintiendo?',
-                    style:
-                        AlmaTypography.h2(
-                      isDark,
-                    ),
-                  ),
-
-                  const SizedBox(
-                    height: AlmaSpacing.sm,
-                  ),
-                    //todo: la única salida es a través de ello
-                  Text(
-                    'Escribe libremente.\nAlma analizará emociones, patrones y símbolos.',
-                    style:
-                        AlmaTypography.bodyMedium(
-                      isDark,
-                    ).copyWith(
-                      color:
-                          AlmaColors
-                              .textSecondary(
-                        isDark,
-                      ),
-                      height: 1.5,
-                    ),
-                  ),
-
-                  const SizedBox(
-                    height: AlmaSpacing.xl,
-                  ),
-
-                  // =====================
-                  // ERROR
-                  // =====================
-                  if (state.error != null)
-                    Padding(
-                      padding:
-                          const EdgeInsets.only(
-                        bottom:
-                            AlmaSpacing.md,
-                      ),
-                      child:
-                          JournalErrorBanner(
-                        message:
-                            state.error!,
-                      ),
-                    ),
 
                   // =====================
                   // EDITOR
@@ -157,29 +102,14 @@ class _JournalEditorScreenState
                     child: JournalEditor(
                       controller:
                           _textController,
+                          hintText: "Escribe tus pensamientos.",
+                  
                     ),
                   ),
 
-                  const SizedBox(
-                    height: AlmaSpacing.lg,
+                  SizedBox(
+                    height: AlmaSpacing.r(context, AlmaSpacing.lg),
                   ),
-
-                  // =====================
-                  // EMPTY STATE
-                  // =====================
-                  if (_textController
-                      .text
-                      .trim()
-                      .isEmpty)
-                    const Padding(
-                      padding:
-                          EdgeInsets.only(
-                        bottom:
-                            AlmaSpacing.md,
-                      ),
-                      child:
-                          JournalEmptyState(),
-                    ),
 
                   // =====================
                   // SAVE BUTTON
@@ -200,7 +130,7 @@ class _JournalEditorScreenState
           // =========================
           if (state.saving ||
               state.analyzing)
-            const JournalLoadingOverlay(label: "Cargando tú diario"),
+            const JournalLoadingOverlay(label: "Analizando entrada..."),
         ],
       ),
     );

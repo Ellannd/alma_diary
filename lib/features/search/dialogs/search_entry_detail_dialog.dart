@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:alma_diary/data/aes_encryption.dart';
-import 'package:alma_diary/features/reflections/alma_reflection_card.dart';
+import 'package:alma_diary/features/reflections/widgets/reflection_card.dart';
 
 class SearchEntryDetailDialog {
   static void show({
@@ -99,7 +99,7 @@ class SearchEntryDetailDialog {
 
                   const SizedBox(height: 16),
 
-                  AlmaReflectionCard(
+                  ReflectionCard(
                     reflection: reflection,
                     archetype: archetype,
                     sentiment: sentiment,

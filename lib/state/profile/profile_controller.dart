@@ -195,13 +195,6 @@ Future<void> loadProfile(String userId) async {
     return fullName.split(RegExp(r'\s+')).first;
   }
 
-  String get firstName {
-    final name = displayName;
-    final spaceIndex = name.indexOf(' ');
-    if (spaceIndex == -1) return name;
-    return name.substring(0, spaceIndex);
-  }
-
   String get email =>
     state.profile?.email ??
     state.user?.email ??

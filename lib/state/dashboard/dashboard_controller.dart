@@ -48,8 +48,12 @@ class DashboardController extends Notifier<DashboardState> {
   // =========================
   // NAVIGATION STATE
   // =========================
-  void setTab(int index) {
-    state = state.copyWith(currentIndex: index);
+  void setTab(NavbarTab tab) {
+    if (state.navCurrentTab == tab) return;
+
+      state = state.copyWith(
+        navCurrentTab: tab,
+      );
   }
 
   // =========================
