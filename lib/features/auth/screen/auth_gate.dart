@@ -31,15 +31,28 @@ class AuthGate extends ConsumerWidget {
       return const AuthScreen();
     }
 
-    // 3. profile not ready
-    if (profile == null) {
+    // 3. dispara loadProfile si no está inicializado
+    if (!profileState.initialized) {
+      // WidgetsBinding para no llamar durante build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(profileControllerProvider.notifier)
+            .loadProfile(auth!.user!.id);
+      });
+
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
-    // 4. onboarding check (SOURCE OF TRUTH: Profile)
-    if (!profile.isOnboardingComplete) {
+    // 4. profile loading
+    if (profileState.isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // 5. onboarding check
+    if (profile == null || !profile.isOnboardingComplete) {
       return const OnboardingScreen();
     }
 

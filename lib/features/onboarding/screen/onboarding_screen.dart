@@ -3,8 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:alma_diary/core/logging/log_service.dart';
 import 'package:alma_diary/core/navigation/app_routes.dart';
+import 'package:alma_diary/design_system/tokens/alma_colors.dart';
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
+import 'package:alma_diary/design_system/tokens/alma_radius.dart';
+import 'package:alma_diary/design_system/tokens/alma_typography.dart';
 import 'package:alma_diary/state/auth/auth_controller.dart';
-import 'package:alma_diary/state/onboarding/onboarding_controller.dart' hide profileRepositoryProvider;
+import 'package:alma_diary/state/onboarding/onboarding_controller.dart'
+    hide profileRepositoryProvider;
 import 'package:alma_diary/state/profile/profile_controller.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -19,23 +24,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   final PageController _pageController = PageController();
 
   int _currentPage = 0;
-
   String? _emotionalState;
   String? _painPoint;
   String? _hopefulGoal;
-  String? _mainChallenge;
   String? _name;
 
   late TextEditingController _nameController;
 
+  static const _totalPages = 5;
+
   @override
   void initState() {
     super.initState();
-
-    // Lee el nombre inicial desde el profile provider
     final profileState = ref.read(profileControllerProvider);
     final initialName = profileState.profile?.displayName ?? '';
-
     _nameController = TextEditingController(text: initialName);
     _nameController.addListener(() {
       setState(() => _name = _nameController.text.trim());
@@ -51,15 +53,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
   void _next() {
     _pageController.nextPage(
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 350),
       curve: Curves.easeInOut,
     );
   }
 
   Future<void> _finish() async {
     try {
-      LogService.instance.info('onboarding.complete.start');
-
       final controller = OnboardingController(
         ref.read(profileRepositoryProvider),
       );
@@ -68,7 +68,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
         emotionalState: _emotionalState!,
         painPoint: _painPoint!,
         hopefulGoal: _hopefulGoal!,
-        mainChallenge: _mainChallenge,
         name: _name,
       );
 
@@ -86,178 +85,375 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
-    // Verifica que el userId esté disponible
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final userId = ref.watch(authControllerProvider).asData?.value.user?.id;
 
     if (userId == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final color = Theme.of(context).colorScheme;
+    final progress = (_currentPage + 1) / _totalPages;
 
     return Scaffold(
-      body: PageView(
-        controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        onPageChanged: (i) => setState(() => _currentPage = i),
-        children: [
-          _intro(color),
-          _nameStep(color),
-          _emotionStep(color),
-          _painStep(color),
-          _goalStep(color),
-        ],
+      backgroundColor: AlmaColors.background(isDark),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // =====================
+            // PROGRESS BAR
+            // =====================
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: AlmaSpacing.r(context, AlmaSpacing.lg),
+                vertical: AlmaSpacing.r(context, AlmaSpacing.sm),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    '${(_currentPage + 1) * (100 ~/ _totalPages)}%',
+                    style: AlmaTypography.labelSmall(isDark, context).copyWith(
+                      color: AlmaColors.textMuted(isDark),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(AlmaRadius.full),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 3,
+                      backgroundColor: AlmaColors.surfaceVariant(isDark),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AlmaColors.textPrimary(isDark),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // =====================
+            // PAGES
+            // =====================
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                onPageChanged: (i) => setState(() => _currentPage = i),
+                children: [
+                  _introStep(isDark),
+                  _nameStep(isDark),
+                  _emotionStep(isDark),
+                  _painStep(isDark),
+                  _goalStep(isDark),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   // =====================
-  // STEPS — igual que antes
+  // SHARED LAYOUT
   // =====================
-
-  Widget _intro(ColorScheme color) {
-    return _step(
+  Widget _stepShell({
+    required bool isDark,
+    required String question,
+    required Widget body,
+    IconData? icon,
+    Widget? action,
+  }) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: AlmaSpacing.r(context, AlmaSpacing.xl),
+        vertical: AlmaSpacing.r(context, AlmaSpacing.md),
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(Icons.spa, size: 90, color: color.primary),
-          const SizedBox(height: 24),
+
+          SizedBox(height: AlmaSpacing.r(context, AlmaSpacing.xxl)),
+
+          if (icon != null) ...[
+            Icon(icon, size: 32, color: AlmaColors.textMuted(isDark)),
+            SizedBox(height: AlmaSpacing.r(context, AlmaSpacing.md)),
+          ],
+
           Text(
-            'Estás a punto de empezar algo importante',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 20,
-              color: color.onSurface,
-              fontWeight: FontWeight.w600,
+            question,
+            style: AlmaTypography.displayMedium(isDark, context).copyWith(
+              fontWeight: FontWeight.w700,
+              height: 1.2,
             ),
           ),
-          const SizedBox(height: 32),
-          ElevatedButton(onPressed: _next, child: const Text('Continuar')),
+
+          SizedBox(height: AlmaSpacing.r(context, AlmaSpacing.lg)),
+
+          Expanded(child: body),
+
+          if (action != null) ...[
+            SizedBox(height: AlmaSpacing.r(context, AlmaSpacing.md)),
+            action,
+          ],
+
+          SizedBox(height: AlmaSpacing.r(context, AlmaSpacing.sm)),
         ],
       ),
     );
   }
 
-  Widget _nameStep(ColorScheme color) {
-    return _step(
-      child: Column(
+  // =====================
+  // OPTION TILE
+  // =====================
+  Widget _optionTile({
+    required bool isDark,
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+          horizontal: AlmaSpacing.r(context, AlmaSpacing.md),
+          vertical: AlmaSpacing.r(context, AlmaSpacing.md),
+        ),
+        decoration: BoxDecoration(
+          color: selected
+              ? AlmaColors.textPrimary(isDark)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(AlmaRadius.input),
+          border: Border.all(
+            color: selected
+                ? AlmaColors.textPrimary(isDark)
+                : AlmaColors.textMuted(isDark).withValues(alpha: .4),
+          ),
+        ),
+        child: Text(
+          label,
+          style: AlmaTypography.bodyLarge(isDark, context).copyWith(
+            color: selected
+                ? AlmaColors.background(isDark)
+                : AlmaColors.textPrimary(isDark),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // =====================
+  // PRIMARY BUTTON
+  // =====================
+  Widget _primaryButton({
+    required bool isDark,
+    required String label,
+    required VoidCallback? onPressed,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          backgroundColor: AlmaColors.textPrimary(isDark),
+          foregroundColor: AlmaColors.background(isDark),
+          disabledBackgroundColor:
+              AlmaColors.textMuted(isDark).withValues(alpha: .3),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AlmaRadius.full),
+          ),
+        ),
+        child: Text(
+          label,
+          style: AlmaTypography.labelLarge(isDark, context).copyWith(
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            color: onPressed == null
+                ? AlmaColors.textMuted(isDark)
+                : AlmaColors.background(isDark),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // =====================
+  // STEP 1 — INTRO
+  // =====================
+  Widget _introStep(bool isDark) {
+    return _stepShell(
+      isDark: isDark,
+      icon: Icons.spa_outlined,
+      question: 'Estás a punto de empezar algo importante.',
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            '¿Cómo quieres que te llamemos?',
-            style: TextStyle(color: color.onSurface, fontSize: 18),
+            'Alma es tu espacio para escribir, procesar y sanar. Estas preguntas nos ayudan a personalizarlo para ti.',
+            style: AlmaTypography.bodyLarge(isDark, context).copyWith(
+              color: AlmaColors.textSecondary(isDark),
+              height: 1.6,
+            ),
           ),
-          const SizedBox(height: 20),
+        ],
+      ),
+      action: _primaryButton(
+        isDark: isDark,
+        label: 'Comenzar',
+        onPressed: _next,
+      ),
+    );
+  }
+
+  // =====================
+  // STEP 2 — NOMBRE
+  // =====================
+  Widget _nameStep(bool isDark) {
+    return _stepShell(
+      isDark: isDark,
+      icon: Icons.person_outline,
+      question: '¿Cómo te llamas?',
+      body: Column(
+        children: [
           TextField(
+            cursorColor: AlmaColors.textPrimary(isDark),
             controller: _nameController,
-            decoration: const InputDecoration(hintText: 'Tu nombre'),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: _nameController.text.trim().isEmpty ? null : _next,
-            child: const Text('Continuar'),
+            style: AlmaTypography.bodyLarge(isDark, context),
+            decoration: InputDecoration(
+              hintText: 'Tu nombre',
+              hintStyle: AlmaTypography.bodyLarge(isDark, context).copyWith(
+                color: AlmaColors.textMuted(isDark),
+              ),
+              filled: true,
+              fillColor: AlmaColors.surfaceVariant(isDark),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AlmaRadius.input),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AlmaRadius.input),
+                borderSide: BorderSide(
+                  color: AlmaColors.textPrimary(isDark),
+                  width: 1.5,
+                ),
+              ),
+            ),
           ),
         ],
+      ),
+      action: _primaryButton(
+        isDark: isDark,
+        label: 'Continuar',
+        onPressed: (_name?.isNotEmpty == true) ? _next : null,
       ),
     );
   }
 
-  Widget _emotionStep(ColorScheme color) {
-    return _step(
-      child: Column(
-        children: [
-          const Text('¿Cómo te sientes hoy?'),
-          const SizedBox(height: 20),
-          Wrap(
-            spacing: 12,
-            children: [
-              _chip('claro'),
-              _chip('parcial'),
-              _chip('nublado'),
-              _chip('tormenta'),
-            ],
-          ),
-        ],
+  // =====================
+  // STEP 3 — EMOCIÓN
+  // =====================
+  Widget _emotionStep(bool isDark) {
+    final options = [
+      ('claro', 'Me siento con claridad y dirección'),
+      ('parcial', 'Tengo días buenos y días difíciles'),
+      ('nublado', 'Me cuesta ver con claridad'),
+      ('tormenta', 'Estoy en un momento muy difícil'),
+    ];
+
+    return _stepShell(
+      isDark: isDark,
+      icon: Icons.cloud_outlined,
+      question: '¿Cómo describirías tu estado emocional hoy?',
+      body: ListView.separated(
+        itemCount: options.length,
+        separatorBuilder: (_, _) =>
+            SizedBox(height: AlmaSpacing.r(context, AlmaSpacing.xs)),
+        itemBuilder: (_, i) => _optionTile(
+          isDark: isDark,
+          label: options[i].$2,
+          selected: _emotionalState == options[i].$1,
+          onTap: () {
+            setState(() => _emotionalState = options[i].$1);
+            Future.delayed(const Duration(milliseconds: 250), _next);
+          },
+        ),
       ),
     );
   }
 
-  Widget _painStep(ColorScheme color) {
-    return _step(
-      child: Column(
-        children: [
-          const Text('¿Qué te pesa más?'),
-          const SizedBox(height: 20),
-          _option('estrés', isPain: true),
-          _option('vacío', isPain: true),
-          _option('confusión', isPain: true),
-        ],
+  // =====================
+  // STEP 4 — DOLOR
+  // =====================
+  Widget _painStep(bool isDark) {
+    final options = [
+      ('estrés', 'Llevo una máscara en la vida diaria'),
+      ('vacío', 'Temo enfrentarme a mis emociones'),
+      ('confusión', 'Me siento inseguro en mi presente'),
+      ('pasado', 'Evito pensar en mi pasado'),
+    ];
+
+    return _stepShell(
+      isDark: isDark,
+      icon: Icons.favorite_border_outlined,
+      question: '¿Qué afirmación resuena más contigo?',
+      body: ListView.separated(
+        itemCount: options.length,
+        separatorBuilder: (_, _) =>
+            SizedBox(height: AlmaSpacing.r(context, AlmaSpacing.xs)),
+        itemBuilder: (_, i) => _optionTile(
+          isDark: isDark,
+          label: options[i].$2,
+          selected: _painPoint == options[i].$1,
+          onTap: () {
+            setState(() => _painPoint = options[i].$1);
+            Future.delayed(const Duration(milliseconds: 250), _next);
+          },
+        ),
       ),
     );
   }
 
-  Widget _goalStep(ColorScheme color) {
-    return _step(
-      child: Column(
-        children: [
-          const Text('¿Qué buscas aquí?'),
-          const SizedBox(height: 20),
-          _option('paz', isPain: false),
-          _option('orden', isPain: false),
-          _option('acompañamiento', isPain: false),
-          const SizedBox(height: 30),
-          ElevatedButton(
-            onPressed: (_emotionalState != null &&
-                    _painPoint != null &&
-                    _hopefulGoal != null)
-                ? _finish
-                : null,
-            child: const Text('Terminar'),
-          ),
-        ],
+  // =====================
+  // STEP 5 — META
+  // =====================
+  Widget _goalStep(bool isDark) {
+    final options = [
+      ('paz', 'Encontrar paz y calma interior'),
+      ('orden', 'Ordenar mis pensamientos y emociones'),
+      ('acompañamiento', 'Sentirme menos solo en lo que vivo'),
+      ('crecimiento', 'Crecer y conocerme mejor'),
+    ];
+
+    final canFinish = _emotionalState != null &&
+        _painPoint != null &&
+        _hopefulGoal != null;
+
+    return _stepShell(
+      isDark: isDark,
+      icon: Icons.star_border_outlined,
+      question: '¿Qué buscas encontrar aquí?',
+      body: ListView.separated(
+        itemCount: options.length,
+        separatorBuilder: (_, __) =>
+            SizedBox(height: AlmaSpacing.r(context, AlmaSpacing.xs)),
+        itemBuilder: (_, i) => _optionTile(
+          isDark: isDark,
+          label: options[i].$2,
+          selected: _hopefulGoal == options[i].$1,
+          onTap: () => setState(() => _hopefulGoal = options[i].$1),
+        ),
       ),
-    );
-  }
-
-  Widget _chip(String value) {
-    final selected = _emotionalState == value;
-
-    return ChoiceChip(
-      label: Text(value),
-      selected: selected,
-      onSelected: (_) {
-        setState(() => _emotionalState = value);
-        _next();
-      },
-    );
-  }
-
-  Widget _option(String value, {required bool isPain}) {
-    final selected = isPain
-        ? _painPoint == value
-        : _hopefulGoal == value;
-
-    return ListTile(
-      title: Text(value),
-      selected: selected,
-      onTap: () {
-        setState(() {
-          if (isPain) {
-            _painPoint = value;
-          } else {
-            _hopefulGoal = value;
-          }
-        });
-        _next();
-      },
-    );
-  }
-
-  Widget _step({required Widget child}) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Center(child: child),
+      action: _primaryButton(
+        isDark: isDark,
+        label: 'Acceder',
+        onPressed: canFinish ? _finish : null,
+      ),
     );
   }
 }

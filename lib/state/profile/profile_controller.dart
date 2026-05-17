@@ -65,20 +65,17 @@ class ProfileController extends Notifier<ProfileState> {
     }
   }
 
-  // =========================
-  // LOAD PROFILE
-  // =========================
 Future<void> loadProfile(String userId) async {
   state = state.copyWith(isLoading: true);
 
   try {
     await _repo.ensureProfileExists(userId);
-
-    final profile = await _repo.getUserProfile(userId); // Profile
+    final profile = await _repo.getUserProfile(userId);
 
     state = state.copyWith(
       profile: profile,
       isLoading: false,
+      initialized: true,  
     );
 
     LogService.instance.info(
@@ -98,6 +95,7 @@ Future<void> loadProfile(String userId) async {
 
     state = state.copyWith(
       isLoading: false,
+      initialized: true,  
       error: 'Error al cargar perfil',
     );
   }
