@@ -1,20 +1,14 @@
-import 'package:alma_diary/state/onboarding/onboarding_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:alma_diary/core/logging/log_service.dart';
+import 'package:alma_diary/core/navigation/app_routes.dart';
+import 'package:alma_diary/state/auth/auth_controller.dart';
+import 'package:alma_diary/state/onboarding/onboarding_controller.dart' hide profileRepositoryProvider;
+import 'package:alma_diary/state/profile/profile_controller.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
-  final String userId;
-  final VoidCallback onComplete;
-  final String? initialName;
-
-  const OnboardingScreen({
-    super.key,
-    required this.userId,
-    required this.onComplete,
-    this.initialName,
-  });
+  const OnboardingScreen({super.key});
 
   @override
   ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -38,10 +32,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   void initState() {
     super.initState();
 
-    _nameController = TextEditingController(text: widget.initialName ?? '');
+    // Lee el nombre inicial desde el profile provider
+    final profileState = ref.read(profileControllerProvider);
+    final initialName = profileState.profile?.displayName ?? '';
 
+    _nameController = TextEditingController(text: initialName);
     _nameController.addListener(() {
-      
       setState(() => _name = _nameController.text.trim());
     });
   }
@@ -63,7 +59,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   Future<void> _finish() async {
     try {
       LogService.instance.info('onboarding.complete.start');
-      
 
       final controller = OnboardingController(
         ref.read(profileRepositoryProvider),
@@ -77,7 +72,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
         name: _name,
       );
 
-      widget.onComplete();
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
+      }
     } catch (e, st) {
       LogService.instance.error(
         'onboarding.complete.failed',
@@ -89,6 +86,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Verifica que el userId esté disponible
+    final userId = ref.watch(authControllerProvider).asData?.value.user?.id;
+
+    if (userId == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final color = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -107,6 +113,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     );
   }
 
+  // =====================
+  // STEPS — igual que antes
+  // =====================
+
   Widget _intro(ColorScheme color) {
     return _step(
       child: Column(
@@ -124,10 +134,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
             ),
           ),
           const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: _next,
-            child: const Text('Continuar'),
-          ),
+          ElevatedButton(onPressed: _next, child: const Text('Continuar')),
         ],
       ),
     );
@@ -144,9 +151,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
           const SizedBox(height: 20),
           TextField(
             controller: _nameController,
-            decoration: const InputDecoration(
-              hintText: 'Tu nombre',
-            ),
+            decoration: const InputDecoration(hintText: 'Tu nombre'),
           ),
           const SizedBox(height: 20),
           ElevatedButton(
@@ -184,9 +189,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
         children: [
           const Text('¿Qué te pesa más?'),
           const SizedBox(height: 20),
-          _option('estrés'),
-          _option('vacío'),
-          _option('confusión'),
+          _option('estrés', isPain: true),
+          _option('vacío', isPain: true),
+          _option('confusión', isPain: true),
         ],
       ),
     );
@@ -198,9 +203,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
         children: [
           const Text('¿Qué buscas aquí?'),
           const SizedBox(height: 20),
-          _option('paz'),
-          _option('orden'),
-          _option('acompañamiento'),
+          _option('paz', isPain: false),
+          _option('orden', isPain: false),
+          _option('acompañamiento', isPain: false),
           const SizedBox(height: 30),
           ElevatedButton(
             onPressed: (_emotionalState != null &&
@@ -228,16 +233,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     );
   }
 
-  Widget _option(String value) {
-    final selected =
-        _painPoint == value || _hopefulGoal == value;
+  Widget _option(String value, {required bool isPain}) {
+    final selected = isPain
+        ? _painPoint == value
+        : _hopefulGoal == value;
 
     return ListTile(
       title: Text(value),
       selected: selected,
       onTap: () {
         setState(() {
-          if (_painPoint == null) {
+          if (isPain) {
             _painPoint = value;
           } else {
             _hopefulGoal = value;

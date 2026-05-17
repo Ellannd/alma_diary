@@ -35,14 +35,14 @@ class ProfileController extends Notifier<ProfileState> {
   // INIT
   // =========================
   Future<void> init(String userId, User? user) async {
-    state = state.copyWith(loading: true, user: user);
+    state = state.copyWith(isLoading: true, user: user);
 
     try {
       final profile = await _repo.getUserProfile(userId);
 
       state = state.copyWith(
         profile: profile,
-        loading: false,
+        isLoading: false,
         initialized: true,
       );
 
@@ -59,7 +59,7 @@ class ProfileController extends Notifier<ProfileState> {
       );
 
       state = state.copyWith(
-        loading: false,
+        isLoading: false,
         error: 'Error al inicializar perfil',
       );
     }
@@ -69,7 +69,7 @@ class ProfileController extends Notifier<ProfileState> {
   // LOAD PROFILE
   // =========================
 Future<void> loadProfile(String userId) async {
-  state = state.copyWith(loading: true);
+  state = state.copyWith(isLoading: true);
 
   try {
     await _repo.ensureProfileExists(userId);
@@ -78,7 +78,7 @@ Future<void> loadProfile(String userId) async {
 
     state = state.copyWith(
       profile: profile,
-      loading: false,
+      isLoading: false,
     );
 
     LogService.instance.info(
@@ -97,7 +97,7 @@ Future<void> loadProfile(String userId) async {
     );
 
     state = state.copyWith(
-      loading: false,
+      isLoading: false,
       error: 'Error al cargar perfil',
     );
   }
@@ -107,7 +107,7 @@ Future<void> loadProfile(String userId) async {
   // UPDATE PROFILE
   // =========================
   Future<void> updateProfile(Map<String, dynamic> data) async {
-    state = state.copyWith(loading: true);
+    state = state.copyWith(isLoading: true);
 
     try {
       await _repo.updateProfile(data);
@@ -118,7 +118,7 @@ Future<void> loadProfile(String userId) async {
         state = state.copyWith(profile: updated);
       }
 
-      state = state.copyWith(loading: false);
+      state = state.copyWith(isLoading: false);
     } catch (e, st) {
       LogService.instance.error(
         'profile.update_failed',
@@ -127,7 +127,7 @@ Future<void> loadProfile(String userId) async {
       );
 
       state = state.copyWith(
-        loading: false,
+        isLoading: false,
         error: 'Error al actualizar perfil',
       );
     }
@@ -146,7 +146,7 @@ Future<void> loadProfile(String userId) async {
     int? stressLevel,
     String? sleepQuality,
   }) async {
-    state = state.copyWith(loading: true);
+    state = state.copyWith(isLoading: true);
 
     try {
       await _repo.completeOnboarding(
@@ -165,7 +165,7 @@ Future<void> loadProfile(String userId) async {
         state = state.copyWith(profile: updated);
       }
 
-      state = state.copyWith(loading: false);
+      state = state.copyWith(isLoading: false);
     } catch (e, st) {
       LogService.instance.error(
         'profile.onboarding_failed',
@@ -174,7 +174,7 @@ Future<void> loadProfile(String userId) async {
       );
 
       state = state.copyWith(
-        loading: false,
+        isLoading: false,
         error: 'Error en onboarding',
       );
     }

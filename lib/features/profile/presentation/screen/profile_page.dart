@@ -65,7 +65,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final email = controller.email;
     final avatar = controller.avatarUrl;
 
-    if (state.loading && !state.initialized) {
+    if (state.isLoading && !state.initialized) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
