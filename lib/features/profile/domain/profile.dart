@@ -35,7 +35,7 @@ class Profile {
 
 factory Profile.fromMap(Map<String, dynamic> map) {
   return Profile(
-    displayName: map['display_name'] ?? 'Usuario',
+    displayName: map['full_name'] ?? map['name'] ?? 'Usuario',
     email: map['email'] ?? '',
     avatarUrl: map['avatar_url'],
     isOnboardingComplete: map['is_onboarding_complete'] ?? false,

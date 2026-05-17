@@ -17,47 +17,49 @@ class DashboardHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // =========================
-        // LOGO + APP NAME 
-        // =========================
-        //todo make responsive
-        SvgPicture.asset(
-          'logo/logo.svg',
-          width: 55,
-          height: 55,
-    
-        ),
-
-        const SizedBox(width: 10),
-
-        Text(
-          'Alma',
-          style: AlmaTypography.logoHeader(isDark).copyWith(
-            letterSpacing: -0.5,
+    return Padding(
+      padding: EdgeInsets.only(right: 14.0, left: 14.0, bottom: 12.0,  top: MediaQuery.of(context).padding.top + 12), 
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // =========================
+          // LOGO + APP NAME 
+          // =========================
+          //todo make responsive
+          SvgPicture.asset(
+            'logo/logo.svg',
+            width: 50,
+            height: 50,
           ),
-        ),
 
-        const Spacer(),
+          const SizedBox(width: 10),
 
-        // =========================
-        // SETTINGS
-        // =========================
-        GestureDetector(
-          onTap: onSettingsTap,
-          child: SvgPicture.asset(
-            'icon/settings.svg',
-            width: 28,
-            height: 28,
-            colorFilter: ColorFilter.mode(
-              AlmaColors.textMuted(isDark),
-              BlendMode.srcIn,
+          Text(
+            'Alma',
+            style: AlmaTypography.logoHeader(isDark).copyWith(
+              letterSpacing: -0.5,
             ),
           ),
-        ),
-      ],
+
+          const Spacer(),
+
+          // =========================
+          // SETTINGS
+          // =========================
+          GestureDetector(
+            onTap: onSettingsTap,
+            child: SvgPicture.asset(
+              'icon/settings.svg',
+              width: 28,
+              height: 28,
+              colorFilter: ColorFilter.mode(
+                AlmaColors.textMuted(isDark),
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

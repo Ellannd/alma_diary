@@ -1,7 +1,6 @@
 import 'package:alma_diary/features/profile/domain/profile.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-
 class ProfileState {
   final Profile? profile;
   final User? user;
@@ -33,4 +32,13 @@ class ProfileState {
     );
   }
   
+    String get displayName {
+    final fullName = profile?.displayName ??
+        user?.userMetadata?['name'] ??
+        user?.email;
+
+    if (fullName == null || fullName.isEmpty) return 'Usuario';
+    return fullName.split(RegExp(r'\s+')).first;
+  }
+
 }

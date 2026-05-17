@@ -19,7 +19,7 @@ Widget build(BuildContext context, WidgetRef ref) {
   final isDark = themeState.isDarkMode;
 
  return MaterialApp(
-  title: 'Alma - Tu lugar seguro',
+  title: 'Alma - Diary',
   debugShowCheckedModeBanner: false,
 
   theme: isDark

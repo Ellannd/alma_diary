@@ -5,7 +5,7 @@ class SearchRepository {
 
   Future<List<Map<String, dynamic>>> getJournal(String userId) async {
     return await client
-        .from('journal')
+        .from('journal_entries')
         .select()
         .eq('user_id', userId);
   }

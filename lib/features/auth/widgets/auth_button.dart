@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:alma_diary/design_system/tokens/alma_colors.dart';
+import 'package:alma_diary/design_system/tokens/alma_typography.dart';
+import 'package:alma_diary/design_system/tokens/alma_radius.dart';
 
 class AuthButton extends StatelessWidget {
   final String text;
@@ -14,23 +17,38 @@ class AuthButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SizedBox(
       width: double.infinity,
-      height: 52,
+      height: 54,
       child: ElevatedButton(
         onPressed: loading ? null : onPressed,
         style: ElevatedButton.styleFrom(
+          elevation: 0,
+          backgroundColor: AlmaColors.textPrimary(isDark),
+          foregroundColor: AlmaColors.darkBackground,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AlmaRadius.button),
           ),
         ),
         child: loading
-            ? const SizedBox(
+            ? SizedBox(
                 height: 18,
                 width: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AlmaColors.background(isDark),
+                ),
               )
-            : Text(text),
+            : Text(
+                text,
+                style: AlmaTypography.labelLarge(isDark, context).copyWith(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                  color: AlmaColors.background(isDark),
+                ),
+              ),
       ),
     );
   }

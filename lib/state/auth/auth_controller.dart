@@ -142,45 +142,19 @@ class AuthController extends AsyncNotifier<AuthAppState> {
     _setState(_state.copyWith(isLoading: true, error: null));
 
     try {
-      final response = await _supabase.auth.signUp(
-        email: email,
-        password: password,
-      );
+      final result = await _repo.signUpWithEmail(email, password);
 
-      final user = response.user;
+      if (result == SignUpResult.needsEmailConfirmation) {
+        _setState(_state.copyWith(
+          isLoading: false,
+          needsEmailConfirmation: true, // nuevo campo en AuthAppState
+        ));
+        return;
+      }
 
-      _setState(_state.copyWith(
-        user: user,
-        isAuthenticated: user != null,
-        isLoading: false,
-      ));
-
-      LogService.instance.info(
-        'auth.signup_email_success',
-        context: {'user_id': user?.id},
-      );
-    } on AuthException catch (e, st) {
-      LogService.instance.error(
-        'auth.signup_email_failed',
-        error: e,
-        stackTrace: st,
-      );
-
-      _setState(_state.copyWith(
-        isLoading: false,
-        error: e.message,
-      ));
+      _setState(_state.copyWith(isLoading: false));
     } catch (e, st) {
-      LogService.instance.error(
-        'auth.signup_email_unexpected',
-        error: e,
-        stackTrace: st,
-      );
-
-      _setState(_state.copyWith(
-        isLoading: false,
-        error: 'Error inesperado al registrarse',
-      ));
+      _setState(_state.copyWith(isLoading: false, error: e.toString()));
     }
   }
 

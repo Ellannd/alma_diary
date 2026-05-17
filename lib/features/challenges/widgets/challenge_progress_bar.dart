@@ -14,7 +14,7 @@ class ChallengeProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
+    final color = AlmaColors.textPrimary(Theme.of(context).brightness == Brightness.dark);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

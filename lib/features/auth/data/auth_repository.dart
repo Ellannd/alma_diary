@@ -16,14 +16,13 @@ class AuthRepository {
 
       await _client.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: kIsWeb ? 'http://localhost:5000' : null,
+        redirectTo: kIsWeb
+            ? 'http://localhost:5000'
+            : 'io.supabase.almadiary://login-callback', // ← scheme
+        authScreenLaunchMode: LaunchMode.externalApplication,
       );
     } catch (e, st) {
-      LogService.instance.error(
-        'auth.google_failed',
-        error: e,
-        stackTrace: st,
-      );
+      LogService.instance.error('auth.google_failed', error: e, stackTrace: st);
       rethrow;
     }
   }
@@ -49,23 +48,27 @@ class AuthRepository {
     }
   }
 
-  Future<void> signUpWithEmail(String email, String password) async {
-    try {
-      await _client.auth.signUp(
-        email: email,
-        password: password,
-      );
+Future<SignUpResult> signUpWithEmail(String email, String password) async {
+  try {
+    final response = await _client.auth.signUp(
+      email: email,
+      password: password,
+    );
 
-      LogService.instance.info('auth.signup_success');
-    } catch (e, st) {
-      LogService.instance.error(
-        'auth.signup_failed',
-        error: e,
-        stackTrace: st,
-      );
-      rethrow;
+    LogService.instance.info('auth.signup_success');
+
+    // Si el user existe pero session es null → necesita confirmar email
+    if (response.user != null && response.session == null) {
+      return SignUpResult.needsEmailConfirmation;
     }
+
+    return SignUpResult.success;
+  } catch (e, st) {
+    LogService.instance.error('auth.signup_failed', error: e, stackTrace: st);
+    rethrow;
   }
+}
+
 
   // =========================
   // RESET PASSWORD
@@ -113,3 +116,6 @@ class AuthRepository {
   Stream<User?> get authState =>
       _client.auth.onAuthStateChange.map((e) => e.session?.user);
 }
+
+
+enum SignUpResult { success, needsEmailConfirmation }

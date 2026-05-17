@@ -1,38 +1,40 @@
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:flutter/material.dart';
+import 'package:alma_diary/design_system/tokens/alma_colors.dart';
+import 'package:alma_diary/design_system/tokens/alma_typography.dart';
+import 'package:flutter_svg/svg.dart';
 
 class AuthTitle extends StatelessWidget {
   const AuthTitle({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Column(
       children: [
-        Icon(
-          Icons.self_improvement,
-          size: 84,
-          color: color,
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Alma Diary',
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w700,
-            color: color,
+        // Logo corazón partido
+        SizedBox(
+          width: AlmaSpacing.r(context, 80),
+          height: AlmaSpacing.r(context, 80),
+          child: Stack(
+            children: [
+                 SvgPicture.asset(
+            'logo/logo.svg',
+            width: 450,
+            height: 450,
+          ),
+            ],
           ),
         ),
-        const SizedBox(height: 10),
+
+        SizedBox(height: AlmaSpacing.r(context, 16)),
+
         Text(
-          'Escribe. Sana. Vive.',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 14,
-            color: Theme.of(context)
-                .colorScheme
-                .onSurface
-                .withValues(alpha: 0.6),
+          'Alma Diario',
+          style: AlmaTypography.displayLarge(isDark, context).copyWith(
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.5,
           ),
         ),
       ],
