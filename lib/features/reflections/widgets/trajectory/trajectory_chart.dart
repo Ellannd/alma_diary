@@ -1,3 +1,4 @@
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:alma_diary/features/reflections/engine/trajectory_engine.dart';
@@ -59,7 +60,7 @@ class TrajectoryChart extends StatelessWidget {
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                reservedSize: 28,
+                reservedSize: AlmaSpacing.r(context,28),
                 getTitlesWidget: (value, _) {
                   final labels = [
                     'Consciencia',
@@ -73,11 +74,11 @@ class TrajectoryChart extends StatelessWidget {
                   }
 
                   return Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding:  EdgeInsets.only(top: AlmaSpacing.r(context,8)),
                     child: Text(
                       labels[value.toInt()],
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: AlmaSpacing.r(context,10),
                         color: Theme.of(context)
                             .colorScheme
                             .onSurface

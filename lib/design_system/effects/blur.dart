@@ -11,8 +11,8 @@ class AlmaBlur extends StatelessWidget {
   const AlmaBlur({
     super.key,
     required this.child,
-    this.sigmaX = 12,
-    this.sigmaY = 12,
+    this.sigmaX = 8,
+    this.sigmaY = 8,
     this.borderRadius,
     this.enabled = true,
   });

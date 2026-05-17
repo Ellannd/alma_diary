@@ -31,8 +31,9 @@ class ReadingsController extends Notifier<ReadingsState> {
   // =========================
   // INIT USER
   // =========================
-  void setUser(String userId) {
+  void setUser (String userId) async {
     state = state.copyWith(userId: userId);
+    await load();
   }
 
   // =========================

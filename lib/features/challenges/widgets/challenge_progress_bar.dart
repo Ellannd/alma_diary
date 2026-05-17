@@ -1,3 +1,5 @@
+import 'package:alma_diary/design_system/tokens/alma_colors.dart';
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:flutter/material.dart';
 
 class ChallengeProgressBar extends StatelessWidget {
@@ -23,10 +25,10 @@ class ChallengeProgressBar extends StatelessWidget {
             value: progress / 100,
             minHeight: 8,
             backgroundColor: color.withValues(alpha: .12),
-            valueColor: AlwaysStoppedAnimation(color),
+            valueColor: AlwaysStoppedAnimation(AlmaColors.textPrimary(Theme.of(context).brightness == Brightness.dark)),
           ),
         ),
-        const SizedBox(height: 6),
+        SizedBox(height: AlmaSpacing.r(context, 6)),
         Text(
           isCompleted ? 'Completado' : 'Progreso: $progress%',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(

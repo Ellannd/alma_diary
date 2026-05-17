@@ -64,8 +64,8 @@ class NotificationCard
           ),
           child: BackdropFilter(
             filter: ImageFilter.blur(
-              sigmaX: 18,
-              sigmaY: 18,
+              sigmaX: 8,
+              sigmaY: 8,
             ),
             child: Material(
               color:

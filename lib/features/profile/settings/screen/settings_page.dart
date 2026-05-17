@@ -1,3 +1,4 @@
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -183,7 +184,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   },
                 ),
 
-                const SizedBox(height: 12),
+              SizedBox(height: AlmaSpacing.r(context, 12)),
 
                 SettingsReportTile(
                   title: 'Enviar reporte de error',
@@ -191,7 +192,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   onTap: _sendReport,
                 ),
 
-                const SizedBox(height: 12),
+                SizedBox(height: AlmaSpacing.r(context, 12)),
 
                 SettingsClearLogsTile(
                   title: 'Limpiar logs',
@@ -200,7 +201,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   onTap: _clearLogs,
                 ),
 
-                const SizedBox(height: 24),
+                SizedBox(height: AlmaSpacing.r(context, 12)),
 
                 SettingsLogoutTile(
                   title: 'Cerrar sesión',

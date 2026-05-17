@@ -24,6 +24,7 @@ class ProfileLogoutButton extends StatelessWidget {
           padding: EdgeInsets.symmetric(vertical: AlmaSpacing.md),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AlmaRadius.md),
+            
           ),
         ),
         child: const Text('Cerrar sesión'),

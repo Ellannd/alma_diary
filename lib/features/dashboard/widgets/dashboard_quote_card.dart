@@ -32,7 +32,7 @@ class DashboardQuoteCard extends StatelessWidget {
 
           // 🌫 Glass blur layer
           BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
             child: Container(
               padding: const EdgeInsets.all(AlmaSpacing.lg),
               decoration: BoxDecoration(

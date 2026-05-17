@@ -50,7 +50,7 @@ class _ConfettiOverlayState
       child: AnimatedBuilder(
         animation: _controller,
 
-        builder: (_, __) {
+        builder: (_, _) {
           return CustomPaint(
             painter: _ConfettiPainter(
               progress: _controller.value,

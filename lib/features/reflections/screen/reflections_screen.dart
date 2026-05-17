@@ -1,3 +1,4 @@
+import "package:alma_diary/design_system/tokens/alma_colors.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:flutter/material.dart";
 
@@ -26,10 +27,12 @@ class _AlmaReflectionsScreenState
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(reflectionControllerProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      backgroundColor: AlmaColors.background(isDark),
       appBar: AppBar(
-        title: const Text('Mis Reflexiones'),
+        title: const Text('Reflexiones'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -38,6 +41,7 @@ class _AlmaReflectionsScreenState
                 .refresh(),
           ),
         ],
+
       ),
       body: state.loading
           ? const Center(child: CircularProgressIndicator())

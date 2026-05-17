@@ -35,8 +35,8 @@ Future<void> showReflectionDetail({
     builder: (ctx) {
     return BackdropFilter(
       filter: ImageFilter.blur(
-        sigmaX: 18,
-        sigmaY: 18,
+        sigmaX: 8,
+        sigmaY: 8,
       ),
       child: Dialog(
         
@@ -69,18 +69,14 @@ Future<void> showReflectionDetail({
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface,
+                        color: AlmaColors.lightBackground,
                       ),
                     ),
 
                     IconButton(
                       icon: Icon(
                         Icons.close,
-                        color: Theme.of(context)
-                            .iconTheme
-                            .color,
+                        color: AlmaColors.lightBackground,
                       ),
                       onPressed: () {
                         Navigator.of(ctx).pop();
@@ -89,7 +85,7 @@ Future<void> showReflectionDetail({
                   ],
                 ),
 
-                const SizedBox(height: 20),
+                SizedBox(height: AlmaSpacing.r(context, AlmaSpacing.screenPadding)),
 
                 // TAGS
                 ReflectionTags(
@@ -97,14 +93,14 @@ Future<void> showReflectionDetail({
                   sentiment: sentiment,
                 ),
 
-                const SizedBox(height: 20),
+                SizedBox(height: AlmaSpacing.r(context, AlmaSpacing.screenPadding)),
 
                 // ENTRY CONTENT
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(AlmaSpacing.r(context, AlmaSpacing.md)),
 
                   decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
+                    color: AlmaColors.glass(Theme.of(context).brightness == Brightness.dark),
                     borderRadius: BorderRadius.circular(16),
                   ),
 
@@ -120,21 +116,21 @@ Future<void> showReflectionDetail({
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                SizedBox(height: AlmaSpacing.r(context, AlmaSpacing.lg)),
 
                 // REFLECTION
                 if (reflection.isNotEmpty) ...[
                   Text(
                     'Reflexión de Alma',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: AlmaSpacing.r(context, 18),
                       fontWeight: FontWeight.bold,
                       color:
-                          Theme.of(context).colorScheme.primary,
+                          AlmaColors.lightBackground,
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                SizedBox(height: AlmaSpacing.r(context, AlmaSpacing.md)),
 
                   ReflectionCard(
                     reflection: reflection,
@@ -152,19 +148,24 @@ Future<void> showReflectionDetail({
                     ),
                   ),
 
-                const SizedBox(height: 24),
+                SizedBox(height: AlmaSpacing.r(context, AlmaSpacing.lg)),
 
                 Align(
                   alignment: Alignment.centerRight,
 
                   child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          foregroundColor: AlmaColors.info, 
+                        ),
+                    
                     onPressed: () {
                       Navigator.of(ctx).pop();
                     },
 
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.arrow_forward,
-                      size: 18,
+                      size: AlmaSpacing.r(context, 18),
+                      color: AlmaColors.info,
                     ),
 
                     label: const Text('Continuar'),

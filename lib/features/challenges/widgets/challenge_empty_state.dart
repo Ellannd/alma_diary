@@ -1,3 +1,5 @@
+import 'package:alma_diary/design_system/tokens/alma_colors.dart';
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:flutter/material.dart';
 
 class ChallengeEmptyState extends StatelessWidget {
@@ -13,16 +15,14 @@ class ChallengeEmptyState extends StatelessWidget {
         children: [
           Icon(
             Icons.emoji_events_outlined,
-            size: 80,
+            size: AlmaSpacing.r(context, 80),
             color: color.withValues(alpha: .4),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AlmaSpacing.r(context, 16)),
           Text(
             'No hay desafíos disponibles',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
+                  color: AlmaColors.info
                       .withValues(alpha: .6),
                 ),
           ),

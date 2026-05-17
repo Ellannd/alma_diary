@@ -93,7 +93,7 @@ class ChallengeDetailSheet {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ChallengeScreen(
+                        builder: (_) => ChallengesPage(
                         ),
                       ),
                     );

@@ -24,12 +24,18 @@ class ChallengeController extends Notifier<ChallengeState> {
   // =========================
   void setUserId(String userId) {
     state = state.copyWith(userId: userId);
+
+      Future.microtask(() {
+        loadChallenges();
+      });
+
   }
 
   // =========================
   // LOAD
   // =========================
   Future<void> loadChallenges() async {
+
     final userId = state.userId;
 
     if (userId == null) {
@@ -38,7 +44,7 @@ class ChallengeController extends Notifier<ChallengeState> {
     }
 
     state = state.copyWith(isLoading: true, error: null);
-
+    
     try {
       final challenges = await _repository.getChallenges();
       final userChallenges =

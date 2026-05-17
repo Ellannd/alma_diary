@@ -56,7 +56,7 @@ class AppRouter {
         return _page(const CreatePage());
       
       case AppRoutes.challenges:
-        return _page(const ChallengeScreen());
+        return _page(const ChallengesPage());
 
       case AppRoutes.settings:
         return _page(const SettingsPage());

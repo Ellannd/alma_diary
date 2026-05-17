@@ -1,3 +1,6 @@
+import 'package:alma_diary/design_system/tokens/alma_colors.dart';
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
+import 'package:alma_diary/design_system/tokens/alma_typography.dart';
 import 'package:flutter/material.dart';
 import 'challenge_progress_bar.dart';
 import 'challenge_action_strip.dart';
@@ -43,25 +46,19 @@ class ChallengeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
     final theme = Theme.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = AlmaColors.textPrimary(isDark);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(18),
+      margin:  EdgeInsets.only(bottom: AlmaSpacing.r(context, 16)),
+      padding: EdgeInsets.all(AlmaSpacing.r(context, AlmaSpacing.lg-2)),
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: AlmaColors.background(isDark),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: color.withValues(alpha: 0.15),
+          color: color.withValues(alpha: 0.80),
         ),
-        boxShadow: [
-          if (isActive)
-            BoxShadow(
-              color: color.withValues(alpha: 0.2),
-              blurRadius: 18,
-            ),
-        ],
       ),
 
       child: Column(
@@ -77,7 +74,7 @@ class ChallengeCard extends StatelessWidget {
                 backgroundColor: color.withValues(alpha: 0.2),
                 child: Icon(_icon(), color: color, size: 20),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: AlmaSpacing.r(context, 10)),
 
               Expanded(
                 child: Column(
@@ -107,14 +104,14 @@ class ChallengeCard extends StatelessWidget {
                   (i) => const Icon(
                     Icons.star,
                     size: 14,
-                    color: Colors.amber,
+                    color: AlmaColors.warning,
                   ),
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 12),
+ 
+          SizedBox(height: AlmaSpacing.r(context, 12)),
 
           // ======================
           // DESCRIPTION
@@ -124,7 +121,7 @@ class ChallengeCard extends StatelessWidget {
             style: theme.textTheme.bodyMedium,
           ),
 
-          const SizedBox(height: 14),
+          SizedBox(height: AlmaSpacing.r(context, 14)),
 
           // ======================
           // PROGRESS
@@ -135,7 +132,7 @@ class ChallengeCard extends StatelessWidget {
               isCompleted: isCompleted,
             ),
 
-          const SizedBox(height: 12),
+          SizedBox(height: AlmaSpacing.r(context, 12)),
 
           // ======================
           // ACTIONS
@@ -143,15 +140,16 @@ class ChallengeCard extends StatelessWidget {
 
           if (!isActive && !isCompleted && onStart != null)
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: Alignment.centerRight,
               child: ElevatedButton(
                 onPressed: onStart,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: color,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 10,
+                  foregroundColor: AlmaColors.background(isDark),
+                  textStyle: AlmaTypography.labelSmall(isDark).copyWith(color: AlmaColors.textPrimary(isDark)),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: AlmaSpacing.r(context, 18),
+                    vertical: AlmaSpacing.r(context, 10),
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

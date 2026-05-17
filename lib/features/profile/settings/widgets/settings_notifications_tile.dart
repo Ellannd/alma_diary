@@ -23,14 +23,18 @@ class SettingsNotificationsTile extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: AlmaSpacing.md,
-        vertical: AlmaSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: AlmaColors.surfaceVariant(isDark),
-        borderRadius: BorderRadius.circular(AlmaRadius.md),
-      ),
+        padding: EdgeInsets.symmetric(
+          horizontal: AlmaSpacing.md,
+          vertical: AlmaSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: AlmaColors.surfaceVariant(isDark),
+          borderRadius: BorderRadius.circular(AlmaRadius.md),
+          border: Border.all(
+            color: AlmaColors.border(isDark),
+            width: 1.0,
+          ),
+        ),
       child: Row(
         children: [
           Expanded(

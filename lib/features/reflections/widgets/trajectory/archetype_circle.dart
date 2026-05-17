@@ -1,3 +1,4 @@
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:flutter/material.dart';
 
 class ArchetypeCircle extends StatelessWidget {
@@ -33,12 +34,6 @@ class ArchetypeCircle extends StatelessWidget {
                 width: 2,
               ),
 
-              gradient: RadialGradient(
-                colors: [
-                  primary.withValues(alpha: 0.22),
-                  primary.withValues(alpha: 0.05),
-                ],
-              ),
             ),
 
             child: Center(
@@ -53,10 +48,10 @@ class ArchetypeCircle extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 10),
+           SizedBox(height: AlmaSpacing.r(context,10)),
 
           SizedBox(
-            width: 90,
+            width: AlmaSpacing.r(context,90),
             child: Text(
               label,
               textAlign: TextAlign.center,

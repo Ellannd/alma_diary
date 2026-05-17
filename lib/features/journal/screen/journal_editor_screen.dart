@@ -77,7 +77,7 @@ class _JournalEditorScreenState
             Brightness.dark;
 
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
 
       appBar: AppBar(
         elevation: 0,

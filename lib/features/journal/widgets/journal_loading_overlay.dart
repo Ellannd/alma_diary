@@ -23,8 +23,8 @@ class JournalLoadingOverlay extends StatelessWidget {
     return Positioned.fill(
       child: BackdropFilter(
         filter: ImageFilter.blur(
-          sigmaX: 16,
-          sigmaY: 16,
+          sigmaX: 8,
+          sigmaY: 8,
         ),
         child: Container(
           color: Colors.black.withValues(alpha: .20),

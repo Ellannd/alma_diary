@@ -110,7 +110,7 @@ class _BlurOrb extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(shape: BoxShape.circle, color: color),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 120, sigmaY: 120),
+        filter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
         child: const SizedBox(),
       ),
     );

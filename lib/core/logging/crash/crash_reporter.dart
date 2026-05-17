@@ -6,7 +6,7 @@ class CrashReporter {
   static final CrashReporter instance = CrashReporter._();
   CrashReporter._();
   static const String _storageKey = 'alma_crash_logs';
-  static const int _maxLocalCrashes = 100;
+  static const int _maxLocalCrashes = 10;
 
   final List<LogEntry> _buffer = [];
 
@@ -44,10 +44,10 @@ class CrashReporter {
 
   /// Persistencia local (offline-first)
   Future<void> _saveLocally() async {
-    final prefs = await SharedPreferences.getInstance();
+    //final prefs = await SharedPreferences.getInstance();
 
-    final jsonList = _buffer.map((e) => e.toJson()).toList();
-    await prefs.setString(_storageKey, jsonEncode(jsonList));
+   // final jsonList = _buffer.map((e) => e.toJson()).toList();
+    //await prefs.setString(_storageKey, jsonEncode(jsonList));
   }
 
   /// Envío remoto (placeholder para Supabase / Firebase / API)
@@ -62,6 +62,8 @@ class CrashReporter {
       // nunca romper app por logging
     }
   }
+
+  
 
   /// Obtener todos los crashes guardados
   List<LogEntry> getCrashes() => List.unmodifiable(_buffer);

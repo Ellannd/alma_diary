@@ -37,8 +37,8 @@ class DashboardMoodCard extends StatelessWidget {
       ),
       child: BackdropFilter(
         filter: ImageFilter.blur(
-          sigmaX: 18,
-          sigmaY: 18,
+          sigmaX: 4,
+          sigmaY: 4,
         ),
         child: Container(
           padding: const EdgeInsets.all(

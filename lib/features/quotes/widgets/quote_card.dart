@@ -1,3 +1,5 @@
+import 'package:alma_diary/design_system/tokens/alma_colors.dart';
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:alma_diary/features/quotes/engine/quotes_engine.dart';
 
@@ -19,26 +21,18 @@ class QuoteCard extends StatelessWidget {
     final primary = theme.colorScheme.primary;
     final onSurface = theme.colorScheme.onSurface;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      padding: const EdgeInsets.all(22),
+    return Container(
+      padding: EdgeInsets.all(AlmaSpacing.r(context, 22)),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
         color: pinned
-            ? primary.withValues(alpha: 0.18)
+            ? AlmaColors.transparent
             : theme.cardColor.withValues(alpha: 0.85),
         border: Border.all(
-          color: pinned ? primary : Colors.transparent,
+          color: AlmaColors.glass(Theme.of(context).brightness==Brightness.dark),
           width: 1.5,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: primary.withValues(alpha: pinned ? 0.25 : 0.08),
-            blurRadius: pinned ? 20 : 10,
-            spreadRadius: pinned ? 2 : 0,
-          ),
-        ],
+
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,7 +42,7 @@ class QuoteCard extends StatelessWidget {
             size: 26,
             color: primary.withValues(alpha: 0.6),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AlmaSpacing.r(context,12)),
           Text(
             quote.texto,
             style: TextStyle(
@@ -59,7 +53,7 @@ class QuoteCard extends StatelessWidget {
               fontWeight: pinned ? FontWeight.w500 : FontWeight.normal,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AlmaSpacing.r(context,12)),
           Text(
             '- ${quote.autor}',
             style: TextStyle(
@@ -67,7 +61,7 @@ class QuoteCard extends StatelessWidget {
               fontSize: 13,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AlmaSpacing.r(context,12)),
           Text(
             quote.contextoAlma,
             style: TextStyle(
@@ -75,7 +69,7 @@ class QuoteCard extends StatelessWidget {
               fontSize: 13,
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: AlmaSpacing.r(context,16)),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -88,19 +82,14 @@ class QuoteCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-              GestureDetector(
-                onTap: onPin,
-                child: AnimatedScale(
-                  duration: const Duration(milliseconds: 200),
-                  scale: pinned ? 1.2 : 1.0,
-                  child: Icon(
+                 Icon(
                     pinned ? Icons.push_pin : Icons.push_pin_outlined,
                     color: pinned
                         ? primary
                         : onSurface.withValues(alpha: 0.5),
                   ),
-                ),
-              ),
+            
+          
             ],
           ),
         ],

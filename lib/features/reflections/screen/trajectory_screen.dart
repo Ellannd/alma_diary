@@ -1,3 +1,4 @@
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -101,9 +102,7 @@ class _AlmaTrajectoryScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Trayectoria Emocional',
-        ),
+
       ),
 
       body: isLoading
@@ -121,7 +120,7 @@ class _AlmaTrajectoryScreenState
                       textAlign: TextAlign.center,
 
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: AlmaSpacing.r(context,16),
                         color: Theme.of(context)
                             .colorScheme
                             .onSurface,
@@ -150,12 +149,12 @@ class _AlmaTrajectoryScreenState
                                 const AlwaysScrollableScrollPhysics(),
 
                             padding:
-                                const EdgeInsets.all(24),
+                                EdgeInsets.all(AlmaSpacing.r(context,28)),
 
                             child: Column(
                               crossAxisAlignment:
                                   CrossAxisAlignment
-                                      .start,
+                                      .center,
 
                               children: [
                                 /// =====================
@@ -166,16 +165,16 @@ class _AlmaTrajectoryScreenState
                                       'Balance de Sombra',
                                 ),
 
-                                const SizedBox(
-                                  height: 18,
+                                SizedBox(
+                                  height: AlmaSpacing.r(context,18),
                                 ),
 
                                 TrajectoryChart(
                                   stats: stats,
                                 ),
 
-                                const SizedBox(
-                                  height: 24,
+                               SizedBox(
+                                  height: AlmaSpacing.r(context,24),
                                 ),
 
                                 TrajectoryStatTile(
@@ -188,8 +187,8 @@ class _AlmaTrajectoryScreenState
                                       .toString(),
                                 ),
 
-                                const SizedBox(
-                                  height: 36,
+                                SizedBox(
+                                  height: AlmaSpacing.r(context,36),
                                 ),
 
                                 /// =====================
@@ -200,8 +199,8 @@ class _AlmaTrajectoryScreenState
                                       'Evolución de Arquetipos',
                                 ),
 
-                                const SizedBox(
-                                  height: 22,
+                                SizedBox(
+                                  height: AlmaSpacing.r(context,22),
                                 ),
 
                                 Wrap(
@@ -232,8 +231,8 @@ class _AlmaTrajectoryScreenState
                                       .toList(),
                                 ),
 
-                                const SizedBox(
-                                  height: 36,
+                                SizedBox(
+                                  height: AlmaSpacing.r(context,36),
                                 ),
 
                                 /// =====================
@@ -244,8 +243,8 @@ class _AlmaTrajectoryScreenState
                                       '¿Qué has mejorado?',
                                 ),
 
-                                const SizedBox(
-                                  height: 18,
+                                SizedBox(
+                                  height: AlmaSpacing.r(context,18),
                                 ),
 
                                 TrajectoryNarrativeCard(
@@ -253,8 +252,8 @@ class _AlmaTrajectoryScreenState
                                       stats.narrativa,
                                 ),
 
-                                const SizedBox(
-                                  height: 36,
+                                SizedBox(
+                                  height: AlmaSpacing.r(context,36),
                                 ),
 
                                 /// =====================
@@ -268,8 +267,8 @@ class _AlmaTrajectoryScreenState
                                         'Estadísticas Interesantes',
                                   ),
 
-                                  const SizedBox(
-                                    height: 18,
+                                  SizedBox(
+                                    height: AlmaSpacing.r(context,18),
                                   ),
 
                                   TrajectoryConceptsWrap(
@@ -277,8 +276,8 @@ class _AlmaTrajectoryScreenState
                                         stats.conceptos,
                                   ),
 
-                                  const SizedBox(
-                                    height: 36,
+                                  SizedBox(
+                                    height: AlmaSpacing.r(context,36),
                                   ),
                                 ],
 
@@ -293,8 +292,8 @@ class _AlmaTrajectoryScreenState
                                         'Hitos alcanzados',
                                   ),
 
-                                  const SizedBox(
-                                    height: 18,
+                                  SizedBox(
+                                    height: AlmaSpacing.r(context,18),
                                   ),
 
                                   AnimatedHitoBanner(
@@ -304,8 +303,8 @@ class _AlmaTrajectoryScreenState
                                   ),
                                 ],
 
-                                const SizedBox(
-                                  height: 40,
+                                SizedBox(
+                                  height: AlmaSpacing.r(context,40),
                                 ),
                               ],
                             ),

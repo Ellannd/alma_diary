@@ -16,6 +16,9 @@ class ProfileSupportCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AlmaColors.surface(isDark),
         borderRadius: BorderRadius.circular(AlmaRadius.lg),
+        border: Border.all(
+          color: AlmaColors.glass(isDark).withValues(alpha: 0.60),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

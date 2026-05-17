@@ -1,3 +1,4 @@
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:flutter/material.dart';
 
 class TrajectoryStatTile extends StatelessWidget {
@@ -18,7 +19,7 @@ class TrajectoryStatTile extends StatelessWidget {
     final onSurface = Theme.of(context).colorScheme.onSurface;
 
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: EdgeInsets.all(AlmaSpacing.r(context,18)),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
         color: Theme.of(context).cardColor,
@@ -41,7 +42,7 @@ class TrajectoryStatTile extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(width: 14),
+          SizedBox(width: AlmaSpacing.r(context,14)),
 
           Expanded(
             child: Column(
@@ -55,14 +56,14 @@ class TrajectoryStatTile extends StatelessWidget {
                   ),
                 ),
 
-                const SizedBox(height: 4),
+                SizedBox(height: AlmaSpacing.r(context,4)),
 
                 Text(
                   value,
                   style: TextStyle(
                     color: onSurface,
                     fontWeight: FontWeight.bold,
-                    fontSize: 20,
+                    fontSize: AlmaSpacing.r(context,20),
                   ),
                 ),
               ],

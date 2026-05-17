@@ -1,3 +1,4 @@
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:flutter/material.dart';
 
 class ReflectionDateChip extends StatelessWidget {
@@ -15,9 +16,9 @@ class ReflectionDateChip extends StatelessWidget {
     return Row(
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 10,
-            vertical: 6,
+          padding: EdgeInsets.symmetric(
+            horizontal: AlmaSpacing.r(context, 10),
+            vertical: AlmaSpacing.r(context, 6),
           ),
           decoration: BoxDecoration(
             color: theme.colorScheme.primary.withValues(alpha: 0.15),
@@ -29,7 +30,7 @@ class ReflectionDateChip extends StatelessWidget {
             style: TextStyle(
               color: theme.colorScheme.onSurface,
               fontWeight: FontWeight.w600,
-              fontSize: 13,
+              fontSize: AlmaSpacing.r(context, 13),
             ),
           ),
         ),
@@ -38,7 +39,7 @@ class ReflectionDateChip extends StatelessWidget {
 
         Icon(
           Icons.auto_awesome,
-          size: 18,
+          size: AlmaSpacing.r(context, 18),
           color: theme.colorScheme.primary.withValues(alpha: 0.6),
         ),
       ],

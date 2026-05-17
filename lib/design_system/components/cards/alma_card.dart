@@ -69,7 +69,7 @@ class AlmaCard extends StatelessWidget {
         return ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
             child: Container(
               padding: padding,
               decoration: BoxDecoration(

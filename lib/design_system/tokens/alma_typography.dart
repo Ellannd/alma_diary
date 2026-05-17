@@ -141,7 +141,7 @@ class AlmaTypography {
         weight: FontWeight.w600,
       );
 
-  static TextStyle h3(bool isDark, [BuildContext? context]) => _base(
+  static TextStyle h3(bool isDark, [BuildContext? context]) => _secondary(
         isDark: isDark,
         size: context != null ? _s(context, 18) : 18,
         weight: FontWeight.w600,

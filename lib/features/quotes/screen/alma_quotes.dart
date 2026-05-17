@@ -20,18 +20,18 @@ class _AlmaQuotesScreenState extends ConsumerState<AlmaQuotesScreen> {
   void initState() {
     super.initState();
 
-    final dashboard = ref.watch(dashboardControllerProvider);
+    Future.microtask(() {
+      final dashboard = ref.read(dashboardControllerProvider);
 
-    final archetype = dashboard.archetype;
+      final controller = ref.read(quotesControllerProvider.notifier);
 
-    final controller = ref.read(quotesControllerProvider.notifier);
+      controller.init(
+        arquetipo: dashboard.archetype,
+        nodosDolor: dashboard.painNodes,
+      );
 
-    controller.init(
-      arquetipo: archetype,
-      nodosDolor: dashboard.painNodes,
-    );
-
-    controller.loadQuotes();
+      controller.loadQuotes();
+    });
   }
 
   @override

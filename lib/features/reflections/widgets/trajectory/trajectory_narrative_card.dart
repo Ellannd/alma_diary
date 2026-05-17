@@ -1,3 +1,5 @@
+import 'package:alma_diary/design_system/tokens/alma_colors.dart';
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:flutter/material.dart';
 
 class TrajectoryNarrativeCard extends StatelessWidget {
@@ -15,7 +17,7 @@ class TrajectoryNarrativeCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(22),
+      padding: EdgeInsets.all(AlmaSpacing.r(context,22)),
 
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
@@ -24,7 +26,7 @@ class TrajectoryNarrativeCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            primary.withValues(alpha: 0.10),
+            AlmaColors.info.withValues(alpha: 0.10),
             Theme.of(context).cardColor,
           ],
         ),
@@ -42,15 +44,15 @@ class TrajectoryNarrativeCard extends StatelessWidget {
               Icon(
                 Icons.auto_stories,
                 color: primary,
-                size: 22,
+                size: AlmaSpacing.r(context,22),
               ),
 
-              const SizedBox(width: 10),
+               SizedBox(width: AlmaSpacing.r(context,10)),
 
               Text(
                 'Narrativa de evolución',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: AlmaSpacing.r(context,16),
                   fontWeight: FontWeight.bold,
                   color: onSurface,
                 ),
@@ -58,12 +60,12 @@ class TrajectoryNarrativeCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 18),
+          SizedBox(height: AlmaSpacing.r(context,18)),
 
           Text(
             narrative,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: AlmaSpacing.r(context,16),
               height: 1.7,
               color: onSurface.withValues(alpha: 0.88),
             ),

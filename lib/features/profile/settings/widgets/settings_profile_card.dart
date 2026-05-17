@@ -33,12 +33,12 @@ class SettingsProfileCard extends StatelessWidget {
             backgroundImage:
                 avatarUrl != null ? NetworkImage(avatarUrl!) : null,
             backgroundColor:
-                AlmaColors.accent(isDark).withValues(alpha: 0.2),
+                AlmaColors.textPrimary(isDark).withValues(alpha: 0.2),
             child: avatarUrl == null
                 ? Text(
                     name.isNotEmpty ? name[0].toUpperCase() : 'U',
                     style: AlmaTypography.h3(isDark).copyWith(
-                      color: AlmaColors.accent(isDark),
+                      color: AlmaColors.textPrimary(isDark),
                     ),
                   )
                 : null,

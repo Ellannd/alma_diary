@@ -59,7 +59,7 @@ static const _items = [
       // Capa visual: solo el blur, sin capturar gestos
       Positioned.fill(
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
           child: Container(
             decoration: BoxDecoration(
               color: AlmaColors.transparent,
@@ -128,9 +128,9 @@ Widget build(BuildContext context) {
     onTap: onTap,
     behavior: HitTestBehavior.opaque,
     child: AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      width: 56,
-      height: 56,
+      duration: const Duration(milliseconds: 320),
+      width: AlmaSpacing.r(context, 56),
+      height: AlmaSpacing.r(context, 56),
 
       decoration: BoxDecoration(
         shape: BoxShape.circle,
@@ -143,7 +143,7 @@ Widget build(BuildContext context) {
             ? [
                 BoxShadow(
                   color: AlmaColors.darkBackground.withValues(alpha: .18),
-                  blurRadius: 12,
+                  blurRadius: 8,
                   offset: const Offset(0, 10),
                 ),
 

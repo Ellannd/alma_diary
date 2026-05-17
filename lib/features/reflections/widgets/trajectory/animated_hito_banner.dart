@@ -1,3 +1,4 @@
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:flutter/material.dart';
 
 class AnimatedHitoBanner extends StatefulWidget {
@@ -53,37 +54,23 @@ class _AnimatedHitoBannerState
     return AnimatedBuilder(
       animation: _glow,
 
-      builder: (_, __) {
+      builder: (_, _) {
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(AlmaSpacing.r(context,20)),
 
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(28),
 
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                primary.withValues(alpha: 0.18),
-                primary.withValues(alpha: 0.06),
-              ],
-            ),
 
             boxShadow: [
-              BoxShadow(
-                color: primary.withValues(
-                  alpha: 0.22 * _glow.value,
-                ),
-                blurRadius: 30 * _glow.value,
-                spreadRadius: 2,
-              ),
+
             ],
           ),
 
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: EdgeInsets.all(AlmaSpacing.r(context,14)),
 
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
@@ -97,13 +84,13 @@ class _AnimatedHitoBannerState
                 ),
               ),
 
-              const SizedBox(width: 16),
+              SizedBox(width: AlmaSpacing.r(context,16)),
 
               Expanded(
                 child: Text(
                   widget.hito,
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: AlmaSpacing.r(context,16),
                     height: 1.5,
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context)

@@ -1,3 +1,5 @@
+import 'package:alma_diary/design_system/tokens/alma_colors.dart';
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:flutter/material.dart';
 
 class ReflectionTags extends StatelessWidget {
@@ -51,9 +53,9 @@ class ReflectionTagChip extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 6,
+      padding: EdgeInsets.symmetric(
+        horizontal: AlmaSpacing.r(context, 10),
+        vertical: AlmaSpacing.r(context, 6),
       ),
       decoration: BoxDecoration(
         color: theme.colorScheme.secondary.withValues(alpha: 0.12),
@@ -67,17 +69,17 @@ class ReflectionTagChip extends StatelessWidget {
         children: [
           Icon(
             icon,
-            size: 14,
+            size: AlmaSpacing.r(context, 14),
             color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
 
-          const SizedBox(width: 6),
+          SizedBox(width: AlmaSpacing.r(context,6)),
 
           Text(
             label,
             style: TextStyle(
-              fontSize: 12,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.85),
+              fontSize: AlmaSpacing.r(context, 12),
+              color: AlmaColors.textPrimary(Theme.of(context).brightness == Brightness.dark).withValues(alpha: 0.60),
               fontWeight: FontWeight.w500,
             ),
           ),

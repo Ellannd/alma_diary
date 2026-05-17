@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:alma_diary/design_system/tokens/alma_colors.dart';
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
+import 'package:alma_diary/design_system/tokens/alma_radius.dart';
+import 'package:alma_diary/design_system/tokens/alma_typography.dart';
+import 'package:alma_diary/features/readings/widgets/reading_card_dialog.dart';
 
 class ReadingCard extends StatelessWidget {
   final dynamic rec;
@@ -18,55 +23,136 @@ class ReadingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        Navigator.pushNamed(
-          context,
-          '/reading-detail',
-          arguments: rec,
-        );
-      },
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final imageUrl = "readings/placeholder1.svg";
+
+    return GestureDetector(
+      onTap: () => showDialog(
+        context: context,
+        barrierColor: Colors.black.withValues(alpha: .15),
+        builder: (_) => ReadingCardDialog(rec: rec),
+      ),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(AlmaSpacing.cardPaddingR(context)),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(20),
+          color: AlmaColors.surface(isDark),
+          borderRadius: BorderRadius.circular(AlmaRadius.card),
+          border: Border.all(color: AlmaColors.border(isDark).withValues(alpha: .12)),
         ),
-        child: Column(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              rec['title'] ?? '',
-              style: Theme.of(context).textTheme.titleMedium,
+            // Texto
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    rec['title'] ?? '',
+                    style: AlmaTypography.h3(isDark, context).copyWith(fontWeight: FontWeight.bold, fontSize: AlmaSpacing.r(context, AlmaSpacing.md+2)),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  Text(
+                    rec['content'].toString().replaceAll(r'\n', ' '),
+                    style: AlmaTypography.h3(isDark, context).copyWith(
+                      color: AlmaColors.textSecondary(isDark),
+                      fontWeight: FontWeight.w200,
+                      fontSize: AlmaSpacing.r(context, 14)
+                      
+                    ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  SizedBox(height: AlmaSpacing.r(context, AlmaSpacing.sm)),
+
+                  Row(
+                    children: [
+                      _ActionButton(
+                        label: saved ? 'Guardar' : 'Guardada',
+                        isDark: isDark,
+                        onPressed: onSave,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
 
-            const SizedBox(height: 8),
+            SizedBox(width: AlmaSpacing.r(context, AlmaSpacing.md)),
 
-            Text(rec['author'] ?? ''),
-
-            const SizedBox(height: 12),
-
-            Text(rec['summary'] ?? ''),
-
-            const SizedBox(height: 12),
-
-            Row(
-              children: [
-                TextButton(
-                  onPressed: onSave,
-                  child: Text(saved ? 'Guardado' : 'Guardar'),
-                ),
-
-                const SizedBox(width: 8),
-
-                TextButton(
-                  onPressed: helped ? null : onHelped,
-                  child: Text(helped ? 'Ayudó' : 'Me ayudó'),
-                ),
-              ],
+            // Cover
+            ClipRRect(
+              borderRadius: BorderRadius.circular(AlmaRadius.md),
+              child: Image.network(
+                      imageUrl,
+                      width: AlmaSpacing.r(context, 120),
+                      height: AlmaSpacing.r(context, 120),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _PlaceholderCover(isDark: isDark),
+                    ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final String label;
+  final bool isDark;
+  final VoidCallback onPressed;
+
+  const _ActionButton({
+    required this.label,
+    required this.isDark,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: AlmaSpacing.r(context, 32),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          elevation: 0,
+          backgroundColor: AlmaColors.info.withValues(alpha: 0.70),
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AlmaRadius.full),
+          ),
+          textStyle: AlmaTypography.labelMedium(isDark, context).copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        child: Text(label),
+      ),
+    );
+  }
+}
+
+class _PlaceholderCover extends StatelessWidget {
+  final bool isDark;
+  const _PlaceholderCover({required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: AlmaSpacing.r(context, 120),
+      height: AlmaSpacing.r(context, 120),
+      decoration: BoxDecoration(
+        color: AlmaColors.surfaceVariant(isDark),
+        borderRadius: BorderRadius.circular(AlmaRadius.md),
+      ),
+      child: Icon(
+        Icons.book_outlined,
+        color: AlmaColors.textMuted(isDark),
+        size: AlmaSpacing.r(context, 32),
       ),
     );
   }

@@ -45,7 +45,7 @@ class JournalEditor extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(AlmaRadius.xl),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
             child: Container(
               width: double.infinity,
               padding: EdgeInsets.all(

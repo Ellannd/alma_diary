@@ -31,7 +31,7 @@ class ProfileJourneyCard extends StatelessWidget {
         color: AlmaColors.surface(isDark),
         borderRadius: BorderRadius.circular(AlmaRadius.lg),
         border: Border.all(
-          color: AlmaColors.accent(isDark).withValues(alpha: 0.2),
+          color: AlmaColors.glass(isDark).withValues(alpha: 0.60),
         ),
       ),
       child: Column(
