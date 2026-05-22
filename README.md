@@ -4,11 +4,12 @@
 > A mindful journaling companion powered by AI — *Escribe. Sana. Vive.*
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter" alt="Flutter" />
+  <img src="https://img.shields.io/badge/Flutter-3.11.4-blue?logo=flutter" alt="Flutter" />
   <img src="https://img.shields.io/badge/Dart-3.11.4-blue?logo=dart" alt="Dart" />
   <img src="https://img.shields.io/badge/Supabase-Backend-green?logo=supabase" alt="Supabase" />
   <img src="https://img.shields.io/badge/Gemini-AI-orange?logo=google" alt="Gemini AI" />
-  <img src="https://img.shields.io/badge/Version-3.0.0-purple" alt="Version" />
+  <img src="https://img.shields.io/badge/Hugging-Face-yellow?logo=HuggingFace" alt="Hugging Face" />
+  <img src="https://img.shields.io/badge/Version-3.4.14-purple" alt="Version" />
   <img src="https://img.shields.io/badge/Status-Active%20Development-brightgreen" alt="Status" />
 </p>
 
@@ -29,20 +30,19 @@
 ## 🌟 Features
 
 ### Core Journaling
-- **Daily Journal Entries** — Text-based reflections with rich text support
-- **AI-Powered Sentiment Analysis** — Real-time emotional analysis using Google Gemini
-- **Archetype Identification** — Automatic categorization into psychological archetypes (The Mask, The Mirror, The Moon, The Shadow)
-- **Personalized Reflections** — AI-generated insights based on your unique emotional patterns
+- **Daily Journal Entries** — Text-based reflections with text support
+- **AI-Powered Sentiment Analysis** — Emotional Analysis using LLM via Api.
+- **Archetype Identification** — Automatic categorization into psychological archetypes (The Mask, The Mirror, The Moon, The Shadow) (TODO)
+- **Personalized Reflections** — AI-generated insights based on your unique emotional patterns (TODO)
 
 ### AI-Driven Insights
-- **Daily Quotes** — Curated quotes tailored to your psychological profile
+- **Daily Quotes** — Curated quotes tailored to your psychological profile (TODO)
 - **Challenges System** — Self-improvement challenges personalized to your needs
 - **Progress Tracking** — Visualize your emotional journey with charts and statistics
 - **Reading Recommendations** — Personalized content based on your archetype and pain points
 
 ### User Experience
-- **Biometric Authentication** — Optional fingerprint/face unlock for secure access
-- **End-to-End Encryption** — All journal entries encrypted with AES-256
+- **Encryption** — All journal entries encrypted with AES-256
 - **Offline Support** — Local database with automatic cloud sync when online
 - **Dark Mode** — Automatic theme switching based on system preference
 - **Multi-Platform** — iOS, Android, and Web
