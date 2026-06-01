@@ -1,12 +1,16 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AlmaQuote {
+  final String id;      
+  final String title;
   final String texto;
   final String autor;
   final String contextoAlma;
   final bool disparadorNotificacion;
 
   AlmaQuote({
+    required this.id,
+    required this.title,
     required this.texto,
     required this.autor,
     required this.contextoAlma,
@@ -95,15 +99,21 @@ class QuotesEngine {
   // MAPPER (DB → DOMAIN)
   // =========================
   AlmaQuote _mapQuote(Map<String, dynamic> q) {
-    final tags = List<String>.from(q['tags'] ?? []);
+  final tags = List<String>.from(q['tags'] ?? []);
+  final texto = (q['text'] ?? '').toString();
 
-    return AlmaQuote(
-      texto: (q['text'] ?? '').toString(),
-      autor: (q['author'] ?? 'Anónimo').toString(),
-      contextoAlma: _contextoAlma(tags),
-      disparadorNotificacion: q['is_notification'] ?? false,
-    );
-  }
+  return AlmaQuote(
+    id: (q['id'] ?? '').toString(),
+    // Primeras 6 palabras como título si no hay campo title en DB
+    title: (q['title'] as String?)?.isNotEmpty == true
+        ? q['title']
+        : texto.split(' ').take(6).join(' '),
+    texto: texto,
+    autor: (q['author'] ?? 'Anónimo').toString(),
+    contextoAlma: _contextoAlma(tags),
+    disparadorNotificacion: q['is_notification'] ?? false,
+  );
+}
 
   // =========================
   // CONTEXT ENGINE

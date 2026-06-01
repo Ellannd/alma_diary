@@ -1,9 +1,11 @@
+import 'package:alma_diary/design_system/components/feedback/alma_loader.dart';
+
 import 'package:alma_diary/features/onboarding/screen/onboarding_screen.dart';
+
 import 'package:alma_diary/state/profile/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:alma_diary/state/auth/auth_controller.dart';
 
 import 'auth_screen.dart';
 import '../../dashboard/screen/dashboard_screen.dart';
@@ -13,50 +15,47 @@ class AuthGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authControllerProvider);
-    final profileState = ref.watch(profileControllerProvider);
+    // 1. Escuchamos el usuario reactivo
+    final user = ref.watch(currentUserProvider);
 
-    final auth = authState.asData?.value;
-    final profile = profileState.profile;
+ 
 
-    // 1. loading
-    if (authState.isLoading || profileState.isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    // 2. not authenticated
-    if (auth?.isAuthenticated != true) {
+    // 2. Si no hay sesión, directo al login
+    if (user == null) {
+    
       return const AuthScreen();
     }
 
-    // 3. dispara loadProfile si no está inicializado
-    if (!profileState.initialized) {
-      // WidgetsBinding para no llamar durante build
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(profileControllerProvider.notifier)
-            .loadProfile(auth!.user!.id);
-      });
+    // 3. Si hay sesión, escuchamos el perfil
+    final profileAsync = ref.watch(profileControllerProvider);
 
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
 
-    // 4. profile loading
-    if (profileState.isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+    return profileAsync.when(
+      loading: () {
+  
+        return _loading();
+      },
+      error: (e, stack) {
 
-    // 5. onboarding check
-    if (profile == null || !profile.isOnboardingComplete) {
-      return const OnboardingScreen();
-    }
+        return Scaffold(
+          body: Center(child: Text('Error al inicializar sesión: $e')),
+        );
+      },
+      data: (profile) {
 
-    // 5. app
-    return const DashboardScreen();
+        
+        // Si el perfil no se ha creado o no terminó onboarding
+        if (profile == null || !profile.isOnboardingComplete) { 
+          return const OnboardingScreen();
+        }
+        
+        // Todo listo
+        return const DashboardScreen();
+      },
+    );
   }
+
+  Widget _loading() => const Scaffold(
+        body: Center(child: AlmaLoader()),
+      );
 }

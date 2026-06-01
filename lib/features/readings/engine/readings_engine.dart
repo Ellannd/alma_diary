@@ -58,8 +58,6 @@ class ReadingRecommendation {
 }
 
 class ReadingsEngine {
-  final String passphrase;
-  ReadingsEngine(this.passphrase);
 
 
 Future<List<ReadingRecommendation>> getRecommendations() async {

@@ -1,3 +1,4 @@
+import 'package:alma_diary/state/profile/profile_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:alma_diary/features/notifications/engine/notifications_engine.dart';
@@ -26,17 +27,22 @@ final notificationControllerProvider =
 class NotificationController extends Notifier<NotificationState> {
   late final AlmaNotificationEngine _engine;
 
-  @override
-  NotificationState build() {
+@override
+NotificationState build() {
+  _engine = ref.read(notificationEngineProvider);
 
-    _engine = ref.read(notificationEngineProvider);
+  // Escuchar cambios de auth y actualizar userId automáticamente
+  ref.listen(authControllerProvider, (_, next) {
+    final userId = ref.read(currentUserProvider)?.id;
+    if (userId != null && state.userId != userId) {
+      state = state.copyWith(userId: userId);
+    }
+  });
 
-    final auth = ref.watch(authControllerProvider);
+  final userId = ref.read(currentUserProvider)?.id;
 
-    return NotificationState(
-      userId: auth.asData?.value.user?.id
-    );
-  }
+  return NotificationState(userId: userId);
+}
 
   void setUserId(String userId) {
     state = state.copyWith(userId: userId);
@@ -81,10 +87,36 @@ class NotificationController extends Notifier<NotificationState> {
 
       if (!result.isValid) return;
 
-      await load();
+        state = state.copyWith(
+        notifications: state.notifications
+            .map((n) => n.id == id ? n.copyWith(isRead: true) : n)
+            .toList(),
+        unreadCount: (state.unreadCount - 1).clamp(0, 999),
+      );
     } catch (e, st) {
       LogService.instance.error(
         'notifications.mark_read_failed',
+        error: e,
+        stackTrace: st,
+      );
+    }
+  }
+
+  Future<void> markAllAsRead(String userId) async {
+    try {
+      final result = await _engine.markAllAsRead(userId);
+      if (!result.isValid) return;
+
+    
+      state = state.copyWith(
+        notifications: state.notifications
+            .map((n) => n.copyWith(isRead: true))
+            .toList(),
+        unreadCount: 0, 
+      );
+    } catch (e, st) {
+      LogService.instance.error(
+        'notifications.mark_all_read_failed',
         error: e,
         stackTrace: st,
       );
@@ -97,24 +129,34 @@ class NotificationController extends Notifier<NotificationState> {
   }
 
   Future<void> handlePostLogin(String userId) async {
-    setUserId(userId);
+  setUserId(userId);
 
-    try {
-      await Future.wait([
-        _engine.generateDailyQuote(userId),
-        _engine.trackLoginEvent(userId),
-        _engine.generateDailyReminder(userId),
-      ]);
+  try {
+    final results = await Future.wait([
+      _engine.generateDailyQuote(userId),
+      _engine.trackLoginEvent(userId),
+      _engine.generateDailyReminder(userId),
+    ]);
 
-      await load();
-    } catch (e, st) {
-      LogService.instance.error(
-        'notifications.post_login_failed',
-        error: e,
-        stackTrace: st,
+    // Enviar push solo si el daily reminder se generó (no existía ya hoy)
+    final reminderResult = results[2];
+    if (reminderResult.isValid) {
+      await _engine.sendPush(
+        userId: userId,
+        title: 'Tu momento contigo',
+        body: 'Escribe tu entrada de hoy ✍️',
       );
     }
+
+    await load();
+  } catch (e, st) {
+    LogService.instance.error(
+      'notifications.post_login_failed',
+      error: e,
+      stackTrace: st,
+    );
   }
+}
 
   Future<void> handleOnboardingCompleted(String userId) async {
     try {
@@ -150,6 +192,11 @@ class NotificationController extends Notifier<NotificationState> {
       String eventType = 'started',
       int points = 0,
     }) async {
+      
+       if (state.userId == null) {
+    state = state.copyWith(userId: userId);
+  }
+
       try {
         LogService.instance.info(
           'notifications.challenge_event.start',

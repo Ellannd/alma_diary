@@ -11,15 +11,8 @@ Future<void> showReflectionDetail({
   required BuildContext context,
   required Map<String, dynamic> entry,
 }) {
-  final content =
-      entry['content_decrypted'] ??
-      entry['content_encrypted'] ??
-      'Sin contenido';
-
-  final reflection =
-      entry['analysis_decrypted'] ??
-      entry['analysis_encrypted'] ??
-      '';
+  final content = entry['content_decrypted'] ?? 'Sin contenido';
+final reflection = entry['analysis_decrypted'] ?? '';
 
   final archetype = entry['archetype'] ?? 'The Mirror';
   final sentiment = entry['sentiment'] ?? 'neutral';

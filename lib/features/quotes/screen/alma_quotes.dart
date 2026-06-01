@@ -1,3 +1,4 @@
+import 'package:alma_diary/design_system/components/feedback/alma_loader.dart';
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import 'package:flutter/material.dart';
 import "package:alma_diary/state/quotes/quote_controller.dart";
@@ -44,7 +45,7 @@ class _AlmaQuotesScreenState extends ConsumerState<AlmaQuotesScreen> {
       appBar: AppBar(title: const Text('Alma')),
 
       body: state.loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: AlmaLoader())
           : state.quotes.isEmpty
               ? Center(
                   child: Text(

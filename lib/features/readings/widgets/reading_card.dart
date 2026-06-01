@@ -24,7 +24,7 @@ class ReadingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final imageUrl = "readings/placeholder1.svg";
+
 
     return GestureDetector(
       onTap: () => showDialog(
@@ -83,17 +83,17 @@ class ReadingCard extends StatelessWidget {
 
             SizedBox(width: AlmaSpacing.r(context, AlmaSpacing.md)),
 
-            // Cover
-            ClipRRect(
-              borderRadius: BorderRadius.circular(AlmaRadius.md),
-              child: Image.network(
-                      imageUrl,
-                      width: AlmaSpacing.r(context, 120),
-                      height: AlmaSpacing.r(context, 120),
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _PlaceholderCover(isDark: isDark),
-                    ),
-            ),
+           ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  AlmaRadius.md,
+                ),
+                child:
+                      _PlaceholderCover(
+                        isDark: isDark,
+                        index:  rec['id'].hashCode.abs() % 4,
+                      ),
+                ),
+      
           ],
         ),
       ),
@@ -137,22 +137,31 @@ class _ActionButton extends StatelessWidget {
 }
 
 class _PlaceholderCover extends StatelessWidget {
+  final int index;
   final bool isDark;
-  const _PlaceholderCover({required this.isDark});
+  const _PlaceholderCover({required this.isDark, required this.index});
 
-  @override
+  static const placeholders = [
+          'assets/readings/placeholder1.png',
+          'assets/readings/placeholder2.png',
+          'assets/readings/placeholder3.png',
+          'assets/readings/placeholder4.png',
+];
+
+ @override
   Widget build(BuildContext context) {
-    return Container(
-      width: AlmaSpacing.r(context, 120),
-      height: AlmaSpacing.r(context, 120),
-      decoration: BoxDecoration(
-        color: AlmaColors.surfaceVariant(isDark),
-        borderRadius: BorderRadius.circular(AlmaRadius.md),
+    final image =
+        placeholders[index % placeholders.length];
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(
+        AlmaRadius.md,
       ),
-      child: Icon(
-        Icons.book_outlined,
-        color: AlmaColors.textMuted(isDark),
-        size: AlmaSpacing.r(context, 32),
+      child: Image.asset(
+        image,
+        width: AlmaSpacing.r(context, 120),
+        height: AlmaSpacing.r(context, 120),
+        fit: BoxFit.cover,
       ),
     );
   }

@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 
 import 'app_routes.dart';
 
-import "package:alma_diary/features/auth/screen/auth_screen.dart";
 import 'package:alma_diary/features/journal/screen/journal_editor_screen.dart';
 import 'package:alma_diary/features/profile/presentation/screen/profile_page.dart';
 import 'package:alma_diary/features/search/screen/search_screen.dart';
@@ -23,54 +22,56 @@ class AppRouter {
   ) {
     switch (settings.name) {
       case AppRoutes.auth:
-        return _page(const AuthGate());
+        return _page(const AuthGate(), settings);
 
       case AppRoutes.dashboard:
-        return _page(const DashboardScreen());
+        return _page(const DashboardScreen(), settings);
 
       case AppRoutes.journal:
-        return _page(const JournalEditorScreen());
+        return _page(const JournalEditorScreen(), settings);
 
       case AppRoutes.readings:
-        return _page(const ReadingsPage());
+        return _page(const ReadingsPage(), settings);
 
       case AppRoutes.trajectory:
-        return _page(const AlmaTrajectoryScreen(passphrase:"alma_biometric_pass" ,));
+        return _page(const AlmaTrajectoryScreen(), settings);
 
       case AppRoutes.profile:
-        return _page(const ProfilePage());
+        return _page(const ProfilePage(), settings);
 
       case AppRoutes.search:
-        return _page(const SearchScreen(passphrase: "alma_biometric_pass",));
+        return _page(const SearchScreen(), settings);
 
       case AppRoutes.reflections:
-        return _page(const AlmaReflectionsScreen());
+        return _page(const AlmaReflectionsScreen(), settings);
 
       case AppRoutes.quotes:
-        return _page(const AlmaQuotesScreen());
+        return _page(const AlmaQuotesScreen(), settings);
       
       case AppRoutes.notifications:
-        return _page(const NotificationsPage());
+        return _page(const NotificationsPage(), settings);
 
       case AppRoutes.create:
-        return _page(const CreatePage());
+        return _page(const CreatePage(), settings);
       
       case AppRoutes.challenges:
-        return _page(const ChallengesPage());
+        return _page(const ChallengesPage(), settings);
 
       case AppRoutes.settings:
-        return _page(const SettingsPage());
+        return _page(const SettingsPage(), settings);
 
       default:
-        return _page(const AuthScreen());
+        return _page(const AuthGate(), settings);
     }
   }
 
   static MaterialPageRoute _page(
     Widget child,
+    RouteSettings? settings,
   ) {
     return MaterialPageRoute(
       builder: (_) => child,
+      settings: settings,
     );
   }
 }

@@ -1,5 +1,7 @@
+import 'package:alma_diary/core/crypto/local_key_service.dart';
+import 'package:alma_diary/state/journal/domain/journal_entry_model.dart';
 import 'package:uuid/uuid.dart';
-import 'package:alma_diary/data/aes_encryption.dart';
+import 'package:alma_diary/core/crypto/crypto_provider.dart';
 import 'package:alma_diary/features/journal/data/journal_repository.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
 import 'package:alma_diary/ai/analysis/ai_services_impl.dart';
@@ -9,89 +11,113 @@ import 'package:alma_diary/ai/analysis/providers/mock_provider.dart';
 import 'package:alma_diary/ai/analysis/router/model_router.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-
-/// JournalService - UTILITARIO LAYER
-/// Handles pure utility functions:
-/// - AES encrypt/decrypt (delegates to AESEncryption)
-/// - UUID generation
-/// - Data formatting helpers
-/// - Gemini analysis integration
-/// No database calls here - uses JournalRepository for data operations.
 class JournalService {
   static final JournalService instance = JournalService._();
   JournalService._();
 
-  static const String _passphrase = 'alma_biometric_pass';
   final _repository = JournalRepository.instance;
   final _uuid = const Uuid();
-    final aiService = AIServiceImpl(
-  router: ModelRouter(
-    mock: MockProvider(),
 
-    huggingface: HuggingFaceProvider(
-      apiKey: dotenv.get('HF_API_KEY'),
+  // CryptoSession se inyecta en el primer uso — evita acceder a
+  // Riverpod desde un singleton estático.
+  CryptoSession? _crypto;
+
+  /// Llamar desde el controller justo después de que CryptoSession
+  /// esté inicializada (post-login), antes del primer acceso al journal.
+  void setCryptoSession(CryptoSession session) {
+    _crypto = session;
+  }
+
+  // CryptoSession get _session {
+  //   final s = _crypto;
+  //   if (s == null) {
+  //     throw StateError(
+  //       'JournalService: CryptoSession not set. '
+  //       'Call setCryptoSession() after login.',
+  //     );
+  //   }
+  //   return s;
+  // }
+
+Future<CryptoSession> _getSession() async {
+  if (_crypto != null) return _crypto!;
+
+  // Intentar reconstruir sesión desde Keychain sin red
+  // (puede pasar si JournalService se llama antes de setCryptoSession)
+  final storage = SecureStorageService();
+  final keyResult = await storage.loadKey();
+
+  if (keyResult is StorageReadSuccess) {
+    final session = CryptoSession(
+      localKey: LocalKeyService(storage: storage),
+      encryption: EncryptionService(),
+      storage: storage,
+    );
+    _crypto = session;
+    return session;
+  }
+
+  throw StateError(
+    'JournalService: CryptoSession not set and no key in storage. '
+    'Call setCryptoSession() after login.',
+  );
+}
+
+  final aiService = AIServiceImpl(
+    router: ModelRouter(
+      mock: MockProvider(),
+      huggingface: HuggingFaceProvider(),
     ),
+  );
 
-    gemini: GeminiProvider(
-      apiKey: dotenv.get('GEMINI_API_KEY'),
-    ),
-  ),
-);
+  // ──────────────────────────────────────────────────────────
+  // ENCRYPTION — V2 (GCM)
+  // ──────────────────────────────────────────────────────────
 
-  // =========================
-  // ENCRYPTION METHODS
-  // =========================
+  Future<String> _encryptV2(String plaintext) async {
+  final session = await _getSession();
+  final result = await session.encryptText(plaintext);
+  if (result is EncryptSuccess) return result.bundle.serialize();
+  
+  final failure = result as EncryptFailure;
+  LogService.instance.error(
+    'journal.encrypt_v2_detail',
+    context: {
+      'message': failure.message,
+      'cause': failure.cause?.toString() ?? 'null',  
+      'cause_type': failure.cause?.runtimeType.toString() ?? 'null',
+    },
+  );
+  throw StateError('JournalService: encryption failed — ${failure.message}');
+}
 
-  /// Encrypts journal content using AES
-  String encryptContent(String content) {
-    return AESEncryption.encryptText(content, _passphrase);
+  Future<String> _decryptV2(String serialized) async {
+    if (serialized.isEmpty) return '';
+    final session = await _getSession();
+    final result = await session.decryptText(serialized);
+    if (result is DecryptSuccess) return result.plaintext;
+    LogService.instance.error(
+      'journal.decrypt_v2_failed',
+      context: {'reason': (result as DecryptFailure).message},
+    );
+    return '';
   }
 
-  /// Decrypts journal content
-  String decryptContent(String encrypted) {
-    if (encrypted.isEmpty) return '';
-    try {
-      return AESEncryption.decryptText(encrypted, _passphrase);
-    } catch (e) {
-      return 'Error al descifrar contenido';
-    }
-  }
 
-  /// Encrypts analysis/reflection using AES
-  String encryptAnalysis(String analysis) {
-    return AESEncryption.encryptText(analysis, _passphrase);
-  }
+  // ──────────────────────────────────────────────────────────
+  // DECODE HELPERS — elige v2 o v1 según el flag migrated
+  // ──────────────────────────────────────────────────────────
+Future<String> _decryptContent(Map<String, dynamic> row) async {
+  return _decryptV2(row['content_v2'] as String? ?? '');
+}
 
-  /// Decrypts analysis/reflection
-  String decryptAnalysis(String encrypted) {
-    if (encrypted.isEmpty) return '';
-    try {
-      return AESEncryption.decryptText(encrypted, _passphrase);
-    } catch (e) {
-      return 'Error al descifrar reflexión';
-    }
-  }
+Future<String> _decryptAnalysis(Map<String, dynamic> row) async {
+  return _decryptV2(row['analysis_v2'] as String? ?? '');
+}
+  // ──────────────────────────────────────────────────────────
+  // ANALYSIS (Gemini)
+  // ──────────────────────────────────────────────────────────
 
-// =========================
-  // HELPER METHODS
-  // =========================
-
-  /// Generates a new UUID for entry
-  String generateEntryId() {
-    return _uuid.v4();
-  }
-
-  /// Creates timestamp for entry
-  String generateTimestamp() {
-    return DateTime.now().toIso8601String();
-  }
-
-  // =========================
-  // ANALYSIS METHODS (Gemini)
-  // =========================
-
-  /// Analyzes journal entry using Gemini AI
-  /// Returns sentiment, archetype, and reflection
   Future<Map<String, dynamic>> analyzeEntry(String content) async {
     try {
       final analysis = await aiService.analyze(content);
@@ -107,7 +133,6 @@ class JournalService {
         error: e,
         stackTrace: st,
       );
-      // Return defaults on failure
       return {
         'sentiment': 'neutral',
         'sentimentScore': 0.5,
@@ -117,103 +142,102 @@ class JournalService {
     }
   }
 
-// =========================
-  // COMBINED METHODS (Analysis + Save)
-  // =========================
+  // ──────────────────────────────────────────────────────────
+  // COMBINED — análisis + guardado
+  // ──────────────────────────────────────────────────────────
 
-  /// Creates a new entry WITH Gemini analysis
-  /// This is the main entry point used by alma_journal.dart
-  Future<String> createEntryWithAnalysis({
+  Future<({String entryId, String archetype, String sentiment})> createEntryWithAnalysis({
     required String content,
+    String? title,
   }) async {
-    // Step 1: Analyze with Gemini AI
     final analysis = await analyzeEntry(content);
-    
-    final sentiment = analysis['sentiment'] as String;
-    final sentimentScore = analysis['sentimentScore'] as double;
-    final archetype = analysis['archetype'] as String;
-    final reflection = analysis['reflection'] as String;
-
-    // Step 2: Save encrypted entry
     return createEntry(
       content: content,
-      sentiment: sentiment,
-      sentimentScore: sentimentScore,
-      archetype: archetype,
-      reflection: reflection,
+      title: title,
+      sentiment: analysis['sentiment'] as String,
+      sentimentScore: analysis['sentimentScore'] as double,
+      archetype: analysis['archetype'] as String,
+      reflection: analysis['reflection'] as String,
     );
   }
+  // ──────────────────────────────────────────────────────────
+  // CRUD
+  // ──────────────────────────────────────────────────────────
 
-  // =========================
-  // REPOSITORY PROXY METHODS
-  // (Delegates to repository for data ops)
-  // =========================
+  /// Crea una entrada nueva. Siempre cifra con v2 (GCM).
+  /// Las columnas v1 se dejan null — el repositorio las ignora si no van
+  /// en el map.
+  Future<({String entryId, String archetype, String sentiment})> createEntry({
+  required String content,
+  required String sentiment,
+  required double sentimentScore,
+  required String archetype,
+  required String reflection,
+  String? title, // parámetro opcional
+}) async {
+  final entryId = _uuid.v4();
+  final now = DateTime.now();
 
-  /// Saves a journal entry (encrypts + calls repository)
-  /// Note: For backwards compatibility - prefer createEntryWithAnalysis()
-  Future<String> createEntry({
-    required String content,
-    required String sentiment,
-    required double sentimentScore,
-    required String archetype,
-    required String reflection,
-  }) async {
-    final entryId = generateEntryId();
-    final now = generateTimestamp();
+  final encContent = await _encryptV2(content);
+  final encAnalysis = await _encryptV2(reflection);
 
-    // Encrypt data
-    final encryptedContent = encryptContent(content);
-    final encryptedAnalysis = encryptAnalysis(reflection);
+  await _repository.insertEntry({
+    'id': entryId,
+    'title': title?.trim().isNotEmpty == true  
+        ? title!.trim()
+        : JournalEntryModel.defaultTitle(now), // fallback fecha
+    'content_v2': encContent,
+    'analysis_v2': encAnalysis,
+    'sentiment': sentiment,
+    'sentiment_score': sentimentScore,
+    'archetype': archetype,
+    'created_at': now.toIso8601String(),
+    'updated_at': now.toIso8601String(),
+  });
 
-    final entry = {
-      'id': entryId,
-      'content_encrypted': encryptedContent,
-      'analysis_encrypted': encryptedAnalysis,
-      'sentiment': sentiment,
-      'sentiment_score': sentimentScore,
-      'archetype': archetype,
-      'created_at': now,
-      'updated_at': now,
-    };
+  return (
+    entryId: entryId,
+    archetype: archetype,
+    sentiment: sentiment,
+  );
+}
 
-    await _repository.insertEntry(entry);
-    return entryId;
-  }
-
-  /// Gets all journal entries (decrypts content on demand)
   Future<List<Map<String, dynamic>>> getEntries({bool decrypt = true}) async {
-    final entries = await _repository.getEntries();
+    final rows = await _repository.getEntries();
+    if (!decrypt) return rows;
 
-    if (!decrypt) return entries;
-
-    // Decrypt content for each entry
-    return entries.map((entry) {
-      return {
-        ...entry,
-        'content_decrypted': decryptContent(entry['content_encrypted'] ?? ''),
-        'analysis_decrypted': decryptAnalysis(entry['analysis_encrypted'] ?? ''),
-      };
-    }).toList();
+    final result = <Map<String, dynamic>>[];
+    for (final row in rows) {
+      result.add({
+        ...row,
+        'content_decrypted': await _decryptContent(row),
+        'analysis_decrypted': await _decryptAnalysis(row),
+      });
+    }
+    return result;
   }
 
-  /// Gets a single entry by ID
-  Future<Map<String, dynamic>?> getEntryById(String entryId, {bool decrypt = true}) async {
-    final entry = await _repository.getEntryById(entryId);
-
-    if (entry == null) return null;
-    if (!decrypt) return entry;
+  Future<Map<String, dynamic>?> getEntryById(
+    String entryId, {
+    bool decrypt = true,
+  }) async {
+    final row = await _repository.getEntryById(entryId);
+    if (row == null) return null;
+    if (!decrypt) return row;
 
     return {
-      ...entry,
-      'content_decrypted': decryptContent(entry['content_encrypted'] ?? ''),
-      'analysis_decrypted': decryptAnalysis(entry['analysis_encrypted'] ?? ''),
+      ...row,
+      'content_decrypted': await _decryptContent(row),
+      'analysis_decrypted': await _decryptAnalysis(row),
     };
   }
 
-  /// Updates an existing entry
+  /// Actualiza una entrada. Siempre re-cifra con v2 y marca migrated=true,
+  /// por si la entrada actualizada era aún v1.
   Future<void> updateEntry({
     required String entryId,
     String? content,
+    String? title,
     String? reflection,
     String? sentiment,
     double? sentimentScore,
@@ -221,27 +245,25 @@ class JournalService {
   }) async {
     final entryMap = <String, dynamic>{};
 
-    if (content != null) {
-      entryMap['content_encrypted'] = encryptContent(content);
-    }
-    if (reflection != null) {
-      entryMap['analysis_encrypted'] = encryptAnalysis(reflection);
-    }
-    if (sentiment != null) {
-      entryMap['sentiment'] = sentiment;
-    }
-    if (sentimentScore != null) {
-      entryMap['sentiment_score'] = sentimentScore;
-    }
-    if (archetype != null) {
-      entryMap['archetype'] = archetype;
-    }
+    if (title != null) entryMap['title'] = title; //no se cifra el título, se actualiza directamente
+    if (content != null) entryMap['content_v2'] = await _encryptV2(content);
+    if (reflection != null) entryMap['analysis_v2'] = await _encryptV2(reflection);
+    if (sentiment != null) entryMap['sentiment'] = sentiment;
+    if (sentimentScore != null) entryMap['sentiment_score'] = sentimentScore;
+    if (archetype != null) entryMap['archetype'] = archetype;
+
+    entryMap['updated_at'] = DateTime.now().toUtc().toIso8601String();
 
     await _repository.updateEntry(entryId, entryMap);
   }
+    Future<void> deleteEntry(String entryId) async {
+      await _repository.deleteEntry(entryId);
+    }
 
-  /// Deletes an entry
-  Future<void> deleteEntry(String entryId) async {
-    await _repository.deleteEntry(entryId);
+    // ──────────────────────────────────────────────────────────
+    // HELPERS
+    // ──────────────────────────────────────────────────────────
+
+    String generateEntryId() => _uuid.v4();
+    String generateTimestamp() => DateTime.now().toIso8601String();
   }
-}

@@ -129,13 +129,13 @@ class AlmaTypography {
   // =========================
   // HEADINGS — con contexto opcional
   // =========================
-  static TextStyle h1(bool isDark, [BuildContext? context]) => _base(
+  static TextStyle h1(bool isDark, [BuildContext? context]) => _secondary(
         isDark: isDark,
         size: context != null ? _s(context, 24) : 24,
         weight: FontWeight.w600,
       );
 
-  static TextStyle h2(bool isDark, [BuildContext? context]) => _base(
+  static TextStyle h2(bool isDark, [BuildContext? context]) => _secondary(
         isDark: isDark,
         size: context != null ? _s(context, 20) : 20,
         weight: FontWeight.w600,
@@ -150,21 +150,21 @@ class AlmaTypography {
   // =========================
   // BODY
   // =========================
-  static TextStyle bodyLarge(bool isDark, [BuildContext? context]) => _base(
+  static TextStyle bodyLarge(bool isDark, [BuildContext? context]) => _secondary(
         isDark: isDark,
         size: context != null ? _s(context, 16) : 16,
         weight: FontWeight.w400,
         height: 1.5,
       );
 
-  static TextStyle bodyMedium(bool isDark, [BuildContext? context]) => _base(
+  static TextStyle bodyMedium(bool isDark, [BuildContext? context]) => _secondary(
         isDark: isDark,
         size: context != null ? _s(context, 14) : 14,
         weight: FontWeight.w400,
         height: 1.45,
       );
 
-  static TextStyle bodySmall(bool isDark, [BuildContext? context]) => _base(
+  static TextStyle bodySmall(bool isDark, [BuildContext? context]) => _secondary(
         isDark: isDark,
         size: context != null ? _s(context, 12) : 12,
         weight: FontWeight.w400,
@@ -174,21 +174,21 @@ class AlmaTypography {
   // =========================
   // LABELS
   // =========================
-  static TextStyle labelLarge(bool isDark, [BuildContext? context]) => _base(
+  static TextStyle labelLarge(bool isDark, [BuildContext? context]) => _secondary(
         isDark: isDark,
         size: context != null ? _s(context, 14) : 14,
         weight: FontWeight.w500,
         letterSpacing: 0.1,
       );
 
-  static TextStyle labelMedium(bool isDark, [BuildContext? context]) => _base(
+  static TextStyle labelMedium(bool isDark, [BuildContext? context]) => _secondary(
         isDark: isDark,
         size: context != null ? _s(context, 12) : 12,
         weight: FontWeight.w500,
         letterSpacing: 0.1,
       );
 
-  static TextStyle labelSmall(bool isDark, [BuildContext? context]) => _base(
+  static TextStyle labelSmall(bool isDark, [BuildContext? context]) => _secondary(
         isDark: isDark,
         size: context != null ? _s(context, 11) : 11,
         weight: FontWeight.w500,
@@ -198,7 +198,7 @@ class AlmaTypography {
   // =========================
   // SPECIAL
   // =========================
-  static TextStyle emotion(bool isDark) => _base(
+  static TextStyle emotion(bool isDark) => _secondary(
         isDark: isDark,
         size: 13,
         weight: FontWeight.w500,
@@ -224,7 +224,7 @@ class AlmaTypography {
   // =========================
   // DISPLAY SIN CONTEXTO — legacy, no usar en widgets nuevos
   // =========================
-  static TextStyle displaySmall(bool isDark) => _base(
+  static TextStyle displaySmall(bool isDark) => _secondary(
         isDark: isDark,
         size: 22,
         weight: FontWeight.w600,

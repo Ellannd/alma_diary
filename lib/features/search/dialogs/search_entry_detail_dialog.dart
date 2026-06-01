@@ -1,32 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:alma_diary/data/aes_encryption.dart';
 import 'package:alma_diary/features/reflections/widgets/reflection_card.dart';
 
 class SearchEntryDetailDialog {
-  static void show({
-    required BuildContext context,
-    required Map<String, dynamic> entry,
-    required String passphrase,
-  }) {
-    final encrypted = (entry['content_encrypted'] ?? '').toString();
+static void show({
+  required BuildContext context,
+  required Map<String, dynamic> entry,
+}) {
+  final decrypted = (entry['content_decrypted'] ?? 'Contenido no disponible').toString();
+  final reflection = entry['analysis_decrypted'] ?? '';
+  final archetype = entry['archetype'] ?? 'The Mirror';
+  final sentiment = entry['sentiment'] ?? 'neutral';
 
-    final decrypted = encrypted.isEmpty
-        ? 'Contenido no disponible'
-        : AESEncryption.decryptText(encrypted, passphrase);
-
-    final reflection = entry['reflection'];
-    final archetype = entry['archetype'] ?? 'The Mirror';
-    final sentiment = entry['sentiment'] ?? 'neutral';
-
-    DateTime date;
-    try {
-      date = DateTime.parse(
-        (entry['created_at'] ?? DateTime.now().toIso8601String())
-            .toString(),
-      ).toLocal();
-    } catch (_) {
-      date = DateTime.now();
-    }
+  DateTime date;
+  try {
+    date = DateTime.parse(
+      (entry['created_at'] ?? DateTime.now().toIso8601String()).toString(),
+    ).toLocal();
+  } catch (_) {
+    date = DateTime.now();
+  }
 
     showDialog(
       context: context,

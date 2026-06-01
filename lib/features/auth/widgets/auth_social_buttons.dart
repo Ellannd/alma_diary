@@ -1,7 +1,7 @@
+import 'package:alma_diary/design_system/components/feedback/alma_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:alma_diary/design_system/tokens/alma_colors.dart';
-import 'package:alma_diary/design_system/tokens/alma_typography.dart';
 import 'package:alma_diary/design_system/tokens/alma_radius.dart';
 
 class AuthSocialButtons extends StatelessWidget {
@@ -95,8 +95,7 @@ class _SocialButton extends StatelessWidget {
               ? SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
+                  child: AlmaLoader(
                     color: AlmaColors.textMuted(isDark),
                   ),
                 )

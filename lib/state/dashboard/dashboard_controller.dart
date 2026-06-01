@@ -1,3 +1,4 @@
+import 'package:alma_diary/state/profile/profile_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:alma_diary/state/dashboard/dashboard_state.dart';
 import 'package:alma_diary/services/supabase_service.dart';
@@ -28,19 +29,14 @@ class DashboardController extends Notifier<DashboardState> {
       return;
     }
 
-    final profile = await SupabaseService.instance.client
-        .from('profiles')
-        .select()
-        .eq('id', user.id)
-        .maybeSingle();
+    final profile = await ref.read(profileControllerProvider.future);
 
     state = state.copyWith(
-      userId: user.id,
-      archetype: profile?['archetype'] ?? 'The Self',
-      painNodes: List<String>.from(profile?['pain_nodes'] ?? []),
-      profile: profile,
-      isLoading: false,
-    );
+    userId: user.id,
+    archetype: profile?.archetype?.displayName ?? 'The Self',
+    painNodes: profile?.painNodes ?? [],
+    isLoading: false,
+  );
 
     _initBackgroundServices(user.id);
   }
@@ -67,18 +63,15 @@ class DashboardController extends Notifier<DashboardState> {
   // =========================
   // BACKGROUND SERVICES
   // =========================
-  void _initBackgroundServices(String userId) {
-    Future.microtask(() async {
-      try {
-        final notification = NotificationController();
-
-        notification.setUserId(userId);
-        await notification.load();
-
-        await FcmService.instance.registerDevice(userId);
-      } catch (_) {}
-    });
-  }
+void _initBackgroundServices(String userId) {
+  Future.microtask(() async {
+    try {
+      await ref.read(notificationControllerProvider.notifier)
+          .handlePostLogin(userId); 
+      await FcmService.instance.registerDevice(userId);
+    } catch (_) {}
+  });
+}
 
   // =========================
   // RESET

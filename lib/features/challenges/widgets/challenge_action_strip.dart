@@ -21,13 +21,13 @@ class ChallengeActionStrip extends StatelessWidget {
           onTap: () =>
               onUpdateProgress?.call((progress + 25).clamp(0, 100)),
         ),
-        SizedBox(width: AlmaSpacing.r(context, 60)),
+        SizedBox(width: AlmaSpacing.r(context, 50)),
         ChallengeActionButton(
           text: '50%',
           onTap: () =>
               onUpdateProgress?.call((progress + 50).clamp(0, 100)),
         ),
-        SizedBox(width: AlmaSpacing.r(context, 60)),
+        SizedBox(width: AlmaSpacing.r(context, 50)),
         ChallengeActionButton(
           text: '100%',
           onTap: () => onUpdateProgress?.call(100),
@@ -36,3 +36,4 @@ class ChallengeActionStrip extends StatelessWidget {
     );
   }
 }
+

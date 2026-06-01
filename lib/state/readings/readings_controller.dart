@@ -8,7 +8,7 @@ import 'package:alma_diary/core/logging/log_service.dart';
 final readingsRepositoryProvider = Provider((ref) => ReadingRepository());
 
 final readingsEngineProvider = Provider<ReadingsEngine>((ref) {
-  return ReadingsEngine('alma_biometric_pass');
+  return ReadingsEngine();
 });
 
 final readingsControllerProvider =

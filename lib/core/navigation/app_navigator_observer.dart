@@ -5,16 +5,14 @@ import 'package:alma_diary/core/logging/log_service.dart';
 class AppNavigatorObserver extends NavigatorObserver {
   void _track(String? name) {
     final screen = name ?? 'unknown';
-
     LogContext.instance.setScreen(screen);
     LogContext.instance.addBreadcrumb('Navigate → $screen');
-
     LogService.instance.debug('[NAV] $screen');
   }
 
   @override
   void didPush(Route route, Route? previousRoute) {
-    _track(route.settings.name);
+    _track(route.settings.name); // trackea siempre; si llega null, se verá en logs
     super.didPush(route, previousRoute);
   }
 

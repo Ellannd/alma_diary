@@ -1,7 +1,8 @@
-import 'package:flutter/foundation.dart'show kIsWeb;
+import 'package:alma_diary/core/config/app_environment.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:alma_diary/services/supabase_service.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthRepository {
   final SupabaseService _supabase = SupabaseService.instance;
@@ -11,22 +12,31 @@ class AuthRepository {
   // GOOGLE
   // =========================
   Future<void> signInWithGoogle() async {
-    try {
-      LogService.instance.info('auth.google_start');
+  try {
+    LogService.instance.info('auth.google_start');
 
-      await _client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: kIsWeb
-            ? 'http://localhost:5000'
-            : 'io.supabase.almadiary://login-callback', // ← scheme
-        authScreenLaunchMode: LaunchMode.externalApplication,
-      );
-    } catch (e, st) {
-      LogService.instance.error('auth.google_failed', error: e, stackTrace: st);
-      rethrow;
-    }
+    final googleSignIn = GoogleSignIn.instance;
+    await googleSignIn.initialize(
+      serverClientId: AppConfig.googleServerClientId,
+    );
+
+    final account = await googleSignIn.authenticate();
+    final auth = account.authentication;
+    final idToken = auth.idToken;
+
+    if (idToken == null) throw Exception('No idToken recibido de Google');
+
+    await _client.auth.signInWithIdToken(
+      provider: OAuthProvider.google,
+      idToken: idToken,
+    );
+
+    LogService.instance.info('auth.google_success');
+  } catch (e, st) {
+    LogService.instance.error('auth.google_failed', error: e, stackTrace: st);
+    rethrow;
   }
-
+}
   // =========================
   // EMAIL / PASSWORD
   // =========================
@@ -48,16 +58,23 @@ class AuthRepository {
     }
   }
 
-Future<SignUpResult> signUpWithEmail(String email, String password) async {
+Future<SignUpResult> signUpWithEmail(
+  String email,
+  String password, {
+  String? name, // opcional, se guarda en user.userMetadata
+}) async {
   try {
     final response = await _client.auth.signUp(
       email: email,
       password: password,
+      emailRedirectTo: 'com.alma.diario://login-callback',
+      data: name != null && name.isNotEmpty
+          ? {'full_name': name} 
+          : null,
     );
 
     LogService.instance.info('auth.signup_success');
 
-    // Si el user existe pero session es null → necesita confirmar email
     if (response.user != null && response.session == null) {
       return SignUpResult.needsEmailConfirmation;
     }

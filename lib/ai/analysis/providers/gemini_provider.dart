@@ -50,7 +50,7 @@ class GeminiProvider {
     final text = response.text;
 
     if (text == null || text.isEmpty) {
-      LogService.instance.error('gemini.empty_response');
+      LogService.instance.warning('gemini.empty_response');
       throw Exception('Empty Gemini response');
     }
 
@@ -128,31 +128,31 @@ class GeminiProvider {
 
     throw Exception('No available Gemini models');
   }
+//todo cuando se integra gemini, reactivar
+  // String _extractText(GenerateContentResponse response) {
+  //   final buffer = StringBuffer();
 
-  String _extractText(GenerateContentResponse response) {
-    final buffer = StringBuffer();
+  //   for (final candidate in response.candidates) {
+  //     final content = candidate.content;
 
-    for (final candidate in response.candidates) {
-      final content = candidate.content;
+  //     for (final part in content.parts) {
+  //       if (part is TextPart) {
+  //         buffer.write(part.text);
+  //       }
+  //     }
+  //   }
 
-      for (final part in content.parts) {
-        if (part is TextPart) {
-          buffer.write(part.text);
-        }
-      }
-    }
+  //   final text = buffer.toString().trim();
 
-    final text = buffer.toString().trim();
+  //   if (text.isEmpty) {
+  //     LogService.instance.error(
+  //       'gemini.empty_response',
+  //     );
+  //     throw Exception('Empty response from Gemini');
+  //   }
 
-    if (text.isEmpty) {
-      LogService.instance.error(
-        'gemini.empty_response',
-      );
-      throw Exception('Empty response from Gemini');
-    }
-
-    return text;
-  }
+  //   return text;
+  // }
 
   void reset() {
     LogService.instance.warning('gemini.model.reset');

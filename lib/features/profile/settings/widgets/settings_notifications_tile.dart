@@ -66,9 +66,7 @@ class SettingsNotificationsTile extends StatelessWidget {
               value: value,
               onChanged: onChanged,
               activeThumbColor: AlmaColors.accent(isDark),
-              trackColor: WidgetStateProperty.all(
-                AlmaColors.border(isDark),
-              ),
+
             ),
           ),
         ],

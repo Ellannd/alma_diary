@@ -1,3 +1,4 @@
+import 'package:alma_diary/design_system/components/feedback/alma_loader.dart';
 import 'package:flutter/material.dart';
 
 class SearchLoadingView extends StatelessWidget {
@@ -14,8 +15,7 @@ class SearchLoadingView extends StatelessWidget {
           SizedBox(
             width: 42,
             height: 42,
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
+            child: AlmaLoader(
               color: colorScheme.primary,
             ),
           ),

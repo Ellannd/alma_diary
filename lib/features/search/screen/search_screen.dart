@@ -1,3 +1,4 @@
+import 'package:alma_diary/state/search/search_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -12,11 +13,8 @@ import "package:alma_diary/features/search/dialogs/challenge_detail_sheet.dart";
 import "package:alma_diary/features/search/dialogs/search_entry_detail_dialog.dart";
 
 class SearchScreen extends ConsumerStatefulWidget {
-  final String passphrase;
-
   const SearchScreen({
     super.key,
-    required this.passphrase,
   });
 
   @override
@@ -88,7 +86,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   SearchEntryDetailDialog.show(
     context: context,
     entry: entry,
-    passphrase: widget.passphrase,
   );
 }
 
@@ -96,7 +93,6 @@ void _openReflection(Map<String, dynamic> entry) {
   SearchEntryDetailDialog.show(
     context: context,
     entry: entry,
-   passphrase: widget.passphrase,
   );
 }
 
@@ -104,7 +100,7 @@ void _openChallenge(Map<String, dynamic> entry) {
   ChallengeDetailSheet.show(
     context: context, 
     entry: entry,
-    passphrase: widget.passphrase);
+);
 }
 
 void _showQuoteDetail(Map<String, dynamic> entry) {
@@ -119,7 +115,7 @@ void _showQuoteDetail(Map<String, dynamic> entry) {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(searchControllerProvider);
+   final state = ref.watch(searchControllerProvider).asData?.value ?? const SearchState();
 
     return Scaffold(
       appBar: AppBar(
@@ -162,7 +158,7 @@ void _showQuoteDetail(Map<String, dynamic> entry) {
     );
   }
 
-  Widget _buildBody(state) {
+  Widget _buildBody(SearchState state) {
     if (state.isLoading) {
       return const SearchLoadingView();
     }

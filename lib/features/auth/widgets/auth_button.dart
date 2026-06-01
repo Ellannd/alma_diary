@@ -1,3 +1,4 @@
+import 'package:alma_diary/design_system/components/feedback/alma_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:alma_diary/design_system/tokens/alma_colors.dart';
 import 'package:alma_diary/design_system/tokens/alma_typography.dart';
@@ -36,8 +37,7 @@ class AuthButton extends StatelessWidget {
             ? SizedBox(
                 height: 18,
                 width: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
+                child: AlmaLoader(
                   color: AlmaColors.background(isDark),
                 ),
               )

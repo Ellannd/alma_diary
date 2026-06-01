@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:alma_diary/design_system/tokens/alma_colors.dart';
 import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:alma_diary/design_system/tokens/alma_radius.dart';
-import 'package:alma_diary/design_system/tokens/alma_typography.dart';
 
 
 class ProfileLogoutButton extends StatelessWidget {
@@ -27,7 +26,11 @@ class ProfileLogoutButton extends StatelessWidget {
             
           ),
         ),
-        child: const Text('Cerrar sesión'),
+        child: const Text('Cerrar sesión',
+            style: TextStyle(
+              color: AlmaColors.lightBackground,
+              fontWeight: FontWeight.w600,
+            )),
       ),
     );
   }

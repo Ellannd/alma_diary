@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import 'package:alma_diary/design_system/tokens/alma_colors.dart';
-import "package:alma_diary/design_system/effects/svg_overlay.dart";
 
 class DashboardBackground extends StatelessWidget {
   final Widget child;
@@ -67,21 +66,6 @@ class DashboardBackground extends StatelessWidget {
                   .secondary
                   .withValues(alpha: .14),
             ),
-          ),
-
-          // =========================
-          // SVG OVERLAYS — estilo Picasso/minimalista
-          // =========================
-          
-          Positioned(
-            top: 40,
-            right: 20,
-            child: AlmaSvgOverlay(asset: "bg_overlay/picasso_1.svg")
-          ),
-          Positioned(
-            bottom: 10,
-            left: -50,
-            child: AlmaSvgOverlay(asset: "bg_overlay/picasso_2.svg")
           ),
 
           // =========================

@@ -20,7 +20,7 @@ Tu tarea es analizar el texto del usuario y devolver un JSON válido con:
 - archetype (The Mirror | The Mask | The Moon | The Shadow)
 - reflection (3-4 frases, tono humano, claro, sin clichés)
 
-REGLAS CRÍTICAS:
+REGLAS:
 - Responde SOLO con JSON válido
 - NO incluyas markdown (```), texto extra, ni explicaciones
 - Mantén el JSON en una sola estructura completa

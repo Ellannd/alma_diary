@@ -1,6 +1,12 @@
 import "package:flutter_riverpod/flutter_riverpod.dart";
 import "package:alma_diary/state/emotion/emotion_state.dart";
 
+final emotionProvider =
+    NotifierProvider<EmotionController, EmotionState>(
+  EmotionController.new,
+);
+
+
 class EmotionController extends Notifier<EmotionState> {
   @override
   EmotionState build() {

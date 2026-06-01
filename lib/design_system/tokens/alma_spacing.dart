@@ -27,8 +27,9 @@ class AlmaSpacing {
   // Dashboard specific — constantes legacy
   static const double edgeMargin = 40.0;
   static const double section = 32.0;
-  static const double gridGap = 30.0;
-  static const double cardVGap = 55.0;
+  static const double gridGap = 32.0;
+  static const double cardVGap = 56.0;
+  static const double iconLarge = 56.0;
 
   // =========================
   // RESPONSIVOS — requieren contexto
@@ -41,6 +42,9 @@ class AlmaSpacing {
 
   static double gridGapR(BuildContext context) =>
       AlmaResponsive.isCompact(context) ? 12.0 : 16.0;
+
+  static double vGap(BuildContext context) =>
+      AlmaResponsive.isCompact(context) ? 24.0 : 32.0;
 
   static double sectionR(BuildContext context) =>
       AlmaResponsive.isCompact(context) ? 20.0 : 28.0;

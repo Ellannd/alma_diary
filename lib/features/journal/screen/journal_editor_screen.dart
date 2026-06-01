@@ -1,5 +1,3 @@
-// lib/features/journal/screens/journal_editor_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,129 +6,114 @@ import 'package:alma_diary/state/journal/journal_controller.dart';
 import '../widgets/journal_editor.dart';
 import '../widgets/journal_save_button.dart';
 import '../widgets/journal_loading_overlay.dart';
-import '../widgets/journal_error_banner.dart';
-import '../widgets/journal_empty_state.dart';
 
 import 'package:alma_diary/design_system/tokens/alma_colors.dart';
 import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
-import 'package:alma_diary/design_system/tokens/alma_typography.dart';
 
-class JournalEditorScreen
-    extends ConsumerStatefulWidget {
+class JournalEditorScreen extends ConsumerStatefulWidget {
   const JournalEditorScreen({super.key});
 
   @override
-  ConsumerState<JournalEditorScreen>
-      createState() =>
-          _JournalEditorScreenState();
+  ConsumerState<JournalEditorScreen> createState() =>
+      _JournalEditorScreenState();
 }
 
 class _JournalEditorScreenState
     extends ConsumerState<JournalEditorScreen> {
-  late final TextEditingController
-      _textController;
+  late final TextEditingController _textController;
+  late final FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
-
     _textController = TextEditingController();
+    _focusNode = FocusNode();
   }
 
   @override
   void dispose() {
     _textController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
-    final controller = ref.read(
-      journalControllerProvider.notifier,
-    );
-
-    final content =
-        _textController.text.trim();
-
+    final content = _textController.text.trim();
     if (content.isEmpty) return;
 
-    final entryId =
-        await controller.createEntry(
-      content: content,
-    );
+    final controller = ref.read(journalControllerProvider.notifier);
+    final entryId = await controller.createEntry(content: content);
 
     if (!mounted) return;
-
-    if (entryId != null) {
-      Navigator.of(context).pop();
-    }
+    if (entryId != null) Navigator.of(context).pop();
   }
 
   @override
-  Widget build(
-    BuildContext context,
-  ) {
-    final state =
-        ref.watch(journalControllerProvider);
-
-    final isDark =
-        Theme.of(context).brightness ==
-            Brightness.dark;
+  Widget build(BuildContext context) {
+    final isSaving = ref.watch(
+      journalControllerProvider.select((s) => s.saving),
+    );
+    final isAnalyzing = ref.watch(
+      journalControllerProvider.select((s) => s.analyzing),
+    );
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-
+      backgroundColor: AlmaColors.background(isDark),
+      resizeToAvoidBottomInset: false, // lo manejamos manualmente
       appBar: AppBar(
+        backgroundColor: AlmaColors.background(isDark),
         elevation: 0,
       ),
-
       body: Stack(
         children: [
-          SafeArea(
+          // =====================
+          // CONTENIDO PRINCIPAL
+          // =====================
+          Positioned.fill(
             child: Padding(
-              padding: EdgeInsets.all(
-                AlmaSpacing.r(context, AlmaSpacing.lg)
+              padding: EdgeInsets.fromLTRB(
+                AlmaSpacing.r(context, AlmaSpacing.lg),
+                0,
+                AlmaSpacing.r(context, AlmaSpacing.lg),
+                //  padding bottom dinámico según teclado
+                bottomInset +
+                    AlmaSpacing.r(context, 80), // espacio para el botón
               ),
-              child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
-                children: [
-
-                  // =====================
-                  // EDITOR
-                  // =====================
-                  Expanded(
-                    child: JournalEditor(
-                      controller:
-                          _textController,
-                          hintText: "Escribe tus pensamientos.",
-                  
-                    ),
-                  ),
-
-                  SizedBox(
-                    height: AlmaSpacing.r(context, AlmaSpacing.lg),
-                  ),
-
-                  // =====================
-                  // SAVE BUTTON
-                  // =====================
-                  JournalSaveButton(
-                    loading:
-                        state.saving ||
-                            state.analyzing,
-                    onPressed: _save,
-                  ),
-                ],
+              child: SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                child: JournalEditor(
+                  controller: _textController,
+                  focusNode: _focusNode,
+                  hintText: 'Escribe tus pensamientos.',
+                ),
               ),
             ),
           ),
 
-          // =========================
+          // =====================
+          // BOTÓN FLOTANTE ABAJO
+          // =====================
+          Positioned(
+            left: AlmaSpacing.r(context, AlmaSpacing.lg),
+            right: AlmaSpacing.r(context, AlmaSpacing.lg),
+            //  sube con el teclado
+            bottom: bottomInset + AlmaSpacing.r(context, AlmaSpacing.lg),
+            child: 
+                JournalSaveButton(
+                  loading: isSaving || isAnalyzing,
+                  onPressed: _save,
+                ),
+        
+          ),
+
+          // =====================
           // LOADING OVERLAY
-          // =========================
-          if (state.saving ||
-              state.analyzing)
-            const JournalLoadingOverlay(label: "Analizando entrada..."),
+          // =====================
+          if (isSaving || isAnalyzing)
+            const JournalLoadingOverlay(label: 'Analizando entrada...'),
         ],
       ),
     );

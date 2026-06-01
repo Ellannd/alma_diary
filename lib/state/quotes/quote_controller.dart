@@ -1,3 +1,4 @@
+import 'package:alma_diary/core/logging/log_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:alma_diary/features/quotes/engine/quotes_engine.dart';
 
@@ -65,7 +66,8 @@ class QuotesController extends Notifier<QuotesState> {
         quotes: data,
         loading: false,
       );
-    } catch (e) {
+    } catch (e, st) {
+      LogService.instance.error('quotes.load_failed', error: e, stackTrace: st);
       state = state.copyWith(
         loading: false,
         quotes: [],

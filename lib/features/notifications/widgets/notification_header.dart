@@ -6,10 +6,12 @@ import 'package:alma_diary/design_system/tokens/alma_typography.dart';
 class NotificationHeader
     extends StatelessWidget {
   final VoidCallback? onRefresh;
+  final VoidCallback? onMarkAllRead;
 
   const NotificationHeader({
     super.key,
     this.onRefresh,
+    this.onMarkAllRead
   });
 
   @override
@@ -27,7 +29,7 @@ class NotificationHeader
         children: [
           Expanded(
             child: Text(
-              'Insights Alma',
+              'Notificaciones Alma',
               style:
                   AlmaTypography.h2(
                 isDark,
@@ -37,7 +39,11 @@ class NotificationHeader
               ),
             ),
           ),
-
+             IconButton(
+            onPressed: onMarkAllRead,
+            icon: const Icon(Icons.done_all_rounded), 
+            tooltip: 'Marcar todas como leídas',
+          ),
           IconButton(
             onPressed: onRefresh,
             icon: const Icon(

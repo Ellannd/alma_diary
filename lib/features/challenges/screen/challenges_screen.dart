@@ -1,13 +1,13 @@
+import 'package:alma_diary/design_system/components/feedback/alma_loader.dart';
 import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
+import 'package:alma_diary/state/profile/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../widgets/challenge_card.dart';
 import '../widgets/challenge_empty_state.dart';
 import 'package:alma_diary/state/challenges/challenge_controller.dart';
-import 'package:alma_diary/state/challenges/challenge_provider.dart';
 import "package:alma_diary/state/challenges/challenge_state.dart";
-import "package:alma_diary/state/auth/auth_controller.dart";
 
 class ChallengesPage extends ConsumerStatefulWidget {
   const ChallengesPage({super.key});
@@ -18,50 +18,42 @@ class ChallengesPage extends ConsumerStatefulWidget {
 
 class _ChallengesPageState extends ConsumerState<ChallengesPage> {
 
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() {
-      final userId = ref
-          .read(authControllerProvider)
-          .asData?.value.user?.id;
+@override
+void initState() {
+  super.initState();
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final userId = ref.read(currentUserProvider)?.id;
+    if (userId != null) {
+      ref.read(challengeControllerProvider.notifier).setUserId(userId);
+    }
 
-      if (userId == null) return;
-
-      final controller = ref.read(challengeControllerProvider.notifier);
-      controller.setUserId(userId);
-      controller.loadChallenges();
+    ref.listen(currentUserProvider, (prev, next) {
+      final prevUser = prev?.id;
+      final nextUser = next?.id;
+      if (nextUser != null && prevUser != nextUser) {
+        ref.read(challengeControllerProvider.notifier).setUserId(nextUser);
+      }
     });
-  }
+  });
+}
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(challengeControllerProvider);
     final controller = ref.read(challengeControllerProvider.notifier);
 
-    // Por si el usuario cambia en caliente
-    ref.listen(authControllerProvider, (prev, next) {
-      final prevUser = prev?.asData?.value.user?.id;
-      final nextUser = next.asData?.value.user?.id;
-
-      if (nextUser != null && prevUser != nextUser) {
-        controller.setUserId(nextUser);
-        controller.loadChallenges();
-      }
-    });
-
     return Scaffold(
       appBar: AppBar(title: const Text('Desafíos')),
       body: _buildBody(context, state, controller),
     );
   }
-}
-  Widget _buildBody(BuildContext context, ChallengeState state, ChallengeController controller) {
+
+   Widget _buildBody(BuildContext context, ChallengeState state, ChallengeController controller) {
     // ======================
     // LOADING
     // ======================
     if (state.isLoading && state.challenges.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: AlmaLoader());
     }
 
     // ======================
@@ -122,3 +114,6 @@ class _ChallengesPageState extends ConsumerState<ChallengesPage> {
       },
     );
   }
+}
+ 
+

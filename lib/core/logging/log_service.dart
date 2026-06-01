@@ -16,7 +16,7 @@ class LogService {
   final LogRepository _repository = LogRepository();
 
   final List<LogEntry> _entries = [];
-  List<LogEntry> _pending = [];
+  final List<LogEntry> _pending = [];
 
   Future<void> init() async {
       if (_initialized) return;
@@ -63,8 +63,11 @@ class LogService {
     _pending.clear();
   }
       
+
     // console
     debugPrint('[${level.name}] $message');
+    if (error != null) debugPrint('  error: $error');
+    if (stackTrace != null) debugPrint('  stack: $stackTrace');
 
     // crash pipeline
     if (level == LogLevel.error || level == LogLevel.fatal) {

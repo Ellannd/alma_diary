@@ -1,15 +1,12 @@
+import 'package:alma_diary/design_system/components/feedback/alma_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:alma_diary/core/logging/log_service.dart';
-import 'package:alma_diary/core/navigation/app_routes.dart';
 import 'package:alma_diary/design_system/tokens/alma_colors.dart';
 import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:alma_diary/design_system/tokens/alma_radius.dart';
 import 'package:alma_diary/design_system/tokens/alma_typography.dart';
-import 'package:alma_diary/state/auth/auth_controller.dart';
-import 'package:alma_diary/state/onboarding/onboarding_controller.dart'
-    hide profileRepositoryProvider;
 import 'package:alma_diary/state/profile/profile_controller.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -36,8 +33,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   @override
   void initState() {
     super.initState();
-    final profileState = ref.read(profileControllerProvider);
-    final initialName = profileState.profile?.displayName ?? '';
+    final profile = ref.read(profileControllerProvider).value;
+    final initialName = profile?.displayName ?? '';
     _nameController = TextEditingController(text: initialName);
     _nameController.addListener(() {
       setState(() => _name = _nameController.text.trim());
@@ -58,38 +55,45 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
     );
   }
 
-  Future<void> _finish() async {
-    try {
-      final controller = OnboardingController(
-        ref.read(profileRepositoryProvider),
-      );
+Future<void> _finish() async {
+  try {
 
-      await controller.completeOnboarding(
+    final archetype = _deriveArchetype(_emotionalState, _painPoint);
+
+    await ref.read(profileControllerProvider.notifier).completeOnboarding(
         emotionalState: _emotionalState!,
         painPoint: _painPoint!,
         hopefulGoal: _hopefulGoal!,
         name: _name,
+         archetype: archetype,
+         painNodes: [_painPoint!], // los nodos de dolor son el painPoint por ahora
       );
 
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
-      }
-    } catch (e, st) {
-      LogService.instance.error(
-        'onboarding.complete.failed',
-        error: e,
-        stackTrace: st,
+    // reload() no es necesario — completeOnboarding ya actualiza el state
+    // AuthGate redirige solo al ver isOnboardingComplete = true
+
+  } catch (e, st) {
+    LogService.instance.error(
+      'onboarding.complete.failed',
+      error: e,
+      stackTrace: st,
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al guardar. Intenta de nuevo.')),
       );
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final userId = ref.watch(authControllerProvider).asData?.value.user?.id;
+    // USA EL PROVIDER CORRECTO Y REACTIVO, EL MISMO QUE USA AUTHGATE PARA DECIDIR MOSTRAR ONBOARDING O DASHBOARD
+    final userId = ref.watch(currentUserProvider)?.id;
 
     if (userId == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: Center(child: AlmaLoader()));
     }
 
     final progress = (_currentPage + 1) / _totalPages;
@@ -359,11 +363,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // STEP 3 — EMOCIÓN
   // =====================
   Widget _emotionStep(bool isDark) {
+    // Onboarding screen — corregir los values:
     final options = [
-      ('claro', 'Me siento con claridad y dirección'),
-      ('parcial', 'Tengo días buenos y días difíciles'),
-      ('nublado', 'Me cuesta ver con claridad'),
-      ('tormenta', 'Estoy en un momento muy difícil'),
+      ('abrumado', 'Me siento con claridad y dirección'),
+      ('nublado', 'Tengo días buenos y días difíciles'),
+      ('agotado', 'Me cuesta ver con claridad'),
+      ('inspirado', 'Estoy en un momento muy difícil'),  //todo ajustar las labels
     ];
 
     return _stepShell(
@@ -391,12 +396,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
   // STEP 4 — DOLOR
   // =====================
   Widget _painStep(bool isDark) {
-    final options = [
-      ('estrés', 'Llevo una máscara en la vida diaria'),
-      ('vacío', 'Temo enfrentarme a mis emociones'),
-      ('confusión', 'Me siento inseguro en mi presente'),
-      ('pasado', 'Evito pensar en mi pasado'),
-    ];
+    // Onboarding screen — corregir los values:
+        final options = [
+          ('estres', 'Llevo una máscara en la vida diaria'),
+          ('vacio', 'Temo enfrentarme a mis emociones'),
+          ('confusion', 'Me siento inseguro en mi presente'),
+          ('cansancio', 'Evito pensar en mi pasado'),
+        ];
 
     return _stepShell(
       isDark: isDark,
@@ -440,7 +446,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       question: '¿Qué buscas encontrar aquí?',
       body: ListView.separated(
         itemCount: options.length,
-        separatorBuilder: (_, __) =>
+        separatorBuilder: (_, _) =>
             SizedBox(height: AlmaSpacing.r(context, AlmaSpacing.xs)),
         itemBuilder: (_, i) => _optionTile(
           isDark: isDark,
@@ -456,4 +462,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
       ),
     );
   }
+
+  String _deriveArchetype(String? emotionalState, String? painPoint) {
+  if (emotionalState == 'abrumado' || painPoint == 'estres')    return 'mask';
+  if (emotionalState == 'nublado'  || painPoint == 'confusion') return 'moon';
+  if (emotionalState == 'agotado'  || painPoint == 'cansancio') return 'shadow';
+  return 'mirror'; // fallback
+}
 }

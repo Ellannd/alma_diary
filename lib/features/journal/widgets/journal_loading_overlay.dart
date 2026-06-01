@@ -1,3 +1,4 @@
+import 'package:alma_diary/design_system/components/feedback/alma_loader.dart';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -46,7 +47,7 @@ class JournalLoadingOverlay extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(
+                  AlmaLoader(
                     color:
                         Theme.of(context).colorScheme.primary,
                   ),

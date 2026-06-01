@@ -1,4 +1,3 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import "package:alma_diary/ai/analysis/domain/analysis_result.dart";
 
 class AnalysisState {

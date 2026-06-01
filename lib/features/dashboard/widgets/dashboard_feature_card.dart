@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:alma_diary/design_system/tokens/alma_radius.dart';
-import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 
 class DashboardFeatureCard extends StatefulWidget {
   final IconData icon;
@@ -61,42 +60,54 @@ class _DashboardFeatureCardState
     final isDark =
         Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTapDown: _onTapDown,
-      onTapUp: _onTapUp,
-      onTapCancel: _onTapCancel,
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _scale.value,
-            child: ColorFiltered(
-              colorFilter: ColorFilter.matrix(
-                _saturationMatrix(_saturation.value),
-              ),
-              child: child,
-            ),
-          );
-        },
-        child: Container(
+    return  GestureDetector(
+                    onTapDown: _onTapDown,
+                    onTapUp: _onTapUp,
+                    onTapCancel: _onTapCancel,
+                    child: AnimatedBuilder(
+                      animation: _controller,
+                      builder: (context, child) {
+
+                        return Transform.scale(
+
+                          scale: _scale.value,
+                          child: ColorFiltered(
+                            colorFilter: ColorFilter.matrix(
+                              _saturationMatrix(_saturation.value),
+                            ),
+                            child: child,
+                          ),
+                        );
+                      },
+                    
+          child: Container(
+              width: double.infinity,
+               height: double.infinity,
+                alignment: Alignment.center,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AlmaRadius.ftcard),
+            borderRadius: BorderRadius.circular(AlmaRadius.card),
             color: isDark
                 ? widget.cardColor.withValues(alpha: .85)
                 : widget.cardColor,
           ),
-          padding: EdgeInsets.all(AlmaSpacing.r(context, AlmaSpacing.md)),
-            child: Center(
-                child: Icon(
-                  widget.icon,
-                  size: AlmaSpacing.r(context, AlmaSpacing.cardVGap),
-                  color: Colors.white.withValues(alpha: .90),
-                ),
+          //padding: EdgeInsets.all(AlmaSpacing.r(context, AlmaSpacing.md)),
+            child:  LayoutBuilder(
+                builder: (context, constraints) {
+                  final iconSize = constraints.maxWidth * 0.40;
+                  return Icon(
+                    widget.icon,
+                    size: iconSize.clamp(24.0, 56.0),
+                    color: Colors.white.withValues(alpha: .90),
+                  );
+                },
               ),
  
-        ),
-      ),
-    );
+           ),
+  
+         )
+
+        );
+
   }
 
   // Matriz de saturación — 1.0 = normal, >1.0 = más saturado

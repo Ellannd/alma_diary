@@ -6,8 +6,8 @@ class AlmaResponsive {
 
   // Breakpoints de referencia
   static const double _baseWidth = 390.0; // iPhone 14 Pro
-  static const double _minWidth = 320.0;  // SE / compactos
-  static const double _maxWidth = 430.0;  // Plus / grandes
+//static const double _minWidth = 320.0;  // SE / compactos
+// static const double _maxWidth = 430.0;  // Plus / grandes
 
   // Factor de escala general (0.85 – 1.0)
   static double scale(BuildContext context) {

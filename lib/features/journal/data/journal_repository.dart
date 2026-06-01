@@ -2,9 +2,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:alma_diary/services/supabase_service.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
 
-/// JournalRepository - DATA LAYER
-/// Handles all database operations for journal entries.
-/// No encryption logic here - pure data operations.
 class JournalRepository {
   static final JournalRepository instance = JournalRepository._();
   JournalRepository._();
@@ -17,47 +14,44 @@ class JournalRepository {
   // INSERT ENTRY
   // =========================
   Future<void> insertEntry(Map<String, dynamic> entry) async {
-    final userId = currentUser?.id;
-    if (userId == null) {
-      throw Exception('No hay usuario autenticado');
-    }
+  final userId = currentUser?.id;
+  if (userId == null) throw Exception('No hay usuario autenticado');
 
-    try {
-      await _client.from('journal_entries').upsert({
-        'id': entry['id'],
-        'user_id': userId,
-        'content_encrypted': entry['content_encrypted'],
-        'analysis_encrypted': entry['analysis_encrypted'],
-        'sentiment': entry['sentiment'],
-        'sentiment_score': entry['sentiment_score'],
-        'archetype': entry['archetype'],
-        'created_at': entry['created_at'] ?? DateTime.now().toIso8601String(),
-        'updated_at': entry['updated_at'] ?? DateTime.now().toIso8601String(),
-      }, onConflict: 'id');
+  try {
+    await _client.from('journal_entries').upsert({
+      'id': entry['id'],
+      'user_id': userId,
+      'title': entry['title'] ?? '',
+      'content_v2': entry['content_v2'],
+      'analysis_v2': entry['analysis_v2'],
+      'sentiment': entry['sentiment'],
+      'sentiment_score': entry['sentiment_score'],
+      'archetype': entry['archetype'],
+      'created_at': entry['created_at'] ?? DateTime.now().toIso8601String(),
+      'updated_at': DateTime.now().toIso8601String(),
+    }, onConflict: 'id');
 
-      LogService.instance.info(
-        'journal.entry_inserted',
-        context: {'entry_id': entry['id'], 'user_id': userId},
-      );
-    } catch (e, st) {
-      LogService.instance.error(
-        'journal.insert_failed',
-        error: e,
-        stackTrace: st,
-        context: {'user_id': userId},
-      );
-      rethrow;
-    }
+    LogService.instance.info(
+      'journal.entry_inserted',
+      context: {'entry_id': entry['id'], 'user_id': userId},
+    );
+  } catch (e, st) {
+    LogService.instance.error(
+      'journal.insert_failed',
+      error: e,
+      stackTrace: st,
+      context: {'user_id': userId},
+    );
+    rethrow;
   }
+}
 
   // =========================
   // GET ALL ENTRIES
   // =========================
   Future<List<Map<String, dynamic>>> getEntries() async {
     final userId = currentUser?.id;
-    if (userId == null) {
-      return [];
-    }
+    if (userId == null) return [];
 
     try {
       final response = await _client
@@ -83,9 +77,7 @@ class JournalRepository {
   // =========================
   Future<Map<String, dynamic>?> getEntryById(String entryId) async {
     final userId = currentUser?.id;
-    if (userId == null) {
-      return null;
-    }
+    if (userId == null) return null;
 
     try {
       final response = await _client
@@ -112,21 +104,41 @@ class JournalRepository {
   // =========================
   Future<void> updateEntry(String entryId, Map<String, dynamic> entry) async {
     final userId = currentUser?.id;
-    if (userId == null) {
-      throw Exception('No hay usuario autenticado');
-    }
+    if (userId == null) throw Exception('No hay usuario autenticado');
 
     try {
-      await _client.from('journal_entries').upsert({
+      // Construir el map solo con los campos que vienen — update parcial
+      final updateMap = <String, dynamic>{
         'id': entryId,
         'user_id': userId,
-        'content_encrypted': entry['content_encrypted'],
-        'analysis_encrypted': entry['analysis_encrypted'],
-        'sentiment': entry['sentiment'],
-        'sentiment_score': entry['sentiment_score'],
-        'archetype': entry['archetype'],
         'updated_at': DateTime.now().toIso8601String(),
-      }, onConflict: 'id');
+      };
+
+      if (entry.containsKey('title')) updateMap['title'] = entry['title'];
+      
+      // v2
+      if (entry.containsKey('content_v2')) {
+        updateMap['content_v2'] = entry['content_v2'];
+        updateMap['content_encrypted'] = ''; // vaciar v1
+      }
+      if (entry.containsKey('analysis_v2')) {
+        updateMap['analysis_v2'] = entry['analysis_v2'];
+        updateMap['analysis_encrypted'] = ''; // vaciar v1
+      }
+      if (entry.containsKey('migrated')) {
+        updateMap['migrated'] = entry['migrated'];
+        updateMap['migrated_at'] = entry['migrated_at'];
+      }
+
+      // metadata
+      if (entry.containsKey('sentiment')) updateMap['sentiment'] = entry['sentiment'];
+      if (entry.containsKey('sentiment_score')) updateMap['sentiment_score'] = entry['sentiment_score'];
+      if (entry.containsKey('archetype')) updateMap['archetype'] = entry['archetype'];
+
+      await _client.from('journal_entries').upsert(
+        updateMap,
+        onConflict: 'id',
+      );
 
       LogService.instance.info(
         'journal.entry_updated',
@@ -148,9 +160,7 @@ class JournalRepository {
   // =========================
   Future<void> deleteEntry(String entryId) async {
     final userId = currentUser?.id;
-    if (userId == null) {
-      throw Exception('No hay usuario autenticado');
-    }
+    if (userId == null) throw Exception('No hay usuario autenticado');
 
     try {
       await _client

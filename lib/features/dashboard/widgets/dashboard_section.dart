@@ -14,7 +14,11 @@ class DashboardSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: AlmaSpacing.xxl, left: AlmaSpacing.xxl, top: AlmaSpacing.xl, right: AlmaSpacing.xxl),
+      padding:  EdgeInsets.only(
+        bottom: AlmaSpacing.r(context, AlmaSpacing.xl), 
+        left: AlmaSpacing.r(context, AlmaSpacing.xl), 
+        top: AlmaSpacing.r(context, AlmaSpacing.lg), 
+        right: AlmaSpacing.r(context, AlmaSpacing.xl)),
       child: child,
     );
   }

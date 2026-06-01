@@ -1,9 +1,10 @@
 import 'dart:async';
+import 'dart:ui';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:alma_diary/features/profile/data/profile_repository.dart';
 import 'package:alma_diary/state/profile/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/logging/log_service.dart';
 import 'core/logging/error_handlers.dart';
 import 'core/config/app_environment.dart';
@@ -13,31 +14,34 @@ import "bootstrap.dart";
 import "app.dart";
 
 Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  AppConfig.init(Environment.dev);
+    await dotenv.load(fileName: '.env');
+    AppConfig.init(Environment.dev);
+    await LogService.instance.init();
+    ErrorHandlers.init();
+    await bootstrapServices();
+    LogContext.instance.newSession();
 
-  await LogService.instance.init();
+  // Errores de Flutter framework
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
 
-  ErrorHandlers.init();
+  // Errores de Dart async fuera del widget tree
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
 
-  await dotenv.load(fileName: ".env");
-
-  await bootstrapServices();
-
-  LogContext.instance.newSession();
-
-  runZonedGuarded(() {
     runApp(
-        ProviderScope(
-          overrides: [
-            profileRepositoryProvider.overrideWithValue(
-              ProfileRepository(),
-            ),
-          ],
-          child: const MyApp(),
-        ),
-      );
+      ProviderScope(
+        overrides: [
+          profileRepositoryProvider.overrideWithValue(
+            ProfileRepository(),
+          ),
+        ],
+        child: const MyApp(),
+      ),
+    );
   }, ErrorHandlers.handleError);
 }
-

@@ -68,14 +68,16 @@ class AlmaNotificationEngine {
       await _client.from('notifications').insert({
         'user_id': userId,
         'type': 'challenge_started',
-        'title': 'Nuevo desafío iniciado',
+        'title': 'Nuevo desafío iniciado 🎯',
         'subtitle': challengeTitle,
         'icon': 'emoji_events',
         'color': 'amber',
-        'action': 'Ver desafío',
+        'action': 'Ver desafío 🔍',
         'action_route': '/challenges',
         'is_read': false,
       });
+
+      
 
       return ValidationResult.ok();
     } catch (e) {
@@ -150,6 +152,20 @@ class AlmaNotificationEngine {
       return ValidationResult.ok();
     } catch (e) {
       return ValidationResult.fail('markAsRead error: $e');
+    }
+  }
+
+    Future<ValidationResult> markAllAsRead(String userId) async {
+    try {
+      await _client
+          .from('notifications')
+          .update({'is_read': true})
+          .eq('user_id', userId)
+          .eq('is_read', false);
+
+      return ValidationResult.ok();
+    } catch (e) {
+      return ValidationResult.fail('markAllAsRead error: $e');
     }
   }
 
@@ -261,18 +277,22 @@ class AlmaNotificationEngine {
     }
   }
 
-  Future<void> sendPush({
-    required String userId,
-    required String title,
-    required String body,
-  }) async {
-    await _client.functions.invoke(
-      'send_push',
-      body: {
-        'userId': userId,
-        'title': title,
-        'body': body,
-      },
-    );
+Future<void> sendPush({
+  required String userId,
+  required String title,
+  required String body,
+}) async {
+  final response = await _client.functions.invoke(
+    'send-notification',  
+    body: {
+      'userId': userId,
+      'title': title,
+      'body': body,
+    },
+  );
+
+  if (response.status != 200) {
+    throw Exception('sendPush failed (${response.status}): ${response.data}');
   }
+}
 }

@@ -1,151 +1,110 @@
-import 'dart:async';
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:alma_diary/core/logging/log_service.dart';
 import 'package:alma_diary/ai/analysis/prompt/alma_prompt_builder.dart';
 import 'package:alma_diary/ai/analysis/utils/response_parsing.dart';
 
-import "package:flutter_dotenv/flutter_dotenv.dart";
-
+/// HuggingFaceProvider
+///
+/// Antes: llamaba directo a HF Inference API (exponía HF_API_KEY en el cliente).
+/// Ahora: delega a la Supabase Edge Function `analyze-entry`,
+///        que guarda la key en secrets del servidor.
+///
+/// Contrato de salida: igual que antes → Map<String, dynamic> con
+/// { sentiment, sentimentScore, archetype, reflection }
+/// → compatible con AnalysisResult.fromJson() sin cambios.
 class HuggingFaceProvider {
-  final String apiKey;
+  final SupabaseClient _client;
 
-  /// Lista de modelos en orden de prioridad (fallback automático, disponibles a tráves de HF con Inference API disponible)
-  final List<String> modelList;
-
-  /// Endpoint base (permite cambiar infra sin romper código)
-  final String baseUrl;
+  /// Nombre de la Edge Function desplegada en Supabase
+  final String _functionName;
 
   HuggingFaceProvider({
-    required this.apiKey,
-    this.modelList = const [
-      "Qwen/Qwen3-8B:nscale",
-      "Qwen/Qwen3-1.7B:featherless-ai",
-      'meta-llama/Llama-3.1-8B-Instruct:novita',
-      "Qwen/Qwen3-32B:groq",
-      "openai/gpt-oss-120b:groq",
-    ],
-    this.baseUrl = 'https://router.huggingface.co/v1/chat/completions',
-  });
+    SupabaseClient? client,
+    String functionName = 'analyze-entry',
+  })  : _client = client ?? Supabase.instance.client,
+        _functionName = functionName;
 
   Future<Map<String, dynamic>> analyze(String input) async {
     LogService.instance.debug(
       'hf.provider.start',
-      context: {
-        'input_length': input.length,
-      },
+      context: {'input_length': input.length},
     );
 
+    // Construimos el prompt exactamente igual que antes
+    // para que la Edge Function reciba el mismo texto estructurado
     final prompt = AlmaPromptBuilder.build(input);
 
     LogService.instance.debug(
       'hf.prompt.built',
-      context: {
-        'prompt_length': prompt.length,
-      },
+      context: {'prompt_length': prompt.length},
     );
 
-    for (final model in modelList) {
-      try {
-        LogService.instance.info(
-          'hf.model.try',
-          context: {'model': model},
-        );
+    try {
+      LogService.instance.info(
+        'hf.edge.invoke',
+        context: {'function': _functionName},
+      );
 
-        final response = await _callModel(model, prompt)
-            .timeout(const Duration(seconds: 20));
+      // El SDK adjunta el JWT del usuario automáticamente
+      final response = await _client.functions
+          .invoke(
+            _functionName,
+            body: {'text': prompt},
+          )
+          .timeout(const Duration(seconds: 30));
 
-        final rawText = _extractText(response);
+      final payload = response.data as Map<String, dynamic>;
 
-        LogService.instance.debug(
-          'hf.raw.response',
-          context: {
-            'model': model,
-            'length': rawText.length,
-            'preview': rawText.substring(
-              0,
-              rawText.length > 120 ? 120 : rawText.length,
-            ),
-          },
-        );
-
-        final json = ResponseParser.extractJsonSafe(rawText);
-
-        LogService.instance.info(
-          'hf.model.success',
-          context: {
-            'model': model,
-            'keys': json.keys.toList(),
-          },
-        );
-
-        return json;
-      } catch (e, stack) {
-        LogService.instance.error(
-          'hf.model.failed',
-          error: e,
-          stackTrace: stack,
-          context: {'model': model},
-        );
-
-        continue;
+      // La Edge Function devuelve { data: { sentiment, sentimentScore, ... } }
+      final data = payload['data'];
+      if (data == null) {
+        throw Exception('Edge Function devolvió data nula');
       }
-    }
 
-    throw Exception('No HuggingFace models succeeded');
+      // data puede venir como Map o como String (si el modelo devuelve JSON en texto)
+      final Map<String, dynamic> result = switch (data) {
+        Map<String, dynamic> m => m,
+        String s               => ResponseParser.extractJsonSafe(s),
+        _                      => throw Exception('Tipo de data inesperado: ${data.runtimeType}'),
+      };
+
+      LogService.instance.info(
+        'hf.edge.success',
+        context: {'keys': result.keys.toList()},
+      );
+
+      return result;
+    } on FunctionException catch (e) {
+      final msg = _parseErrorMessage(e.details) ?? 'Error en Edge Function';
+      LogService.instance.error(
+        'hf.edge.function_exception',
+        error: e,
+        context: {'status': e.status, 'message': msg},
+      );
+      throw Exception('HuggingFace Edge Function error (${ e.status}): $msg');
+    } catch (e, stack) {
+      LogService.instance.error(
+        'hf.edge.failed',
+        error: e,
+        stackTrace: stack,
+      );
+      rethrow;
+    }
   }
 
-  Future<dynamic> _callModel(String model, String prompt) async {
-        final apiKey = dotenv.get("HF_API_KEY");
-
-      //Estructura del prompt a la IA
-        final res = await http.post(
-      Uri.parse(baseUrl),
-      headers: {
-        'Authorization': 'Bearer $apiKey',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        "model": model,
-        "messages": [
-          {
-            "role": "system",
-            "content": "Return ONLY valid JSON. No <think>. No explanation."
-          },
-          {
-            "role": "user",
-            "content": prompt
-          }
-        ],
-        "temperature": 0.2,
-        "max_tokens": 300
-      }),
-    );
-
-
-    LogService.instance.debug(
-      'hf.http.response',
-      context: {
-        'status': res.statusCode,
-        'model': model,
-      },
-    );
-
-    if (res.statusCode != 200) {
-      throw Exception('HF error ${res.statusCode}: ${res.body}');
-    }
-
-    return jsonDecode(res.body);
-  }
-  //Este médodo primeramente extrae el message del json completo
-  String _extractText(Map<String, dynamic> response) {
+  String? _parseErrorMessage(dynamic details) {
+    if (details is Map) return details['error']?.toString();
+    if (details is String) {
       try {
-        return response['choices'][0]['message']['content'] ?? '';
-      } catch (e) {
-        throw Exception('Invalid HF response structure');
+        final decoded = jsonDecode(details) as Map;
+        return decoded['error']?.toString();
+      } catch (_) {
+        return details;
       }
     }
+    return null;
+  }
 }
-

@@ -1,8 +1,7 @@
 import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:flutter/material.dart';
-import 'package:alma_diary/design_system/tokens/alma_colors.dart';
 import 'package:alma_diary/design_system/tokens/alma_typography.dart';
-import 'package:flutter_svg/svg.dart';
+
 
 class AuthTitle extends StatelessWidget {
   const AuthTitle({super.key});
@@ -19,11 +18,11 @@ class AuthTitle extends StatelessWidget {
           height: AlmaSpacing.r(context, 80),
           child: Stack(
             children: [
-                 SvgPicture.asset(
-            'logo/logo.svg',
-            width: 450,
-            height: 450,
-          ),
+                  Image.asset(
+              'assets/logo/logo_1.png',
+              width: 340,
+              height: 340,
+            ), 
             ],
           ),
         ),

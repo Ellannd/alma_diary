@@ -57,7 +57,7 @@ class DashboardState extends Equatable {
     String? mood,
     String? moodTitle,
     String? moodSubtitle,
-    String? moodIconkey,
+    String? moodIconKey,
     String? quoteText,
     String? quoteSource,
   }) {

@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:alma_diary/core/logging/log_context.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:alma_diary/core/logging/log_entry.dart';
 
@@ -50,20 +52,48 @@ class CrashReporter {
     //await prefs.setString(_storageKey, jsonEncode(jsonList));
   }
 
-  /// Envío remoto (placeholder para Supabase / Firebase / API)
+  /// Envío remoto 
   Future<void> _sendToRemote(LogEntry entry) async {
     try {
-      // TODO: reemplazar con backend real
-      // ejemplo:
-      // await supabase.from('crashes').insert(entry.toJson());
+      final crashlytics = FirebaseCrashlytics.instance;
 
-      return;
+      // Adjuntar contexto del usuario
+      final ctx = LogContext.instance.snapshot();
+      if (ctx['userId'] != null) {
+        await crashlytics.setUserIdentifier(ctx['userId']);
+      }
+
+      // Breadcrumbs como keys custom
+      final breadcrumbs = ctx['breadcrumbs'] as List? ?? [];
+      for (int i = 0; i < breadcrumbs.length; i++) {
+        await crashlytics.setCustomKey(
+          'breadcrumb_$i',
+          breadcrumbs[i]['message']?.toString() ?? '',
+        );
+      }
+
+      // Contexto adicional
+      await crashlytics.setCustomKey('screen', ctx['screen'] ?? 'unknown');
+      await crashlytics.setCustomKey('session_id', ctx['sessionId'] ?? '');
+      await crashlytics.setCustomKey('log_level', entry.level.name);
+
+      // Enviar error
+      if (entry.stackTrace != null) {
+        await crashlytics.recordError(
+          entry.error ?? entry.message,
+          StackTrace.fromString(entry.stackTrace!),
+          reason: entry.message,
+          fatal: entry.level == LogLevel.fatal,
+        );
+      } else {
+        await crashlytics.log(entry.message);
+      }
     } catch (_) {
       // nunca romper app por logging
     }
   }
 
-  
+    
 
   /// Obtener todos los crashes guardados
   List<LogEntry> getCrashes() => List.unmodifiable(_buffer);

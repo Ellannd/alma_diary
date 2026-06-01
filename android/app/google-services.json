@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "38391014680-u1195655s8qirjqfk7thkm9kd90ckdfl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.alma.diario",
+            "certificate_hash": "1243a76555b0f31db0ed15f5a4c88a04d206f517"
+          }
+        },
+        {
           "client_id": "38391014680-auiql8so3ntsdd9ul5io5d4nvn9fqtnu.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -27,7 +35,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "38391014680-auiql8so3ntsdd9ul5io5d4nvn9fqtnu.apps.googleusercontent.com",
+              "client_id": "38391014680-32ds8odg9u2ceqe6etlojf48g0jes0gr.apps.googleusercontent.com",
               "client_type": 3
             },
             {
@@ -63,7 +71,7 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "38391014680-auiql8so3ntsdd9ul5io5d4nvn9fqtnu.apps.googleusercontent.com",
+              "client_id": "38391014680-32ds8odg9u2ceqe6etlojf48g0jes0gr.apps.googleusercontent.com",
               "client_type": 3
             },
             {

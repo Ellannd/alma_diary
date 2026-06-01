@@ -1,4 +1,6 @@
+import 'package:alma_diary/design_system/components/feedback/alma_loader.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:alma_diary/design_system/tokens/alma_colors.dart';
 import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:alma_diary/design_system/tokens/alma_radius.dart';
@@ -28,21 +30,22 @@ class ProfileHeader extends StatelessWidget {
       ),
       child: Row(
         children: [
-       CircleAvatar(
-            radius: 28,
-            backgroundImage:
-                avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-            backgroundColor:
-                AlmaColors.textPrimary(isDark).withValues(alpha: 0.2),
-            child: avatarUrl == null
-                ? Text(
-                    name.isNotEmpty ? name[0].toUpperCase() : 'U',
-                    style: AlmaTypography.h3(isDark).copyWith(
-                      color: AlmaColors.textPrimary(isDark),
-                    ),
-                  )
-                : null,
-          ),
+       avatarUrl != null
+    ? CachedNetworkImage(
+        imageUrl: avatarUrl!,
+        imageBuilder: (ctx, imageProvider) => CircleAvatar(
+          radius: 28,
+          backgroundImage: imageProvider,
+          backgroundColor: AlmaColors.textPrimary(isDark).withValues(alpha: 0.2),
+        ),
+        placeholder: (ctx, url) => CircleAvatar(
+          radius: 28,
+          backgroundColor: AlmaColors.textPrimary(isDark).withValues(alpha: 0.2),
+          child: const AlmaLoader(),
+        ),
+        errorWidget: (ctx, url, _) => _avatarFallback(isDark, name),
+      )
+    : _avatarFallback(isDark, name),
 
           SizedBox(width: AlmaSpacing.md),
 
@@ -71,4 +74,17 @@ class ProfileHeader extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _avatarFallback(bool isDark, String name) {
+  return CircleAvatar(
+    radius: 28,
+    backgroundColor: AlmaColors.textPrimary(isDark).withValues(alpha: 0.2),
+    child: Text(
+      name.isNotEmpty ? name[0].toUpperCase() : 'U',
+      style: AlmaTypography.h3(isDark).copyWith(
+        color: AlmaColors.textPrimary(isDark),
+      ),
+    ),
+  );
 }

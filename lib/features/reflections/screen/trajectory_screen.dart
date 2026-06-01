@@ -1,3 +1,4 @@
+import 'package:alma_diary/design_system/components/feedback/alma_loader.dart';
 import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,11 +17,9 @@ import '../widgets/trajectory/confetti_overlay.dart';
 import '../widgets/trajectory/archetype_info_dialog.dart';
 
 class AlmaTrajectoryScreen extends ConsumerStatefulWidget {
-  final String passphrase;
 
   const AlmaTrajectoryScreen({
     super.key,
-    required this.passphrase,
   });
 
   @override
@@ -61,9 +60,7 @@ class _AlmaTrajectoryScreenState
 
     try {
       final stats =
-          await generar_estadisticas_trayectoria(
-        widget.passphrase,
-      );
+          await generarEstadisticasTrayectoria();
 
       if (!mounted) return;
 
@@ -92,13 +89,11 @@ class _AlmaTrajectoryScreenState
 
   @override
   Widget build(BuildContext context) {
-    final reflectionState =
-        ref.watch(reflectionControllerProvider);
-
+    final reflectionLoading = ref.watch(
+      reflectionControllerProvider.select((s) => s.loading),
+    );
+    final isLoading = reflectionLoading || _loadingStats;
     final stats = _stats;
-
-    final isLoading =
-        reflectionState.loading || _loadingStats;
 
     return Scaffold(
       appBar: AppBar(
@@ -107,7 +102,7 @@ class _AlmaTrajectoryScreenState
 
       body: isLoading
           ? const Center(
-              child: CircularProgressIndicator(),
+              child: AlmaLoader(),
             )
           : _error != null
               ? Center(

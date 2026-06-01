@@ -1,4 +1,6 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
@@ -14,6 +16,14 @@ Future<void> initFirebase() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+   // Crashlytics — habilitar solo en producción
+  await FirebaseCrashlytics.instance
+      .setCrashlyticsCollectionEnabled(!kDebugMode);
+
+  // Analytics — habilitar siempre
+  await FirebaseAnalytics.instance
+      .setAnalyticsCollectionEnabled(true);
   //todo no fcm en web
   if(!kIsWeb){
     //FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler,);

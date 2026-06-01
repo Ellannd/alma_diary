@@ -32,6 +32,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>io.supabase.almadiary</string>
+				<string>com.alma.diario</string>
 			</array>
 		</dict>
 	</array>

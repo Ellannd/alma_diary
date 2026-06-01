@@ -6,7 +6,6 @@ class ChallengeDetailSheet {
   static void show({
     required BuildContext context,
     required Map<String, dynamic> entry,
-    required String passphrase,
   }) {
     final challenge = entry['challenges'] ?? entry;
 

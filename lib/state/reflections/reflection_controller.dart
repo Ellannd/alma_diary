@@ -85,6 +85,68 @@ class ReflectionController extends Notifier<ReflectionState> {
   }
 
   /// =========================
+/// DELETE ENTRY
+/// =========================
+Future<void> deleteEntry(String entryId) async {
+  try {
+    await _service.deleteEntry(entryId);
+
+    // Elimina del estado local sin recargar toda la lista
+    state = state.copyWith(
+      entries: state.entries
+          .where((e) => e['id'] != entryId)
+          .toList(),
+    );
+
+    LogService.instance.info(
+      'reflection.delete_success',
+      context: {'entry_id': entryId},
+    );
+  } catch (e, st) {
+    LogService.instance.error(
+      'reflection.delete_failed',
+      error: e,
+      stackTrace: st,
+      context: {'entry_id': entryId},
+    );
+    state = state.copyWith(error: 'No se pudo borrar la entrada');
+  }
+}
+
+/// =========================
+/// UPDATE TITLE
+/// =========================
+Future<void> updateTitle({
+  required String entryId,
+  required String title,
+}) async {
+  try {
+    await _service.updateEntry(entryId: entryId, title: title);
+
+    // Actualiza solo esa entrada en el estado local
+    state = state.copyWith(
+      entries: state.entries.map((e) {
+        if (e['id'] == entryId) return {...e, 'title': title};
+        return e;
+      }).toList(),
+    );
+
+    LogService.instance.info(
+      'reflection.update_title_success',
+      context: {'entry_id': entryId},
+    );
+  } catch (e, st) {
+    LogService.instance.error(
+      'reflection.update_title_failed',
+      error: e,
+      stackTrace: st,
+      context: {'entry_id': entryId},
+    );
+    state = state.copyWith(error: 'No se pudo actualizar el título');
+  }
+}
+
+  /// =========================
   /// CLEAR SELECTION
   /// =========================
   void clearSelection() {

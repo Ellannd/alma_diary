@@ -1,10 +1,11 @@
+import 'package:alma_diary/design_system/components/feedback/alma_loader.dart';
+import 'package:alma_diary/state/notifications/notifications_controller.dart';
 import 'package:alma_diary/state/profile/profile_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:alma_diary/state/dashboard/dashboard_state.dart';
 import 'package:alma_diary/state/dashboard/dashboard_controller.dart';
-import 'package:alma_diary/state/theme/theme_controller.dart';
 import 'package:alma_diary/design_system/tokens/alma_colors.dart';
 import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 
@@ -33,13 +34,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   // Lazy initialization — solo construye cada página la primera vez que se visita
   final List<Widget?> _cachedPages = List.filled(NavbarTab.values.length, null);
 
-  Widget _buildTab(NavbarTab tab, DashboardState state, bool isDark) {
+  Widget _buildTab(NavbarTab tab) {
     switch (tab) {
       case NavbarTab.dashboard:
-        return _DashboardHome();
+        return const _DashboardHome();
       case NavbarTab.search:
-      // Para la demo, el passphrase es fijo y no deberia pasarse aquí. En producción, se podría generar dinámicamente o pedir al usuario.
-        return const Center(child: SearchScreen(passphrase: "alma_biometric_pass")); 
+        return const Center(child: SearchScreen()); 
       case NavbarTab.create:
         return const Center(child: CreatePage()); 
       case NavbarTab.notifications:
@@ -51,22 +51,30 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(dashboardControllerProvider);
-    final controller = ref.read(dashboardControllerProvider.notifier);
-    
-    final theme = ref.watch(themeProvider);
-    final isDark = theme.isDarkMode;
+      final currentTab = ref.watch(
+    dashboardControllerProvider.select((s) => s.navCurrentTab),
+  );
+  final isLoading = ref.watch(
+    dashboardControllerProvider.select((s) => s.isLoading),
+  );
+  final userId = ref.watch(
+    dashboardControllerProvider.select((s) => s.userId),
+  );
+  final notificationCount = ref.watch(
+    notificationControllerProvider.select((s) => s.unreadCount),
+  );
+  final controller = ref.read(dashboardControllerProvider.notifier);
 
-    if (state.isLoading || state.userId == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
+  if (isLoading || userId == null) {
+    return const Scaffold(
+      body: Center(child: AlmaLoader()),
+    );
+  }
 
-    final currentIndex = NavbarTab.values.indexOf(state.navCurrentTab);
+    final currentIndex = NavbarTab.values.indexOf(currentTab);
 
     // Lazy: construye la página solo si aún no existe
-    _cachedPages[currentIndex] ??= _buildTab(state.navCurrentTab, state, isDark);
+    _cachedPages[currentIndex] ??= _buildTab(currentTab);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -90,8 +98,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               child: Material(
                 color: Colors.transparent,
                 child: DashboardNavbar(
-                  currentTab: state.navCurrentTab,
+                  currentTab: currentTab,
                   onTap: controller.setTab,
+                  notificationCount: notificationCount,
                 ),
               ),
             ),
@@ -106,15 +115,43 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 // TAB: DASHBOARD HOME
 // =====================
 class _DashboardHome extends ConsumerWidget {
-  const _DashboardHome({super.key});
+  const _DashboardHome();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(dashboardControllerProvider);
-    final isDark = ref.watch(themeProvider).isDarkMode;
+   
+    final archetype = ref.watch(
+      dashboardControllerProvider.select((s) => s.archetype)
+    );
     final userName = ref.watch(
-    profileControllerProvider.select((state) => state.displayName),
-  );
+        profileControllerProvider.select((s) => s.value?.displayName),
+      );
+    final userId = ref.watch(
+      dashboardControllerProvider.select((s) => s.userId)
+    );
+    final painNodes = ref.watch(
+      dashboardControllerProvider.select((s) => s.painNodes)
+    );
+    final moodTitle = ref.watch(
+      dashboardControllerProvider.select((s) => s.moodTitle)
+    );
+    final moodSubtitle = ref.watch(
+      dashboardControllerProvider.select((s) => s.moodSubtitle)
+    );
+    final mood = ref.watch(
+      dashboardControllerProvider.select((s) => s.mood)
+    );
+    final moodIconKey = ref.watch(
+      dashboardControllerProvider.select((s) => s.moodIconKey)
+    );
+    final quoteText = ref.watch(
+      dashboardControllerProvider.select((s) => s.quoteText)
+    );
+    final quoteSource = ref.watch(
+      dashboardControllerProvider.select((s) => s.quoteSource)
+    );
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -133,31 +170,31 @@ class _DashboardHome extends ConsumerWidget {
                     Navigator.of(context).pushNamed('/settings'),
               ),
 
-              SizedBox(height: AlmaSpacing.sectionR(context)),
+              SizedBox(height: AlmaSpacing.lg),
 
               DashboardGreeting(
-                userName: userName,
-                archetype: state.archetype,
+                userName: userName ?? "Usuario",
+                archetype: archetype,
               ),
 
               SizedBox(height: AlmaSpacing.sectionR(context)),
 
               DashboardSection(
                 child: DashboardFeatureGrid(
-                  userId: state.userId!,
-                  archetype: state.archetype,
-                  painNodes: state.painNodes,
+                  userId: userId!,
+                  archetype: archetype,
+                  painNodes: painNodes,
                 ),
               ),
 
               SizedBox(height: AlmaSpacing.sectionR(context)),
 
               DashboardMoodCard(
-                title: state.moodTitle,
-                subtitle: state.moodSubtitle,
-                mood: state.mood,
+                title: moodTitle,
+                subtitle: moodSubtitle,
+                mood: mood,
                 icon: Icon(
-                  MoodIconMapper.fromKey(state.moodIconKey),
+                  MoodIconMapper.fromKey(moodIconKey),
                   color: AlmaColors.accent(isDark),
                 ),
                 onTap: () {},
@@ -166,8 +203,8 @@ class _DashboardHome extends ConsumerWidget {
               SizedBox(height: AlmaSpacing.sectionR(context)),
 
               DashboardQuoteCard(
-                quote: state.quoteText,
-                author: state.quoteSource,
+                quote: quoteText,
+                author: quoteSource,
               ),
             ],
           ),

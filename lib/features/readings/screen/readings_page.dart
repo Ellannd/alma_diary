@@ -1,3 +1,4 @@
+import 'package:alma_diary/design_system/components/feedback/alma_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -31,7 +32,10 @@ class _ReadingsPageState extends ConsumerState<ReadingsPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final state = ref.watch(readingsControllerProvider);
+
+    final isLoading = ref.watch(readingsControllerProvider.select((s) => s.isLoading));
+    final readings = ref.watch(readingsControllerProvider.select((s) => s.readings));
+
     final controller = ref.read(readingsControllerProvider.notifier);
 
     return Scaffold(
@@ -48,13 +52,13 @@ class _ReadingsPageState extends ConsumerState<ReadingsPage> {
           style: AlmaTypography.h3(isDark, context).copyWith(fontSize: AlmaSpacing.r(context, AlmaSpacing.lg)),
         ),
       ),
-      body: state.isLoading
+      body: isLoading
           ? Center(
-              child: CircularProgressIndicator(
+              child: AlmaLoader(
                 color: AlmaColors.accent(isDark),
               ),
             )
-          : state.readings.isEmpty
+          : readings.isEmpty
               ? Center(
                   child: Text(
                     'No hay lecturas disponibles',
@@ -68,12 +72,12 @@ class _ReadingsPageState extends ConsumerState<ReadingsPage> {
                     horizontal: AlmaSpacing.screenH(context)+AlmaSpacing.sm,
                     vertical: AlmaSpacing.r(context, AlmaSpacing.lg),
                   ),
-                  itemCount: state.readings.length,
+                  itemCount: readings.length,
                   separatorBuilder: (_, _) => SizedBox(
                     height: AlmaSpacing.r(context, AlmaSpacing.lg),
                   ),
                   itemBuilder: (context, i) {
-                    final rec = state.readings[i];
+                    final rec = readings[i];
                     return ReadingCard(
                       rec: rec,
                       saved: controller.isSaved(rec['id']),

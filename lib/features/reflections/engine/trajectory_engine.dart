@@ -1,6 +1,5 @@
+import 'package:alma_diary/features/journal/data/journal_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:alma_diary/services/supabase_service.dart';
-import '../../../data/aes_encryption.dart';
 import 'dart:math';
 
 class TrajectoryStats {
@@ -39,30 +38,12 @@ Future<int> obtenerValentia() async {
   return prefs.getInt('valentia') ?? 0;
 }
 
-Future<TrajectoryStats> generar_estadisticas_trayectoria(
-  String passphrase,
-) async {
-  final client = SupabaseService.instance.client;
-  final userId = client.auth.currentUser?.id;
-  if (userId == null) {
-    return TrajectoryStats(
-      conscienciaDeSi: 0,
-      agenciaPersonal: 0,
-      rumiacion: 0,
-      integracionSombra: 0,
-      valentia: 0,
-      arquetipos: {'The Mask': 0, 'The Mirror': 0, 'The Moon': 0},
-      conceptos: [],
-      hitos: [],
-      narrativa: 'No hay datos de usuario.',
-    );
-  }
-  final entries = await client
-      .from('journal_entries')
-      .select()
-      .eq('user_id', userId)
-      .order('created_at', ascending: false);
+Future<TrajectoryStats> generarEstadisticasTrayectoria() async {
   final valentia = await obtenerValentia();
+
+  // JournalService ya maneja auth, query y descifrado v2
+  final entries = await JournalService.instance.getEntries();
+
   if (entries.isEmpty) {
     return TrajectoryStats(
       conscienciaDeSi: 0,
@@ -76,12 +57,12 @@ Future<TrajectoryStats> generar_estadisticas_trayectoria(
       narrativa: 'Aún no hay suficientes datos para mostrar tu trayectoria.',
     );
   }
+
   final last10 = entries.take(10).toList();
+
+  // content_decrypted ya viene descifrado de JournalService.getEntries()
   final textos = last10
-      .map(
-        (e) =>
-            AESEncryption.decryptText(e['content_encrypted'] ?? '', passphrase),
-      )
+      .map((e) => e['content_decrypted'] as String? ?? '')
       .toList();
 
   // --- Métricas ---

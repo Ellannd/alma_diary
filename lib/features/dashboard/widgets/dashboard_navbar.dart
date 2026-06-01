@@ -171,7 +171,7 @@ Widget build(BuildContext context) {
               icon,
               size: AlmaSpacing.r(context, AlmaSpacing.sectionGap),
               color: selected
-                  ? primary
+                  ? Colors.white
                   : AlmaColors.textMuted(isDark),
             ),
 

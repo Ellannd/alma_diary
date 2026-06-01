@@ -1,3 +1,4 @@
+import 'package:alma_diary/features/notifications/domain/notification_action_mapper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,7 +14,6 @@ import '../widgets/notification_loading.dart';
 import 'package:alma_diary/design_system/tokens/alma_colors.dart';
 import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 
-import "package:alma_diary/features/notifications/utils/notification_action_mapper.dart";
 
 class NotificationsPage extends ConsumerStatefulWidget {
   final Function(String route)? onNavigate;
@@ -47,18 +47,21 @@ class _NotificationsPageState
         .load();
   }
 
-  Future<void> _handleNotificationTap(
-    AlmaNotification notification,
-  ) async {
-    final controller =
-        ref.read(notificationControllerProvider.notifier);
-
-    await controller.markAsRead(
-      notification.id,
-    );
-
-    NotificationActionMapper.fromNotification(notification);
+   Future<void> _markAll(String? userId) async {
+    if (userId == null) return;
+    await ref.read(notificationControllerProvider.notifier).markAllAsRead(userId);
   }
+
+Future<void> _handleNotificationTap(
+  AlmaNotification notification,
+) async {
+  final controller = ref.read(notificationControllerProvider.notifier);
+  await controller.markAsRead(notification.id);
+
+  if (mounted) {
+    NotificationActionMapper.navigate(context, notification);
+  }
+}
 
 
   @override
@@ -85,6 +88,9 @@ class _NotificationsPageState
               // =========================
               NotificationHeader(
                 onRefresh: _refresh,
+                onMarkAllRead: state.userId == null 
+                  ? null 
+                  : () => _markAll(state.userId),
               ),
 
               // =========================

@@ -1,4 +1,6 @@
-import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
+import 'package:alma_diary/design_system/components/feedback/alma_loader.dart';
+import 'package:flutter/foundation.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -17,8 +19,10 @@ import 'package:alma_diary/features/profile/settings/widgets/settings_notificati
 import 'package:alma_diary/features/profile/settings/widgets/settings_report_tile.dart';
 import 'package:alma_diary/features/profile/settings/widgets/settings_clear_logs_tile.dart';
 import 'package:alma_diary/features/profile/settings/widgets/settings_logout_tile.dart';
+import 'package:alma_diary/features/debug/screen/log_viewer_page.dart';
 
 import 'package:alma_diary/design_system/components/feedback/alma_feedback.dart';
+import 'package:alma_diary/design_system/tokens/alma_spacing.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -33,28 +37,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(_load);
-  }
-
-  Future<void> _load() async {
-    try {
-      final user = Supabase.instance.client.auth.currentUser;
-
-      if (user != null) {
-        await ref
-            .read(profileControllerProvider.notifier)
-            .loadProfile(user.id);
-      }
-    } catch (e) {
-      LogService.instance.error(
-        'settings.load_failed',
-        error: e,
-      );
-    }
-
-    if (mounted) {
-      setState(() => _loading = false);
-    }
+    // El perfil ya está cargado via sessionProvider — solo apagamos el loading local.
+    setState(() => _loading = false);
   }
 
   Future<void> _signOut() async {
@@ -69,37 +53,31 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Future<void> _sendReport() async {
-    try {
-      final logs = LogService.instance.getFullLog();
+  try {
+    final logs = LogService.instance.getFullLog();
 
-      if (logs.isEmpty) {
-        AlmaFeedbackHelper.info(
-          'No hay logs disponibles',
-        );
-        return;
-      }
+    if (logs.isEmpty) {
+      AlmaFeedbackHelper.info('No hay logs disponibles');
+      return;
+    }
 
-      await Share.share(
-        logs.toString(),
-        subject: 'Alma Diary - Reporte de Error',
-      );
+    // Limitar a los últimos 200 entries para no exceder el límite de Android
+    final limited = logs.length > 200 ? logs.sublist(logs.length - 200) : logs;
+    final text = limited.map((e) => e.toString()).join('\n');
 
-      AlmaFeedbackHelper.success(
-        'Reporte preparado',
-      );
-    } catch (e) {
-      LogService.instance.error(
-        'settings.share_failed',
-        error: e,
-      );
+    await Share.share(
+      text,
+      subject: 'Alma Diary - Reporte de Error',
+    );
 
-      if (mounted) {
-        AlmaFeedbackHelper.error(
-          'Error al generar el reporte',
-        );
-      }
+    AlmaFeedbackHelper.success('Reporte preparado');
+  } catch (e) {
+    LogService.instance.error('settings.share_failed', error: e);
+    if (mounted) {
+      AlmaFeedbackHelper.error('Error al generar el reporte');
     }
   }
+}
 
   Future<void> _clearLogs() async {
     await LogService.instance.clear();
@@ -117,23 +95,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget build(BuildContext context) {
     final user = Supabase.instance.client.auth.currentUser;
 
-    final profileState = ref.watch(profileControllerProvider);
-
-    final notificationState = ref.watch(
-      notificationSettingsControllerProvider,
+    final profile = ref.watch(profileControllerProvider.select((s) => s.value));
+    final dailyReminder = ref.watch(
+      notificationSettingsControllerProvider.select((s) => s.dailyReminderEnabled),
     );
+    final isDark = ref.watch(
+      themeControllerProvider.select((s) => s == AppThemeMode.dark),
+  );
 
-    final themeState = ref.watch(themeProvider);
-
-    final profile = profileState.profile;
-
-    if (user == null) {
-      return const Scaffold(
-        body: Center(
-          child: Text('No autenticado'),
-        ),
-      );
-    }
 
     return Scaffold(
       appBar: AppBar(
@@ -141,25 +110,25 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ),
       body: _loading
           ? const Center(
-              child: CircularProgressIndicator(),
+              child: AlmaLoader(),
             )
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 SettingsProfileCard(
                   name: profile?.displayName ?? 'Usuario',
-                  email: profile?.email ?? user.email ?? '',
+                  email: profile?.email ?? user?.email ?? '',
                   avatarUrl: profile?.avatarUrl,
                 ),
 
                 const SizedBox(height: 16),
 
                 ProfileThemeSwitch(
-                  value: themeState.isDarkMode,
+                  value: isDark,
                   onChanged: (_) {
                     ref
-                        .read(themeProvider.notifier)
-                        .toggle();
+                        .read(themeControllerProvider.notifier)
+                        .toggleTheme();
                   },
                 ),
 
@@ -170,7 +139,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   subtitle:
                       'Recibe un recordatorio para escribir',
                   value:
-                      notificationState.dailyReminderEnabled,
+                      dailyReminder,
                   onChanged: (enabled) async {
                     await ref
                         .read(
@@ -178,7 +147,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                               .notifier,
                         )
                         .setDailyReminder(
-                          userId: user.id,
+                          userId: user?.id,
                           enabled: enabled,
                         );
                   },
@@ -208,7 +177,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   subtitle: 'Salir de tu cuenta',
                   onTap: _signOut,
                 ),
-              ],
+
+                if (kDebugMode) ...[
+                  SizedBox(height: AlmaSpacing.r(context, 12)),
+                  ListTile(
+                    leading: const Icon(Icons.bug_report_outlined),
+                    title: const Text('Dev Console'),
+                    subtitle: const Text('Logs internos del sistema'),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LogViewerPage()),
+                    ),
+                  ),
+                ],
+              ],   
             ),
     );
   }

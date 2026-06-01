@@ -1,9 +1,23 @@
+import "package:alma_diary/core/logging/log_service.dart";
 import "package:flutter_riverpod/flutter_riverpod.dart";
-import "package:alma_diary/state/challenges/challenge_provider.dart";
+
 import "package:alma_diary/features/challenges/old/challenge_repository_old.dart";
 import "package:alma_diary/features/challenges/engine/challenges_engine_v2.dart";
 import "package:alma_diary/state/notifications/notifications_controller.dart";
 import "package:alma_diary/state/challenges/challenge_state.dart";
+
+final challengeRepositoryProvider = Provider<ChallengeRepository>((ref) {
+  return ChallengeRepository();
+});
+
+final challengesEngineProvider = Provider<ChallengesEngine>((ref) {
+  return ChallengesEngine();
+});
+
+final challengeControllerProvider =
+    NotifierProvider<ChallengeController, ChallengeState>(
+  ChallengeController.new,
+);
 
 class ChallengeController extends Notifier<ChallengeState> {
   late final ChallengeRepository _repository;
@@ -70,7 +84,8 @@ class ChallengeController extends Notifier<ChallengeState> {
         statusByChallenge: statusMap,
         isLoading: false,
       );
-    } catch (e) {
+    } catch (e, st) {
+      LogService.instance.error('challenges.load_failed', error: e, stackTrace: st);
       state = state.copyWith(
         isLoading: false,
         error: 'Error al cargar desafíos',
@@ -129,14 +144,15 @@ class ChallengeController extends Notifier<ChallengeState> {
         isLoading: false,
       );
 
-      await _notification.handleChallengeEvent(
-        userId,
-        challenge.title,
+      await _notification.handleChallengeEventDevice(
+        userId: userId,
+        title: challenge.title,
         eventType: 'started',
       );
 
       return true;
-    } catch (e) {
+    } catch (e, st) {
+      LogService.instance.error('challenges.start_failed', error: e, stackTrace: st);
       state = state.copyWith(
         isLoading: false,
         error: 'Error al iniciar desafío',
@@ -210,16 +226,17 @@ class ChallengeController extends Notifier<ChallengeState> {
           durationDays: 1,
         );
 
-        await _notification.handleChallengeEvent(
-          userId,
-          challenge.title,
+        await _notification.handleChallengeEventDevice(
+          userId: userId,
+          title: challenge.title,
           eventType: 'completed',
           points: reward,
         );
       }
 
       return true;
-    } catch (e) {
+    } catch (e, st) {
+      LogService.instance.error('challenges.update_failed', error: e, stackTrace: st);
       state = state.copyWith(
         isLoading: false,
         error: 'Error al actualizar progreso',

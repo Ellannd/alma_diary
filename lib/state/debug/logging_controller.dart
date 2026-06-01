@@ -45,6 +45,7 @@ class LogViewerController extends Notifier<LogViewerState> {
   }
 
   void loadLogs() {
+     state = state.copyWith(); //trigger rebuild
     // reservado para futuro:
     // streams / DB / remote logging
   }

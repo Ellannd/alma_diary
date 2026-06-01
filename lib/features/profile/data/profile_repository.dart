@@ -54,7 +54,7 @@ if (existing == null) {
           .select()
           .eq('id', userId)
           .maybeSingle();
-
+      
       if (data == null) return null;
 
       return Profile.fromMap(data);
@@ -65,6 +65,7 @@ if (existing == null) {
         stackTrace: st,
         context: {'user_id': userId},
       );
+      
       return null;
     }
   }
@@ -110,6 +111,8 @@ if (existing == null) {
     String? preferredLanguage,
     int? stressLevel,
     String? sleepQuality, String? name,
+    String? archetype,       
+  List<String>? painNodes,
   }) async {
     final userId = currentUser?.id;
     if (userId == null) throw Exception('No auth user');
@@ -126,6 +129,8 @@ if (existing == null) {
         'is_onboarding_complete': true,
         'updated_at': DateTime.now().toIso8601String(),
         "full_name": name,
+        'archetype': archetype,     
+      'pain_nodes': painNodes ?? [],
       }).eq('id', userId);
 
       LogService.instance.info(

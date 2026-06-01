@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:alma_diary/state/debug/logging_controller.dart';
 import 'package:alma_diary/state/debug/log_viewer_state.dart';
-import "package:alma_diary/features/debug/widgets/log_tile.dart";
+import 'package:alma_diary/features/debug/widgets/log_tile.dart';
+import 'package:alma_diary/features/debug/widgets/log_search_bar.dart';
 
 class LogViewerPage extends ConsumerStatefulWidget {
   const LogViewerPage({super.key});
@@ -18,7 +19,6 @@ class _LogViewerPageState extends ConsumerState<LogViewerPage> {
   @override
   void initState() {
     super.initState();
-
     Future.microtask(() {
       ref.read(logViewerControllerProvider.notifier).loadLogs();
     });
@@ -34,11 +34,8 @@ class _LogViewerPageState extends ConsumerState<LogViewerPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(logViewerControllerProvider);
     final controller = ref.read(logViewerControllerProvider.notifier);
-
     final logs = controller.filteredLogs;
-
-    final isNewestFirst =
-        state.sortOrder == LogSortOrder.newestFirst;
+    final isNewestFirst = state.sortOrder == LogSortOrder.newestFirst;
 
     return Scaffold(
       appBar: AppBar(
@@ -46,17 +43,11 @@ class _LogViewerPageState extends ConsumerState<LogViewerPage> {
         actions: [
           IconButton(
             icon: Icon(
-              isNewestFirst
-                  ? Icons.arrow_downward
-                  : Icons.arrow_upward,
+              isNewestFirst ? Icons.arrow_downward : Icons.arrow_upward,
             ),
-            onPressed: () {
-              controller.setSortOrder(
-                isNewestFirst
-                    ? LogSortOrder.oldestFirst
-                    : LogSortOrder.newestFirst,
-              );
-            },
+            onPressed: () => controller.setSortOrder(
+              isNewestFirst ? LogSortOrder.oldestFirst : LogSortOrder.newestFirst,
+            ),
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline),
@@ -64,38 +55,21 @@ class _LogViewerPageState extends ConsumerState<LogViewerPage> {
           ),
         ],
       ),
-
       body: Column(
         children: [
-          // =========================
-          // SEARCH
-          // =========================
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: TextField(
-              controller: _searchController,
-              onChanged: controller.setQuery,
-              decoration: const InputDecoration(
-                hintText: 'Search logs...',
-                prefixIcon: Icon(Icons.search),
-              ),
-            ),
+     
+          LogSearchBar(
+            controller: _searchController,
+            onChanged: controller.setQuery,
           ),
 
-          // =========================
-          // LIST
-          // =========================
           Expanded(
             child: logs.isEmpty
                 ? const Center(child: Text('No logs yet'))
                 : ListView.builder(
-                    reverse: state.sortOrder ==
-                        LogSortOrder.newestFirst,
+                    reverse: isNewestFirst,
                     itemCount: logs.length,
-                    itemBuilder: (context, index) {
-                      final log = logs[index];
-                      return LogTile(log: log);
-                    },
+                    itemBuilder: (_, index) => LogTile(log: logs[index]),
                   ),
           ),
         ],

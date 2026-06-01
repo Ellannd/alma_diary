@@ -53,6 +53,7 @@ class DashboardGreeting extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AlmaTypography.dashboardGreetingDark(isDark, context).copyWith(
+                fontSize: AlmaSpacing.r(context, 46),
                 letterSpacing: -1.0,
               ),
             ),

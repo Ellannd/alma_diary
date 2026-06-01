@@ -1,8 +1,6 @@
+import 'package:alma_diary/features/auth/screen/auth_gate.dart';
 import 'package:flutter/material.dart';
 import "package:responsive_framework/responsive_framework.dart";
-import 'design_system/theme/alma_theme.dart';
-import 'features/auth/screen/auth_screen.dart';
-
 import 'package:alma_diary/core/navigation/app_router.dart';
 import 'core/navigation/app_navigator_observer.dart';
 
@@ -15,16 +13,18 @@ class MyApp extends ConsumerWidget {
 
 @override
 Widget build(BuildContext context, WidgetRef ref) {
-  final themeState = ref.watch(themeProvider);
-  final isDark = themeState.isDarkMode;
+  final themeMode = ref.watch(themeControllerProvider);
 
  return MaterialApp(
   title: 'Alma - Diary',
   debugShowCheckedModeBanner: false,
+   showPerformanceOverlay: false,
 
-  theme: isDark
-      ? AlmaTheme.dark()
-      : AlmaTheme.light(),
+  theme: ThemeData.light(),
+  darkTheme: ThemeData.dark(),
+  themeMode: themeMode == AppThemeMode.dark
+      ? ThemeMode.dark
+      : ThemeMode.light,
 
   // =========================
   // RESPONSIVE FRAMEWORK
@@ -66,7 +66,7 @@ Widget build(BuildContext context, WidgetRef ref) {
 
   onUnknownRoute: (settings) {
     return MaterialPageRoute(
-      builder: (_) => const AuthScreen(),
+      builder: (_) => const AuthGate(),
     );
   },
 

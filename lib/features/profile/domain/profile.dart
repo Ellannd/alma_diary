@@ -1,3 +1,5 @@
+import "package:alma_diary/ai/analysis/domain/archetype.dart";
+
 import "enums.dart";
 
 class Profile {
@@ -73,41 +75,34 @@ PainPoint? _parsePainPoint(String? value) {
   switch (value) {
     case 'estres':
       return PainPoint.estres;
-    case 'vacio':
+    case 'vacío':
       return PainPoint.vacio;
     case 'confusion':
       return PainPoint.confusion;
+    case 'cansancio':
+      return PainPoint.cansancio;
     default:
       return null;
   }
 }
 
+// Añadir al parser:
 HopefulGoal? _parseHopefulGoal(String? value) {
   switch (value) {
     case 'paz':
       return HopefulGoal.paz;
     case 'orden':
       return HopefulGoal.orden;
-    case 'companero':
+    case 'acompañamiento':
       return HopefulGoal.companero;
+    case 'crecimiento':
+      return HopefulGoal.crecimiento; 
     default:
       return null;
   }
 }
 
 Archetype? _parseArchetype(String? value) {
-  switch (value) {
-    case 'The Mask':
-      return Archetype.theMask;
-    case 'The Mirror':
-      return Archetype.theMirror;
-    case 'The Moon':
-      return Archetype.theMoon;
-    case 'The Shadow':
-      return Archetype.theShadow;
-    case 'The Self':
-      return Archetype.theSelf;
-    default:
-      return null;
-  }
+  if (value == null) return null;
+  return Archetype.fromString(value);
 }

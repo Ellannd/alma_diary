@@ -14,6 +14,8 @@ enum Archetype {
   moon,
   shadow;
 
+  String get displayName => label;
+
   /// Nombre canónico (para serialización / logs / debugging)
   String get key {
     switch (this) {

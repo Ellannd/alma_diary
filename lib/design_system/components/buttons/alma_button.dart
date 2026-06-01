@@ -1,3 +1,4 @@
+import 'package:alma_diary/design_system/components/feedback/alma_loader.dart';
 import 'package:flutter/material.dart';
 import "package:alma_diary/design_system/tokens/alma_colors.dart";
 
@@ -57,8 +58,7 @@ class AlmaButton extends StatelessWidget {
                   key: const ValueKey('loading'),
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
+                  child: AlmaLoader(
                     color: colors.foreground,
                   ),
                 )

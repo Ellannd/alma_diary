@@ -1,6 +1,5 @@
 // dashboard_header.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:alma_diary/design_system/tokens/alma_colors.dart';
 import 'package:alma_diary/design_system/tokens/alma_typography.dart';
@@ -26,11 +25,11 @@ class DashboardHeader extends StatelessWidget {
           // LOGO + APP NAME 
           // =========================
           //todo make responsive
-          SvgPicture.asset(
-            'logo/logo.svg',
-            width: 50,
-            height: 50,
-          ),
+          Image.asset(
+              'assets/logo/logo_1.png',
+              width: 70,
+              height: 70,
+            ),
 
           const SizedBox(width: 10),
 
@@ -48,16 +47,10 @@ class DashboardHeader extends StatelessWidget {
           // =========================
           GestureDetector(
             onTap: onSettingsTap,
-            child: SvgPicture.asset(
-              'icon/settings.svg',
-              width: 28,
-              height: 28,
-              colorFilter: ColorFilter.mode(
-                AlmaColors.textMuted(isDark),
-                BlendMode.srcIn,
-              ),
+            child: Icon(Icons.settings, color: AlmaColors.textMuted(isDark), 
+            size: 28,),
+
             ),
-          ),
         ],
       ),
     );
