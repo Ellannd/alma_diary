@@ -11,7 +11,7 @@ All journal content is encrypted client-side using AES-256-GCM before it reaches
   <img src="https://img.shields.io/badge/Supabase-Backend-green?logo=supabase" alt="Supabase" />
   <img src="https://img.shields.io/badge/Gemini-AI-orange?logo=google" alt="Gemini AI" />
   <img src="https://img.shields.io/badge/Hugging-Face-yellow?logo=HuggingFace" alt="Hugging Face" />
-  <img src="https://img.shields.io/badge/Version-3.4.14-purple" alt="Version" />
+  <img src="https://img.shields.io/badge/Version-3.6.17-purple" alt="Version" />
   <img src="https://img.shields.io/badge/Status-Active%20Development-brightgreen" alt="Status" />
 </p>
 
