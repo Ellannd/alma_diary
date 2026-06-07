@@ -16,21 +16,23 @@ const FALLBACK_MODELS = [
 
 const HF_BASE_URL = "https://router.huggingface.co/v1/chat/completions";
 
-// ── Tipos ────────────────────────────────────────────────────────
 interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
 }
 
 interface DiaryEntry {
-  content: string;
+  title: string;
+  content_v2: string;
   created_at: string;
-  mood?: string;       // de tu analysis_result si ya lo tienes
+  sentiment?: string;
+  sentiment_score?: number;
+  archetype?: string;
 }
 
-// ── Handler ──────────────────────────────────────────────────────
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders() });
+  if (req.method === "OPTIONS")
+    return new Response(null, { headers: corsHeaders() });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   const HF_API_KEY = Deno.env.get("HF_API_KEY");
@@ -38,54 +40,114 @@ Deno.serve(async (req) => {
 
   let history: ChatMessage[];
   let userId: string;
+  let conversationId: string;
 
   try {
     const body = await req.json();
     history = body?.history ?? [];
-    userId  = body?.user_id;
+    userId = body?.user_id;
+    conversationId = body?.conversation_id;
 
     if (!userId) return json({ error: "user_id requerido" }, 400);
+    if (!conversationId)
+      return json({ error: "conversation_id requerido" }, 400);
     if (history.length === 0) return json({ error: "history vacío" }, 400);
-
-    // Límite de seguridad: últimos 20 mensajes para no reventar el context window
     if (history.length > 20) history = history.slice(-20);
   } catch {
     return json({ error: "Body inválido" }, 400);
   }
 
-  // ── Leer entradas recientes del diario desde Supabase ────────
-  // Esto es lo que luego reemplazarás por RAG en v4.0
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
-  const { data: entries } = await supabase
-    .from("diary_entries")               // ajusta al nombre real de tu tabla
-    .select("content, created_at, mood")
+  // ── Contexto del diario ──────────────────────────────────────
+  const { data: entries, error: dbError } = await supabase
+    .from("journal_entries")
+    .select(
+      "title, content_v2, created_at, sentiment, sentiment_score, archetype",
+    )
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(5);
 
+  // ── Perfil psicológico ───────────────────────────────────────
+  const { data: psychProfile } = await supabase
+    .from("psychological_profiles")
+    .select(
+      "attachment_style, dominant_emotions, psychological_needs, narrative_summary, communication_style",
+    )
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  const profileContext = buildProfileContext(psychProfile);
+
+  if (dbError) console.error("[chat] db error:", dbError.message);
   const diaryContext = buildDiaryContext(entries ?? []);
 
+  // ── Guardar mensaje del usuario ──────────────────────────────
+  const lastUserMessage = [...history].reverse().find((m) => m.role === "user");
+  if (lastUserMessage) {
+    await supabase.from("chat_messages").insert({
+      conversation_id: conversationId,
+      user_id: userId,
+      role: "user",
+      content: lastUserMessage.content,
+    });
+  }
+
+  // ── Entradas similares por semántica ────────────────────────
+  const similarContext = await (async () => {
+    if (!lastUserMessage) return "";
+    try {
+      // Últimos 3 mensajes del usuario como query
+      const recentUserMessages = history
+        .filter((m) => m.role === "user")
+        .slice(-3)
+        .map((m) => m.content)
+        .join(" ");
+
+      const embedding = await getQueryEmbedding(recentUserMessages, HF_API_KEY);
+      const { data } = await supabase.rpc("match_journal_entries", {
+        p_user_id: userId,
+        p_embedding: embedding,
+        p_match_count: 3,
+        p_threshold: 0.75,
+      });
+      return buildSimilarContext(data);
+    } catch (e) {
+      console.warn("[chat] similar entries failed:", e);
+      return "";
+    }
+  })();
+
   // ── System prompt ────────────────────────────────────────────
-  // Diseñado para que el emotion engine solo tenga que añadir
-  // un bloque más aquí en v4.0 sin tocar nada más
-  const systemPrompt = `
-Eres Alma, un asistente empático integrado en una app de diario personal.
-Tu rol es acompañar al usuario, ayudarle a reflexionar y responder con calidez.
+  const systemPrompt = [
+    "Eres Alma, un asistente empático integrado en una app de diario personal.",
+    "Tu rol es acompañar al usuario, ayudarle a reflexionar y responder con calidez.",
 
-## Contexto del diario (entradas recientes)
-${diaryContext}
+    profileContext
+      ? `\n## Perfil psicológico del usuario\n${profileContext}`
+      : "",
 
-## Instrucciones
-- Responde siempre en el idioma del usuario.
-- Sé conciso pero cálido. Máximo 3 párrafos.
-- Si el usuario menciona algo de sus entradas, puedes referenciarlo con naturalidad.
-- No inventes información que no esté en el contexto.
-- [EMOTION_ENGINE_PLACEHOLDER] <!-- v4.0: aquí irá el tono adaptativo -->
-`.trim();
+    diaryContext ? `\n## Contexto del diario\n${diaryContext}` : "",
+
+    similarContext
+      ? `\n## Entradas del diario relacionadas con este momento\n${similarContext}`
+      : "",
+
+    "\n## Instrucciones",
+    "- Responde siempre en el idioma del usuario.",
+    "- Sé conciso pero cálido. Ajusta la longitud del mensaje acorde a la profundidad del usuario.",
+    "- Usa el perfil psicológico para adaptar tu tono y enfoque.",
+    "- Si hay entradas relacionadas, puedes referenciarlas con naturalidad: 'recuerdo que en marzo escribiste...'",
+    "- No menciones explícitamente el perfil al usuario — úsalo de forma natural.",
+    "- No inventes información que no esté en el contexto.",
+  ]
+    .filter(Boolean)
+    .join("\n")
+    .trim();
 
   const messages: ChatMessage[] = [
     { role: "system", content: systemPrompt },
@@ -94,27 +156,52 @@ ${diaryContext}
 
   // ── Race entre modelos ───────────────────────────────────────
   const controller = new AbortController();
+  let winner: { reply: string; model: string } | null = null;
 
   try {
-    const winner = await Promise.any(
+    winner = await Promise.any(
       RACE_MODELS.map((model) =>
-        fetchChat(model, messages, HF_API_KEY, controller.signal)
+        fetchChat(model, messages, HF_API_KEY, controller.signal),
       ),
     );
     controller.abort();
-    return json({ reply: winner.reply, model: winner.model });
-
+    console.log(`[chat] winner: ${winner.model}`);
   } catch {
-    // Race falló — intentar fallback serial
+    console.warn("[chat] race failed, trying fallback serial");
     for (const model of FALLBACK_MODELS) {
       try {
-        const result = await fetchChat(model, messages, HF_API_KEY, controller.signal);
-        return json({ reply: result.reply, model: result.model });
-      } catch { continue; }
+        winner = await fetchChat(
+          model,
+          messages,
+          HF_API_KEY,
+          new AbortController().signal,
+        );
+        console.log(`[chat] fallback winner: ${winner.model}`);
+        break;
+      } catch (e) {
+        console.warn(`[chat] fallback ${model} failed: ${e}`);
+      }
     }
   }
 
-  return json({ error: "All models failed" }, 502);
+  if (!winner) return json({ error: "All models failed" }, 502);
+
+  // ── Guardar respuesta del asistente ──────────────────────────
+  await supabase.from("chat_messages").insert({
+    conversation_id: conversationId,
+    user_id: userId,
+    role: "assistant",
+    content: winner.reply,
+    model: winner.model,
+  });
+
+  // ── Actualizar updated_at de la conversación ─────────────────
+  await supabase
+    .from("chat_conversations")
+    .update({ updated_at: new Date().toISOString() })
+    .eq("id", conversationId);
+
+  return json({ reply: winner.reply, model: winner.model });
 });
 
 // ── Helpers ──────────────────────────────────────────────────────
@@ -125,41 +212,127 @@ async function fetchChat(
   apiKey: string,
   signal: AbortSignal,
 ) {
-  const timeout  = AbortSignal.timeout(12_000);
-  const combined = AbortSignal.any([signal, timeout]);
+  const combined = AbortSignal.any([signal, AbortSignal.timeout(12_000)]);
 
   const res = await fetch(HF_BASE_URL, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${apiKey}`,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
       model,
       messages,
       temperature: 0.7,
-      max_tokens: 400,
+      max_tokens: 4096,
     }),
     signal: combined,
   });
 
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`HTTP ${res.status}: ${body.slice(0, 100)}`);
+  }
 
-  const data  = await res.json();
-  const reply = data?.choices?.[0]?.message?.content ?? "";
+  const data = await res.json();
+  const reply = (data?.choices?.[0]?.message?.content ?? "").trim();
   if (!reply) throw new Error("Empty response");
 
   return { reply, model };
 }
 
 function buildDiaryContext(entries: DiaryEntry[]): string {
-  if (entries.length === 0) return "El usuario aún no tiene entradas en su diario.";
+  if (entries.length === 0) return "";
+  return entries
+    .map((e, i) => {
+      const date = new Date(e.created_at).toLocaleDateString("es-ES");
+      const sentiment = e.sentiment ? ` · ${e.sentiment}` : "";
+      const score =
+        e.sentiment_score != null
+          ? ` (${(e.sentiment_score * 100).toFixed(0)}%)`
+          : "";
+      const archetype = e.archetype ? ` · arquetipo: ${e.archetype}` : "";
+      const preview = (e.content_v2 ?? "").slice(0, 300);
+      return `[${i + 1}] ${date}${sentiment}${score}${archetype}\nTítulo: ${e.title}\n${preview}`;
+    })
+    .join("\n\n");
+}
 
-  return entries.map((e, i) => {
-    const date = new Date(e.created_at).toLocaleDateString("es-ES");
-    const mood = e.mood ? ` [mood: ${e.mood}]` : "";
-    return `[${i + 1}] ${date}${mood}\n${e.content.slice(0, 300)}`;
-  }).join("\n\n");
+function buildProfileContext(profile: Record<string, unknown> | null): string {
+  if (!profile) return "";
+
+  const lines: string[] = [];
+
+  if (profile.narrative_summary) {
+    lines.push(`Resumen: ${profile.narrative_summary}`);
+  }
+  if (profile.attachment_style) {
+    lines.push(`Estilo de apego: ${profile.attachment_style}`);
+  }
+  if (profile.communication_style) {
+    lines.push(`Estilo de comunicación: ${profile.communication_style}`);
+  }
+  if (
+    Array.isArray(profile.dominant_emotions) &&
+    profile.dominant_emotions.length
+  ) {
+    lines.push(`Emociones dominantes: ${profile.dominant_emotions.join(", ")}`);
+  }
+  if (
+    Array.isArray(profile.psychological_needs) &&
+    profile.psychological_needs.length
+  ) {
+    lines.push(
+      `Necesidades psicológicas: ${profile.psychological_needs.join(", ")}`,
+    );
+  }
+
+  return lines.join("\n");
+}
+
+async function getQueryEmbedding(
+  text: string,
+  apiKey: string,
+): Promise<string> {
+  const res = await fetch("https://router.huggingface.co/v1/embeddings", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "intfloat/multilingual-e5-large",
+      input: `query: ${text}`,
+    }),
+    signal: AbortSignal.timeout(10_000),
+  });
+
+  if (!res.ok) throw new Error(`HF embedding failed: ${res.status}`);
+
+  const data = await res.json();
+  const embedding = data?.data?.[0]?.embedding;
+  if (!Array.isArray(embedding)) throw new Error("Invalid embedding");
+
+  return JSON.stringify(embedding);
+}
+
+function buildSimilarContext(
+  entries: Array<{
+    title: string;
+    content_v2: string;
+    created_at: string;
+    similarity: number;
+  }> | null,
+): string {
+  if (!entries || entries.length === 0) return "";
+
+  return entries
+    .map((e) => {
+      const date = new Date(e.created_at).toLocaleDateString("es-ES");
+      const preview = (e.content_v2 ?? "").slice(0, 300);
+      return `[${date}] ${e.title ?? "Sin título"}\n${preview}`;
+    })
+    .join("\n\n---\n\n");
 }
 
 function json(body: unknown, status = 200) {
@@ -172,6 +345,7 @@ function json(body: unknown, status = 200) {
 function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
   };
 }

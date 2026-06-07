@@ -2,7 +2,7 @@ name: alma_diary
 description: "A different Journaling App, focused on mental health and self-awareness."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 3.6.17+1
+version: 4.0.0+1
 
 environment:
   sdk: ^3.11.4
@@ -56,8 +56,8 @@ dependencies:
   flutter_riverpod: ^3.3.1
   equatable: ^2.0.8
 
-  # Crypto 
-  pointycastle: ^3.9.1  
+  # Crypto
+  pointycastle: ^3.9.1
 
   # UI
   fl_chart: ^0.63.0
@@ -78,6 +78,7 @@ dependencies:
   intl: ^0.20.2
   cached_network_image: ^3.4.1
   flutter_modern_animated_loader: ^0.0.2
+  flutter_markdown_plus: ^1.0.7
 
 dev_dependencies:
   flutter_test:
@@ -89,11 +90,8 @@ dev_dependencies:
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
-
-
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -106,7 +104,6 @@ flutter:
     - assets/logo/
     - assets/readings/
     - assets/bg_overlay/
-
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -136,5 +133,5 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/logo/app_icon.png" 
+  image_path: "assets/logo/app_icon.png"
   min_sdk_android: 21 # opcional

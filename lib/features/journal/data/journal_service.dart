@@ -39,29 +39,29 @@ class JournalService {
   //   return s;
   // }
 
-Future<CryptoSession> _getSession() async {
-  if (_crypto != null) return _crypto!;
+  Future<CryptoSession> _getSession() async {
+    if (_crypto != null) return _crypto!;
 
-  // Intentar reconstruir sesión desde Keychain sin red
-  // (puede pasar si JournalService se llama antes de setCryptoSession)
-  final storage = SecureStorageService();
-  final keyResult = await storage.loadKey();
+    // Intentar reconstruir sesión desde Keychain sin red
+    // (puede pasar si JournalService se llama antes de setCryptoSession)
+    final storage = SecureStorageService();
+    final keyResult = await storage.loadKey();
 
-  if (keyResult is StorageReadSuccess) {
-    final session = CryptoSession(
-      localKey: LocalKeyService(storage: storage),
-      encryption: EncryptionService(),
-      storage: storage,
+    if (keyResult is StorageReadSuccess) {
+      final session = CryptoSession(
+        localKey: LocalKeyService(storage: storage),
+        encryption: EncryptionService(),
+        storage: storage,
+      );
+      _crypto = session;
+      return session;
+    }
+
+    throw StateError(
+      'JournalService: CryptoSession not set and no key in storage. '
+      'Call setCryptoSession() after login.',
     );
-    _crypto = session;
-    return session;
   }
-
-  throw StateError(
-    'JournalService: CryptoSession not set and no key in storage. '
-    'Call setCryptoSession() after login.',
-  );
-}
 
   final aiService = AIServiceImpl(
     router: ModelRouter(
@@ -75,21 +75,21 @@ Future<CryptoSession> _getSession() async {
   // ──────────────────────────────────────────────────────────
 
   Future<String> _encryptV2(String plaintext) async {
-  final session = await _getSession();
-  final result = await session.encryptText(plaintext);
-  if (result is EncryptSuccess) return result.bundle.serialize();
-  
-  final failure = result as EncryptFailure;
-  LogService.instance.error(
-    'journal.encrypt_v2_detail',
-    context: {
-      'message': failure.message,
-      'cause': failure.cause?.toString() ?? 'null',  
-      'cause_type': failure.cause?.runtimeType.toString() ?? 'null',
-    },
-  );
-  throw StateError('JournalService: encryption failed — ${failure.message}');
-}
+    final session = await _getSession();
+    final result = await session.encryptText(plaintext);
+    if (result is EncryptSuccess) return result.bundle.serialize();
+
+    final failure = result as EncryptFailure;
+    LogService.instance.error(
+      'journal.encrypt_v2_detail',
+      context: {
+        'message': failure.message,
+        'cause': failure.cause?.toString() ?? 'null',
+        'cause_type': failure.cause?.runtimeType.toString() ?? 'null',
+      },
+    );
+    throw StateError('JournalService: encryption failed — ${failure.message}');
+  }
 
   Future<String> _decryptV2(String serialized) async {
     if (serialized.isEmpty) return '';
@@ -103,17 +103,16 @@ Future<CryptoSession> _getSession() async {
     return '';
   }
 
-
   // ──────────────────────────────────────────────────────────
   // DECODE HELPERS — elige v2 o v1 según el flag migrated
   // ──────────────────────────────────────────────────────────
-Future<String> _decryptContent(Map<String, dynamic> row) async {
-  return _decryptV2(row['content_v2'] as String? ?? '');
-}
+  Future<String> _decryptContent(Map<String, dynamic> row) async {
+    return _decryptV2(row['content_v2'] as String? ?? '');
+  }
 
-Future<String> _decryptAnalysis(Map<String, dynamic> row) async {
-  return _decryptV2(row['analysis_v2'] as String? ?? '');
-}
+  Future<String> _decryptAnalysis(Map<String, dynamic> row) async {
+    return _decryptV2(row['analysis_v2'] as String? ?? '');
+  }
   // ──────────────────────────────────────────────────────────
   // ANALYSIS (Gemini)
   // ──────────────────────────────────────────────────────────
@@ -146,18 +145,24 @@ Future<String> _decryptAnalysis(Map<String, dynamic> row) async {
   // COMBINED — análisis + guardado
   // ──────────────────────────────────────────────────────────
 
-  Future<({String entryId, String archetype, String sentiment})> createEntryWithAnalysis({
-    required String content,
-    String? title,
-  }) async {
+  Future<
+    ({String entryId, String archetype, String sentiment, String plainContent})
+  >
+  createEntryWithAnalysis({required String content, String? title}) async {
     final analysis = await analyzeEntry(content);
-    return createEntry(
+    final result = await createEntry(
       content: content,
       title: title,
       sentiment: analysis['sentiment'] as String,
       sentimentScore: analysis['sentimentScore'] as double,
       archetype: analysis['archetype'] as String,
       reflection: analysis['reflection'] as String,
+    );
+    return (
+      entryId: result.entryId,
+      archetype: result.archetype,
+      sentiment: result.sentiment,
+      plainContent: content, // texto plano antes de cifrar
     );
   }
   // ──────────────────────────────────────────────────────────
@@ -168,39 +173,35 @@ Future<String> _decryptAnalysis(Map<String, dynamic> row) async {
   /// Las columnas v1 se dejan null — el repositorio las ignora si no van
   /// en el map.
   Future<({String entryId, String archetype, String sentiment})> createEntry({
-  required String content,
-  required String sentiment,
-  required double sentimentScore,
-  required String archetype,
-  required String reflection,
-  String? title, // parámetro opcional
-}) async {
-  final entryId = _uuid.v4();
-  final now = DateTime.now();
+    required String content,
+    required String sentiment,
+    required double sentimentScore,
+    required String archetype,
+    required String reflection,
+    String? title, // parámetro opcional
+  }) async {
+    final entryId = _uuid.v4();
+    final now = DateTime.now();
 
-  final encContent = await _encryptV2(content);
-  final encAnalysis = await _encryptV2(reflection);
+    final encContent = await _encryptV2(content);
+    final encAnalysis = await _encryptV2(reflection);
 
-  await _repository.insertEntry({
-    'id': entryId,
-    'title': title?.trim().isNotEmpty == true  
-        ? title!.trim()
-        : JournalEntryModel.defaultTitle(now), // fallback fecha
-    'content_v2': encContent,
-    'analysis_v2': encAnalysis,
-    'sentiment': sentiment,
-    'sentiment_score': sentimentScore,
-    'archetype': archetype,
-    'created_at': now.toIso8601String(),
-    'updated_at': now.toIso8601String(),
-  });
+    await _repository.insertEntry({
+      'id': entryId,
+      'title': title?.trim().isNotEmpty == true
+          ? title!.trim()
+          : JournalEntryModel.defaultTitle(now), // fallback fecha
+      'content_v2': encContent,
+      'analysis_v2': encAnalysis,
+      'sentiment': sentiment,
+      'sentiment_score': sentimentScore,
+      'archetype': archetype,
+      'created_at': now.toIso8601String(),
+      'updated_at': now.toIso8601String(),
+    });
 
-  return (
-    entryId: entryId,
-    archetype: archetype,
-    sentiment: sentiment,
-  );
-}
+    return (entryId: entryId, archetype: archetype, sentiment: sentiment);
+  }
 
   Future<List<Map<String, dynamic>>> getEntries({bool decrypt = true}) async {
     final rows = await _repository.getEntries();
@@ -245,9 +246,12 @@ Future<String> _decryptAnalysis(Map<String, dynamic> row) async {
   }) async {
     final entryMap = <String, dynamic>{};
 
-    if (title != null) entryMap['title'] = title; //no se cifra el título, se actualiza directamente
+    if (title != null)
+      entryMap['title'] =
+          title; //no se cifra el título, se actualiza directamente
     if (content != null) entryMap['content_v2'] = await _encryptV2(content);
-    if (reflection != null) entryMap['analysis_v2'] = await _encryptV2(reflection);
+    if (reflection != null)
+      entryMap['analysis_v2'] = await _encryptV2(reflection);
     if (sentiment != null) entryMap['sentiment'] = sentiment;
     if (sentimentScore != null) entryMap['sentiment_score'] = sentimentScore;
     if (archetype != null) entryMap['archetype'] = archetype;
@@ -256,14 +260,15 @@ Future<String> _decryptAnalysis(Map<String, dynamic> row) async {
 
     await _repository.updateEntry(entryId, entryMap);
   }
-    Future<void> deleteEntry(String entryId) async {
-      await _repository.deleteEntry(entryId);
-    }
 
-    // ──────────────────────────────────────────────────────────
-    // HELPERS
-    // ──────────────────────────────────────────────────────────
-
-    String generateEntryId() => _uuid.v4();
-    String generateTimestamp() => DateTime.now().toIso8601String();
+  Future<void> deleteEntry(String entryId) async {
+    await _repository.deleteEntry(entryId);
   }
+
+  // ──────────────────────────────────────────────────────────
+  // HELPERS
+  // ──────────────────────────────────────────────────────────
+
+  String generateEntryId() => _uuid.v4();
+  String generateTimestamp() => DateTime.now().toIso8601String();
+}

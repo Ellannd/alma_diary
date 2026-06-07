@@ -461,3 +461,58 @@ entrypoint = "./functions/chat/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/chat/*.html" ]
+
+[functions.chat-title]
+enabled = true
+verify_jwt = true
+import_map = "./functions/chat-title/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/chat-title/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/chat-title/*.html" ]
+
+[functions.generate-psych-profile]
+enabled = true
+verify_jwt = true
+import_map = "./functions/generate-psych-profile/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/generate-psych-profile/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/generate-psych-profile/*.html" ]
+
+[functions.generate-embedding]
+enabled = true
+verify_jwt = true
+import_map = "./functions/generate-embedding/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/generate-embedding/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/generate-embedding/*.html" ]
+
+[functions.search-similar-entries]
+enabled = true
+verify_jwt = true
+import_map = "./functions/search-similar-entries/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/search-similar-entries/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/search-similar-entries/*.html" ]
+
+[functions.backfill-embeddings]
+enabled = true
+verify_jwt = true
+import_map = "./functions/backfill-embeddings/deno.json"
+# Uncomment to specify a custom file path to the entrypoint.
+# Supported file extensions are: .ts, .js, .mjs, .jsx, .tsx
+entrypoint = "./functions/backfill-embeddings/index.ts"
+# Specifies static files to be bundled with the function. Supports glob patterns.
+# For example, if you want to serve static HTML pages in your function:
+# static_files = [ "./functions/backfill-embeddings/*.html" ]

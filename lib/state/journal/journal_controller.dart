@@ -1,4 +1,9 @@
+import 'dart:async';
+
 import 'package:alma_diary/core/analytics/alma_analytics.dart';
+import 'package:alma_diary/features/embeddings/data/embeddings_repository.dart';
+import 'package:alma_diary/state/profile/profile_controller.dart';
+import 'package:alma_diary/state/psych_profile/psych_profile_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:alma_diary/features/journal/data/journal_service.dart';
 import 'package:alma_diary/core/logging/log_service.dart';
@@ -6,8 +11,6 @@ import 'package:alma_diary/core/logging/log_service.dart';
 import "package:alma_diary/state/journal/journal_state.dart";
 
 import "domain/journal_entry_model.dart";
-
-
 
 /// =========================
 /// CONTROLLER (MODERNO RIVERPOD)
@@ -25,10 +28,10 @@ class JournalController extends Notifier<JournalState> {
   /// =========================
   /// CREATE ENTRY
   /// =========================
-  Future<({String archetype, String entryId, String sentiment})?> createEntry({
-    required String content,
-    bool analyze = true,
-  }) async {
+  Future<
+    ({String archetype, String entryId, String plainContent, String sentiment})?
+  >
+  createEntry({required String content, bool analyze = true}) async {
     if (content.trim().isEmpty) {
       state = state.copyWith(error: 'El texto no puede estar vacío');
       return null;
@@ -42,6 +45,21 @@ class JournalController extends Notifier<JournalState> {
         title: JournalEntryModel.defaultTitle(DateTime.now()),
       );
 
+      final userId = ref.read(currentUserProvider)?.id;
+      if (userId != null) {
+        unawaited(
+          //fire and forget, no necesitamos esperar a que termine para nada
+          EmbeddingRepository().generateEmbedding(
+            entryId: entryId.entryId,
+            userId: userId,
+            plainText: entryId.plainContent,
+          ),
+        );
+      }
+
+      // Después de crear la entrada, obtenemos el perfil psicológico para actualizarlo. Este contador permite calcular cuando se crea el perfil psicologico y cuando se regenera
+      unawaited(ref.read(psychProfileProvider.notifier).onEntryAdded());
+
       await AlmaAnalytics.journalEntryCreated(
         archetype: entryId.archetype,
         sentiment: entryId.sentiment,
@@ -50,9 +68,12 @@ class JournalController extends Notifier<JournalState> {
       state = state.copyWith(saving: false, analyzing: false, error: null);
       await loadEntries();
       return entryId;
-      
     } catch (e, st) {
-      LogService.instance.error('journal.create_failed', error: e, stackTrace: st);
+      LogService.instance.error(
+        'journal.create_failed',
+        error: e,
+        stackTrace: st,
+      );
       state = state.copyWith(
         saving: false,
         analyzing: false,
@@ -61,7 +82,6 @@ class JournalController extends Notifier<JournalState> {
       return null;
     }
   }
-
 
   /// =========================
   /// LOAD ENTRIES
@@ -72,19 +92,14 @@ class JournalController extends Notifier<JournalState> {
     try {
       final entries = await service.getEntries(decrypt: true);
 
-      final mapped = entries
-          .map((e) => JournalEntryModel.fromMap(e))
-          .toList();
+      final mapped = entries.map((e) => JournalEntryModel.fromMap(e)).toList();
 
-      state = state.copyWith(
-        entries: mapped,
-        loading: false,
-        error: null,
-      );
+      state = state.copyWith(entries: mapped, loading: false, error: null);
     } catch (e, st) {
-      LogService.instance.error('journal.load_failed',
-      error: e,
-      stackTrace: st
+      LogService.instance.error(
+        'journal.load_failed',
+        error: e,
+        stackTrace: st,
       );
       state = state.copyWith(
         loading: false,
@@ -103,26 +118,20 @@ class JournalController extends Notifier<JournalState> {
       final entry = await service.getEntryById(id, decrypt: true);
 
       if (entry == null) {
-        state = state.copyWith(
-          loading: false,
-          error: 'Entrada no encontrada',
-        );
+        state = state.copyWith(loading: false, error: 'Entrada no encontrada');
         return null;
       }
 
       final model = JournalEntryModel.fromMap(entry);
 
-      state = state.copyWith(
-        currentEntry: model,
-        loading: false,
-        error: null,
-      );
+      state = state.copyWith(currentEntry: model, loading: false, error: null);
 
       return model;
     } catch (e, st) {
-      LogService.instance.error('journal.load_by_id_failed',
-      error: e,
-      stackTrace: st
+      LogService.instance.error(
+        'journal.load_by_id_failed',
+        error: e,
+        stackTrace: st,
       );
       state = state.copyWith(
         loading: false,
@@ -159,9 +168,10 @@ class JournalController extends Notifier<JournalState> {
       await loadEntries();
       return true;
     } catch (e, st) {
-      LogService.instance.error('journal.update_failed',
-      error: e,
-      stackTrace: st
+      LogService.instance.error(
+        'journal.update_failed',
+        error: e,
+        stackTrace: st,
       );
       state = state.copyWith(
         saving: false,
@@ -180,20 +190,16 @@ class JournalController extends Notifier<JournalState> {
     try {
       await service.deleteEntry(entryId);
 
-      final updated =
-          state.entries.where((e) => e.id != entryId).toList();
+      final updated = state.entries.where((e) => e.id != entryId).toList();
 
-      state = state.copyWith(
-        entries: updated,
-        saving: false,
-        error: null,
-      );
+      state = state.copyWith(entries: updated, saving: false, error: null);
 
       return true;
     } catch (e, st) {
-      LogService.instance.error('journal.delete_failed',
-      error: e,
-      stackTrace: st
+      LogService.instance.error(
+        'journal.delete_failed',
+        error: e,
+        stackTrace: st,
       );
       state = state.copyWith(
         saving: false,
@@ -215,7 +221,6 @@ class JournalController extends Notifier<JournalState> {
   }
 }
 
-
 /// =========================
 /// PROVIDERS
 /// =========================
@@ -225,9 +230,4 @@ final journalServiceProvider = Provider<JournalService>((ref) {
 });
 
 final journalControllerProvider =
-    NotifierProvider<JournalController, JournalState>(
-  JournalController.new,
-);
-
-
- 
+    NotifierProvider<JournalController, JournalState>(JournalController.new);
